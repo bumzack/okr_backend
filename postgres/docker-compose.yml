@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  db:
+    build:
+      context: ./Docker
+      dockerfile: db.Dockerfile
+    environment:
+      POSTGRES_USER: dummy
+      POSTGRES_PASSWORD: dummy
+    volumes:
+      - ./pgdata_dev:/var/lib/postgresql/data
+    ports:
+      - "54321:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.at
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - ./pgadmin-data:/var/lib/pgadmin
+
