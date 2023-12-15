@@ -1,12 +1,7 @@
--- CREATE USER  testinger;
+CREATE USER  dev;
 --
--- CREATE DATABASE     testinger;
--- -- CREATE SCHEMA       dev;
--- GRANT ALL PRIVILEGES ON DATABASE testinger TO testinger;
-
---grant usage on schema public to public;
---grant create on schema public to public;
-
+CREATE DATABASE     dev;
+GRANT ALL PRIVILEGES ON DATABASE dev TO dev;
 
 CREATE TABLE images (
     id  serial PRIMARY KEY,
@@ -22,6 +17,7 @@ CREATE TABLE  articles (
 );
 
 CREATE TABLE  art2img (
+    id  serial   NOT NULL,
     article_id  INTEGER  NOT NULL,
     image_id  INTEGER  NOT NULL,
     PRIMARY KEY (article_id, image_id),

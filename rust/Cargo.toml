@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "common",
+    "create_dummy_db",
+    "read_from_db"
+]

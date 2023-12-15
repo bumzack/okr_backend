@@ -14,11 +14,16 @@ Cargo.lock
 *.pdb
 
 
-create_dummy_db/target
+rust/create_dummy_db/target
 
 
 postgres/pgadmin-data
 postgres/pgdata_dev
+
+rust/create_dummy_db/images/png/*.png
+rust/create_dummy_db/images/svg/*.svg
+rust/read_from_db/images/*.png
+
 
 .idea
 
