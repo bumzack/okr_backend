@@ -28,3 +28,7 @@ rust/read_from_db/images/*.png
 .idea
 
 
+*.png
+build/
+.gradle
+

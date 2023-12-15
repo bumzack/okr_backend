@@ -11,7 +11,7 @@ CREATE TABLE images (
 
 CREATE TABLE  articles (
     id  serial PRIMARY KEY,
-    article_code  VARCHAR(255) NOT NULL,
+    code  VARCHAR(255) NOT NULL,
     title  VARCHAR(255) NOT NULL,
     description  VARCHAR(255) NOT NULL
 );
