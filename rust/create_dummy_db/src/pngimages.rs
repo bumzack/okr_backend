@@ -118,14 +118,30 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
     wand.read_image(&input).expect("should find it");
     wand.fit(w, h);
     let output = format!("{}/images/png/{}.png", path, filename);
-    info!(
-        "path {}          input {}            output {}",
-        path, input, output
-    );
+    info!("path {}    input {}   output {}", path, input, output);
     let x = wand.write_image(&output);
-
     match x {
         Ok(()) => println!("file save ok "),
         Err(e) => println!("file save crashed  {}", e),
     }
+
+    // let img = image::io::Reader::open(output).expect("should be able to read the PNG using image");
+    let img = image::open(&output)
+        .expect("should be able to read the PNG using image")
+        .into_rgb8();
+
+    println!("dimensions {:?}", img.dimensions());
+    // println!("{:?}", img.);
+
+    // let output = format!("{}/images/png/{}_new.png", path, filename);
+
+    image::save_buffer_with_format(
+        &output,
+        &*img.into_raw(),
+        w as u32,
+        h as u32,
+        image::ColorType::Rgb8,
+        image::ImageFormat::Png,
+    )
+    .expect("saving as RGB works");
 }

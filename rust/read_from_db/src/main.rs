@@ -1,8 +1,8 @@
 use std::fs;
 use std::io::Write;
 
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
 use tokio_postgres::Error;

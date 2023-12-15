@@ -16,10 +16,7 @@ pub async fn insert_image(pool: &Pool, new_image: &NewImage) -> Result<Image, Er
         .query_one(query.as_str(), &[&new_image.filename, &new_image.img_data])
         .await;
 
-    // info!("returned  {:?}", row);
     let img = Image::from(&row.unwrap());
-    // info!("returned  img {:?}", &img);
-
     Ok(img)
 }
 
@@ -31,12 +28,11 @@ pub async fn read_images(pool: &Pool, image_ids: &[i32]) -> Result<Vec<Image>, E
 
     let id_list = params.join(", ");
 
+    // boy oh boy :-(
     let query = format!(
         "SELECT * FROM  {}  WHERE id IN ( {} )  ",
         TABLE_IMAGES, id_list
     );
-    // let query = format!("SELECT * FROM  {}  WHERE id = 1  ", TABLE_IMAGES);
-    println!("query   {}", query);
 
     let row = pool
         .get()
@@ -46,20 +42,6 @@ pub async fn read_images(pool: &Pool, image_ids: &[i32]) -> Result<Vec<Image>, E
         .await
         .expect("should read a lot of image entries");
 
-    println!("================================================================================================");
-    println!("================================================================================================");
-    row.iter().for_each(|r| println!("row   {:?}", r));
-    println!("================================================================================================");
-    println!("================================================================================================");
-
     let images: Vec<Image> = row.iter().map(Image::from).collect();
-    println!("================================================================================================");
-    println!("================================================================================================");
-    images
-        .iter()
-        .for_each(|img| println!("img code    {:?}, img filename {}", img.id, img.filename));
-    println!("================================================================================================");
-    println!("================================================================================================");
-
     Ok(images)
 }

@@ -1,20 +1,21 @@
 use tokio_postgres::Row;
 
-pub const TABLE_ARTICLES: &'static str = "articles";
-pub const TABLE_IMAGES: &'static str = "images";
-pub const TABLE_ART2IMG: &'static str = "art2img";
+pub const TABLE_ARTICLES: &str = "articles";
+pub const TABLE_IMAGES: &str = "images";
+pub const TABLE_ART2IMG: &str = "art2img";
+pub const TABLE_RESOLUTION: &str = "resolutions";
 
 #[derive(Debug)]
 pub struct Article {
     pub id: i32,
-    article_code: String,
-    title: String,
-    description: String,
+    pub code: String,
+    pub title: String,
+    pub description: String,
 }
 
 #[derive(Debug)]
 pub struct NewArticle {
-    pub article_code: String,
+    pub code: String,
     pub title: String,
     pub description: String,
 }
@@ -23,7 +24,7 @@ impl From<&Row> for Article {
     fn from(value: &Row) -> Self {
         Article {
             id: value.get("id"),
-            article_code: value.get("article_code"),
+            code: value.get("code"),
             title: value.get("title"),
             description: value.get("description"),
         }
@@ -72,6 +73,26 @@ impl From<&Row> for Art2Img {
             id: value.get("id"),
             article_id: value.get("article_id"),
             image_id: value.get("image_id"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct NewResolution {
+    pub resolution: String,
+}
+
+#[derive(Debug)]
+pub struct Resolution {
+    pub id: i32,
+    pub resolution: String,
+}
+
+impl From<&Row> for Resolution {
+    fn from(value: &Row) -> Self {
+        Resolution {
+            id: value.get("id"),
+            resolution: value.get("resolution"),
         }
     }
 }

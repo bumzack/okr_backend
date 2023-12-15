@@ -21,7 +21,7 @@ public class Art2Img {
     private Long articleId;
 
     @Column(name = "image_id")
-    private Long  imageId;
+    private Long imageId;
 
     public Art2Img() {
     }

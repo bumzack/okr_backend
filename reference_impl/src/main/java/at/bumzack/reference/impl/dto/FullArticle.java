@@ -8,7 +8,7 @@ public class FullArticle {
     private String code;
     private String title;
     private String description;
-   private List<MyImage> myImages;
+    private List<FullImage> images;
 
     public FullArticle() {
     }
@@ -45,11 +45,12 @@ public class FullArticle {
         this.description = description;
     }
 
-    public List<MyImage> getImages() {
-        return myImages;
+
+    public List<FullImage> getImages() {
+        return images;
     }
 
-    public void setImages(final List<MyImage> myImages) {
-        this.myImages = myImages;
+    public void setImages(final List<FullImage> images) {
+        this.images = images;
     }
 }

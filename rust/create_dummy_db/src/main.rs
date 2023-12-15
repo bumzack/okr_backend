@@ -10,40 +10,116 @@ use tokio_postgres::Error;
 use common::db_art2img::insert_art2img;
 use common::db_articles::insert_article;
 use common::db_image::insert_image;
-use common::models::{NewArt2Img, NewArticle, NewImage};
-use common::utils::{create_pool, dump_tables};
+use common::db_resolution::insert_resolution;
+use common::models::{NewArt2Img, NewArticle, NewImage, NewResolution};
+use common::utils::create_pool;
 
 use crate::pngimages::create_image;
 
 mod pngimages;
 
-#[tokio::main] // By default, tokio_postgres uses the tokio crate as its runtime.
+#[tokio::main]
 async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
-    insert_data().await?;
+    // insert_dev_data().await?;
+    // dump_tables("dev".into()).await?;
 
-    dump_tables().await?;
+    insert_prod_data().await?;
+
     Ok(())
 }
 
-async fn insert_data() -> Result<(), Error> {
+async fn insert_dev_data() -> Result<(), Error> {
+    let resolutions = vec![
+        NewResolution {
+            resolution: "64x64".to_string(),
+        },
+        NewResolution {
+            resolution: "256x256".to_string(),
+        },
+        NewResolution {
+            resolution: "320x240".to_string(),
+        },
+    ];
+    let id = "dev".to_string();
+    let cnt_articles = 5;
+    let min_cnt_images = 1;
+    let max_cnt_images = 3;
+    insert_data(
+        id.clone(),
+        cnt_articles,
+        min_cnt_images,
+        max_cnt_images,
+        resolutions,
+    )
+    .await?;
+    Ok(())
+}
+
+async fn insert_prod_data() -> Result<(), Error> {
+    let resolutions = vec![
+        NewResolution {
+            resolution: "64x64".to_string(),
+        },
+        NewResolution {
+            resolution: "256x256".to_string(),
+        },
+        NewResolution {
+            resolution: "320x240".to_string(),
+        },
+        NewResolution {
+            resolution: "640x480".to_string(),
+        },
+        NewResolution {
+            resolution: "1280x720".to_string(),
+        },
+        NewResolution {
+            resolution: "1920x1200".to_string(),
+        },
+        NewResolution {
+            resolution: "3840x2160".to_string(),
+        },
+        NewResolution {
+            resolution: "7680x4320".to_string(),
+        },
+    ];
+
+    let id = "prod".to_string();
+    let cnt_articles = 1_000;
+    let min_cnt_images = 2;
+    let max_cnt_images = 10;
+    insert_data(
+        id.clone(),
+        cnt_articles,
+        min_cnt_images,
+        max_cnt_images,
+        resolutions,
+    )
+    .await?;
+    Ok(())
+}
+
+async fn insert_data(
+    id: String,
+    cnt_articles: usize,
+    min_cnt_images: usize,
+    max_cnt_images: usize,
+    resolutions: Vec<NewResolution>,
+) -> Result<(), Error> {
     let mut rng = thread_rng();
 
     let path = env!("CARGO_MANIFEST_DIR");
-
-    let cnt_articles = 10;
-    let min_cnt_images = 3;
-    let max_cnt_images = 10;
 
     let img_min_width = 1000;
     let img_max_width = 4096;
     let ratio = 16.0 / 9.0;
 
-    let pool = create_pool();
+    let pool = create_pool(id);
+
     for art_idx in 0..cnt_articles {
         let new_article = NewArticle {
-            article_code: format!("{:010}", art_idx + 1),
+            code: format!("{:010}", art_idx + 1),
             title: format!("title for article code {:010}", art_idx + 1),
             description: format!(
                 "a long text description for the article with code {:010}",
@@ -103,5 +179,10 @@ async fn insert_data() -> Result<(), Error> {
             println!("new art2img inserted    {:?}", &art2img);
         }
     }
+
+    for r in &resolutions {
+        insert_resolution(&pool, r).await?;
+    }
+
     Ok(())
 }

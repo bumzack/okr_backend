@@ -3,19 +3,10 @@ use deadpool_postgres::{Manager, ManagerConfig, RecyclingMethod};
 use log::info;
 use tokio_postgres::{Client, Error, NoTls};
 
-use crate::models::{Art2Img, Article, Image};
+use crate::models::{Art2Img, Article, Image, Resolution};
 
-pub async fn dump_tables() -> Result<(), Error> {
-    let client = create_connection().await?;
-
-    // Now we can execute a simple statement that just returns its parameter.
-    let rows = client.query("SELECT $1::TEXT", &[&"hello world"]).await?;
-
-    // And then check that we got back the same string we sent over.
-    let value: &str = rows[0].get(0);
-    assert_eq!(value, "hello world");
-
-    println!("val {}", &value);
+pub async fn dump_tables(id: String) -> Result<(), Error> {
+    let client = create_connection(id).await?;
 
     let articles = client.query("SELECT * FROM articles", &[]).await?;
     articles.iter().for_each(|a| {
@@ -32,16 +23,22 @@ pub async fn dump_tables() -> Result<(), Error> {
     art2img.iter().for_each(|a| {
         println!("art2img {:?}", Art2Img::from(a));
     });
+
+    let resolutions = client.query("SELECT * FROM resolutions", &[]).await?;
+    resolutions.iter().for_each(|a| {
+        println!("resolutions {:?}", Resolution::from(a));
+    });
+
     Ok(())
 }
 
-pub fn create_pool() -> Pool {
+pub fn create_pool(id: String) -> Pool {
     let mut pg_config = tokio_postgres::Config::new();
 
-    let user: String = "dev".into();
-    let password: String = "dev".into();
+    let user: String = id.clone();
+    let password: String = id.clone();
     let host: String = "localhost".into();
-    let dbname: String = "dev".into();
+    let dbname: String = id.clone();
     let port: u16 = 54321;
 
     info!("user {user}, password {password}, host {host}, dbname {dbname}");
@@ -57,11 +54,11 @@ pub fn create_pool() -> Pool {
     Pool::builder(mgr).max_size(16).build().unwrap()
 }
 
-pub fn get_db_config() -> deadpool_postgres::Config {
+pub fn get_db_config(id: String) -> deadpool_postgres::Config {
     let mut config = deadpool_postgres::Config::new();
-    config.user = Some("dev".into());
-    config.password = Some("dev".into());
-    config.dbname = Some("dev".into());
+    config.user = Some(id.clone());
+    config.password = Some(id.clone());
+    config.dbname = Some(id.clone());
     config.host = Some("localhost".into());
     config.port = Some(54321);
 
@@ -71,13 +68,15 @@ pub fn get_db_config() -> deadpool_postgres::Config {
     config
 }
 
-pub async fn create_connection() -> Result<Client, Error> {
-    // Connect to the database.
-    let (client, connection) = tokio_postgres::connect(
-        "host=localhost hostaddr=127.0.0.1 user=dev password=dev port=54321 dbname=dev",
-        NoTls,
-    )
-    .await?;
+pub async fn create_connection(id: String) -> Result<Client, Error> {
+    let config = format!(
+        "host=localhost hostaddr=127.0.0.1 user={} password={} port=54321 dbname={}",
+        id.clone(),
+        id.clone(),
+        id.clone()
+    );
+
+    let (client, connection) = tokio_postgres::connect(&config, NoTls).await?;
 
     tokio::spawn(async move {
         if let Err(e) = connection.await {

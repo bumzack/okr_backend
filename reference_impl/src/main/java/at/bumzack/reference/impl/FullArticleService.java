@@ -3,142 +3,155 @@ package at.bumzack.reference.impl;
 import at.bumzack.reference.impl.dto.Art2Img;
 import at.bumzack.reference.impl.dto.Article;
 import at.bumzack.reference.impl.dto.FullArticle;
+import at.bumzack.reference.impl.dto.FullImage;
 import at.bumzack.reference.impl.dto.MyImage;
+import at.bumzack.reference.impl.dto.Resolution;
 import at.bumzack.reference.impl.repository.Art2ImgRepository;
 import at.bumzack.reference.impl.repository.ArticleRepository;
 import at.bumzack.reference.impl.repository.ImageRepository;
+import at.bumzack.reference.impl.repository.ResolutionRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
+
+import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 
 
 @Component
 public class FullArticleService {
 
     private static final Logger LOG = LogManager.getLogger(FullArticleService.class);
-    public static final int IMAGE_TYPE = 5;
 
     private final ArticleRepository articleRepository;
     private final Art2ImgRepository art2ImgRepository;
     private final ImageRepository imageRepository;
+    private final ResolutionRepository resolutionRepository;
 
     public FullArticleService(final ArticleRepository articleRepository,
                               final Art2ImgRepository art2ImgRepository,
-                              final ImageRepository imageRepository) {
+                              final ImageRepository imageRepository, ResolutionRepository resolutionRepository) {
         this.articleRepository = articleRepository;
         this.art2ImgRepository = art2ImgRepository;
         this.imageRepository = imageRepository;
+        this.resolutionRepository = resolutionRepository;
     }
 
     public List<FullArticle> findAll() {
+        final var resolutions = resolutionRepository.findAll();
         final var articles = articleRepository.findAll();
 
         return articles.stream()
-                .map(this::findArticlesAndMapToFullArticle)
+                .map(a -> findArticlesAndMapToFullArticle(a, resolutions))
                 .toList();
     }
 
-    private FullArticle findArticlesAndMapToFullArticle(final Article a) {
-        final var imgIds = art2ImgRepository.findByArticleId(a.getId()).stream()
-                .limit(1)
+    private FullArticle findArticlesAndMapToFullArticle(final Article article, final List<Resolution> resolutions) {
+        final var imgIds = art2ImgRepository.findByArticleId(article.getId()).stream()
                 .map(Art2Img::getImageId)
                 .toList();
 
-        final var images = imageRepository.findByIdIn(imgIds);
+        final var images = imageRepository.findByIdIn(imgIds).stream()
+                .toList();
 
         final var resizedPngs = images.stream()
-                .map(this::resizeImage)
+                .flatMap(i -> Objects.requireNonNull(resizeImage(i, resolutions)).stream())
                 .filter(Objects::nonNull)
                 .toList();
 
         final var fullArticle = new FullArticle();
-        fullArticle.setId(a.getId());
-        fullArticle.setTitle(a.getTitle());
-        fullArticle.setDescription(a.getDescription());
+        fullArticle.setId(article.getId());
+        fullArticle.setTitle(article.getTitle());
+        fullArticle.setDescription(article.getDescription());
         fullArticle.setImages(resizedPngs);
 
         return fullArticle;
     }
 
-    private MyImage resizeImage(final MyImage i) {
-        LOG.info("========================================================================");
-        try {
-            final int scaledWidth = 800;
-            final int scaledHeight = 600;
+    private List<FullImage> resizeImage(final MyImage i, final List<Resolution> resolutions) {
+        final List<FullImage> res = new ArrayList<>();
+        final var tmp = resolutions.stream().map(r -> r.getResolution()).collect(Collectors.joining(" // "));
+        LOG.info("resolutions   {}", tmp);
 
-            final byte[] data = Base64.getDecoder().decode(i.getImage());
-            final var bis = new ByteArrayInputStream(data);
+        resolutions.forEach(resolution -> {
+            try {
+                final var widthHeight = StringUtils.split(resolution.getResolution(), "x");
+                // LOG.info("widthHeight   {}", widthHeight);
+                assert widthHeight != null;
+                final var w = widthHeight[0];
+                final var h = widthHeight[1];
+                LOG.info("widthHeight[0]   {}", widthHeight[0]);
+                LOG.info("widthHeight[1]   {}", widthHeight[1]);
 
-//            final BufferedImage bImage = ImageIO.read(bis);
-//            ImageIO.write(bImage, "png", new File("./file1.png"));
-//            final var output = resize(data, scaledWidth, scaledHeight);
-//           ImageIO.write(output, "png", new File("./resized.png"));
+                LOG.info("w   '{}'", w);
+                LOG.info("h   '{}'", h);
 
-            final var inputImage = ImageIO.read(bis);
-            LOG.info("inputIMage   width: {}, height {},   type  {}", inputImage.getWidth(), inputImage.getHeight(), inputImage.getType());
-            final var outputImage = new BufferedImage(scaledWidth, scaledHeight, IMAGE_TYPE);
-            LOG.info("outputImage   width: {}, height {},   type  {}", outputImage.getWidth(), outputImage.getHeight(), outputImage.getType());
-            final Image scaledImage = inputImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
-//            LOG.info("scaledImage   width: {}, height {},   type  {}", scaledImage.getWidth(), scaledImage.getHeight(), scaledImage.getType());
+                final Integer scaledWidth = Integer.valueOf(w);
+                final Integer scaledHeight = Integer.valueOf(h);
 
-            if (outputImage.getGraphics().drawImage(scaledImage, 0, 0, null)) {
-                final var bufferedImage = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
-                LOG.info("bufferedImage   width: {}, height {},   type  {}", bufferedImage.getWidth(), bufferedImage.getHeight(), bufferedImage.getType());
-
-                final var byteArrayOutputStream = new ByteArrayOutputStream();
+                LOG.info("scaledWidth       {}", scaledWidth);
+                LOG.info("scaledHeight      {}", scaledHeight);
 
                 final Random r = new Random();
-                final String filename = "./resized " + r.nextInt() + ".png";
+                final int i1 = r.nextInt();
+                // final var filename = "./file_" + i1 + ".png";
 
-                ImageIO.write(bufferedImage, "png", new File(filename));
-                final var bytes = byteArrayOutputStream.toByteArray();
+                final byte[] data = Base64.getDecoder().decode(i.getImage());
+                // final var bis = new ByteArrayInputStream(data);
 
-                ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-                LOG.info("bufferedImage  after ImageIO.write   width: {}, height {},   type  {}", bufferedImage.getWidth(), bufferedImage.getHeight(), bufferedImage.getType());
+                // final BufferedImage bImage = ImageIO.read(bis);
+                // ImageIO.write(bImage, "png", new File(filename));
 
+                final var output = resize(data, scaledWidth, scaledHeight);
+
+                final var os = new ByteArrayOutputStream();
+                ImageIO.write(output, "png", os);
+
+                final var bytes = os.toByteArray();
                 final var im = Base64.getEncoder().encodeToString(bytes);
-                final var finalImage = new MyImage();
-                finalImage.setId(i.getId());
+
+                final var finalImage = new FullImage();
                 finalImage.setCode(i.getCode());
                 finalImage.setFilename(i.getFilename());
                 finalImage.setImage(im);
-                LOG.info("========================================================================");
+                finalImage.setResolution(resolution.getResolution());
 
-                return finalImage;
+                res.add(finalImage);
+            } catch (final Exception e) {
+                LOG.error("error while resizing the image {}", e.getMessage());
+                LOG.error(e);
             }
-            LOG.error("cant drawImage   ");
-            return null;
-        } catch (final Exception e) {
-            LOG.error("error while resizing the image {}", e.getMessage());
-            LOG.error(e);
-        }
-        return null;
+        });
+
+        return res;
     }
 
-//    public  BufferedImage resize(final  byte[] data,  int scaledWidth, int scaledHeight) throws IOException {
-//        // reads input image
-//        final var bis = new ByteArrayInputStream(data);
-//        final BufferedImage bImage = ImageIO.read(bis);
-//
-//        // creates output image
-//        final BufferedImage outputImage = new BufferedImage(scaledWidth, scaledHeight, IMAGE_TYPE);
-//
-//        // scales the input image to the output image
-//        final Graphics2D g2d = outputImage.createGraphics();
-//        g2d.drawImage(bImage, 0, 0, scaledWidth, scaledHeight, null);
-//        g2d.dispose();
-//
-//        return outputImage;
-//    }
+    public BufferedImage resize(final byte[] data, int scaledWidth, int scaledHeight) throws IOException {
+        // reads input image
+        final var bis = new ByteArrayInputStream(data);
+        final BufferedImage bImage = ImageIO.read(bis);
+
+        // creates output image
+        final BufferedImage outputImage = new BufferedImage(scaledWidth, scaledHeight, TYPE_3BYTE_BGR);
+
+        // scales the input image to the output image
+        final Graphics2D g2d = outputImage.createGraphics();
+        g2d.drawImage(bImage, 0, 0, scaledWidth, scaledHeight, null);
+        g2d.dispose();
+
+        return outputImage;
+    }
 }

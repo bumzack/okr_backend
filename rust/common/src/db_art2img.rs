@@ -1,5 +1,4 @@
 use deadpool_postgres::Pool;
-use log::info;
 use tokio_postgres::Error;
 
 use crate::models::{Art2Img, NewArt2Img, TABLE_ART2IMG};
@@ -20,10 +19,7 @@ pub async fn insert_art2img(pool: &Pool, new_art2im: &NewArt2Img) -> Result<Art2
         )
         .await;
 
-    info!("returned  {:?}", row);
     let art2img = Art2Img::from(&row.unwrap());
-    info!("returned  art2img {:?}", &art2img);
-
     Ok(art2img)
 }
 
@@ -45,7 +41,7 @@ pub async fn read_art2img(pool: &Pool, aritcle_id: i32) -> Result<Vec<Art2Img>, 
         .expect("should read a lot of art2img entries");
 
     let art2imgs: Vec<Art2Img> = row.iter()
-        .map(|art2img| Art2Img::from(art2img))
+        .map(Art2Img::from)
         .collect();
 
     Ok(art2imgs)
