@@ -7,7 +7,7 @@ pub const TABLE_RESOLUTION: &str = "resolutions";
 
 #[derive(Debug)]
 pub struct Article {
-    pub id: i32,
+    pub id: i64,
     pub code: String,
     pub title: String,
     pub description: String,
@@ -39,7 +39,7 @@ pub struct NewImage {
 
 #[derive(Debug)]
 pub struct Image {
-    pub id: i32,
+    pub id: i64,
     pub filename: String,
     pub img_data: String,
 }
@@ -62,9 +62,9 @@ pub struct NewArt2Img {
 
 #[derive(Debug)]
 pub struct Art2Img {
-    pub id: i32,
-    pub article_id: i32,
-    pub image_id: i32,
+    pub id: i64,
+    pub article_id: i64,
+    pub image_id: i64,
 }
 
 impl From<&Row> for Art2Img {
@@ -84,7 +84,7 @@ pub struct NewResolution {
 
 #[derive(Debug)]
 pub struct Resolution {
-    pub id: i32,
+    pub id: i64,
     pub resolution: String,
 }
 

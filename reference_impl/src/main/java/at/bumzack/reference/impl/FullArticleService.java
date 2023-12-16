@@ -73,7 +73,6 @@ public class FullArticleService {
                 .toList();
 
         final var fullArticle = new FullArticle();
-        fullArticle.setId(article.getId());
         fullArticle.setTitle(article.getTitle());
         fullArticle.setDescription(article.getDescription());
         fullArticle.setImages(resizedPngs);
@@ -83,8 +82,8 @@ public class FullArticleService {
 
     private List<FullImage> resizeImage(final MyImage i, final List<Resolution> resolutions) {
         final List<FullImage> res = new ArrayList<>();
-        final var tmp = resolutions.stream().map(r -> r.getResolution()).collect(Collectors.joining(" // "));
-        LOG.info("resolutions   {}", tmp);
+        // final var tmp = resolutions.stream().map(r -> r.getResolution()).collect(Collectors.joining(" // "));
+       // LOG.info("resolutions   {}", tmp);
 
         resolutions.forEach(resolution -> {
             try {
@@ -93,17 +92,17 @@ public class FullArticleService {
                 assert widthHeight != null;
                 final var w = widthHeight[0];
                 final var h = widthHeight[1];
-                LOG.info("widthHeight[0]   {}", widthHeight[0]);
-                LOG.info("widthHeight[1]   {}", widthHeight[1]);
+//                LOG.info("widthHeight[0]   {}", widthHeight[0]);
+//                LOG.info("widthHeight[1]   {}", widthHeight[1]);
+//
+//                LOG.info("w   '{}'", w);
+//                LOG.info("h   '{}'", h);
 
-                LOG.info("w   '{}'", w);
-                LOG.info("h   '{}'", h);
+                final int scaledWidth = Integer.parseInt(w);
+                final int scaledHeight = Integer.parseInt(h);
 
-                final Integer scaledWidth = Integer.valueOf(w);
-                final Integer scaledHeight = Integer.valueOf(h);
-
-                LOG.info("scaledWidth       {}", scaledWidth);
-                LOG.info("scaledHeight      {}", scaledHeight);
+//                LOG.info("scaledWidth       {}", scaledWidth);
+//                LOG.info("scaledHeight      {}", scaledHeight);
 
                 final Random r = new Random();
                 final int i1 = r.nextInt();

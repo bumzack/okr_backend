@@ -17,7 +17,7 @@ async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
     let path = env!("CARGO_MANIFEST_DIR");
-    let pool = create_pool();
+    let pool = create_pool("dev".into());
     let articles = read_articles(&pool).await?;
 
     for a in articles.iter() {

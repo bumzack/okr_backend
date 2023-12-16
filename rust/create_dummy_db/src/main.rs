@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use tokio_postgres::Error;
 
 use common::db_art2img::insert_art2img;
@@ -53,7 +53,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -96,7 +96,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 

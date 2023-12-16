@@ -26,7 +26,7 @@ pub async fn insert_resolution(
     Ok(a)
 }
 
-pub async fn read_articles(pool: &Pool) -> Result<Vec<Resolution>, Error> {
+pub async fn read_resolutions(pool: &Pool) -> Result<Vec<Resolution>, Error> {
     let query = format!("SELECT * FROM  {} ", TABLE_RESOLUTION);
 
     let rows = pool

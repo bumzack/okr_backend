@@ -4,21 +4,12 @@ import java.util.List;
 
 
 public class FullArticle {
-    private long id;
     private String code;
     private String title;
     private String description;
     private List<FullImage> images;
 
     public FullArticle() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(final long id) {
-        this.id = id;
     }
 
     public String getCode() {

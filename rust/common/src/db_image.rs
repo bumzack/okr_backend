@@ -20,7 +20,7 @@ pub async fn insert_image(pool: &Pool, new_image: &NewImage) -> Result<Image, Er
     Ok(img)
 }
 
-pub async fn read_images(pool: &Pool, image_ids: &[i32]) -> Result<Vec<Image>, Error> {
+pub async fn read_images(pool: &Pool, image_ids: &[i64]) -> Result<Vec<Image>, Error> {
     let mut params = vec![];
     image_ids.iter().for_each(|id| {
         params.push(format!("{}", id));

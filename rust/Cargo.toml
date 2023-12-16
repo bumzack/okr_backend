@@ -3,5 +3,8 @@
 members = [
     "common",
     "create_dummy_db",
-    "read_from_db"
+    "read_from_db",
+    "warp_single_threaded",
+    "warp_multi_threaded",
+    "warp_with_rayon"
 ]

@@ -4,7 +4,7 @@ use log::info;
 use magick_rust::{magick_wand_genesis, MagickWand};
 use rand::prelude::ThreadRng;
 use rand::Rng;
-use svg::{node, Document};
+use svg::{Document, node};
 
 static START: Once = Once::new();
 
@@ -143,5 +143,5 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-    .expect("saving as RGB works");
+        .expect("saving as RGB works");
 }
