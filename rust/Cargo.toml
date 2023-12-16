@@ -6,5 +6,7 @@ members = [
     "read_from_db",
     "warp_single_threaded",
     "warp_multi_threaded",
-    "warp_with_rayon"
+    "warp_with_rayon",
+    "frontend",
+    "commonbefe"
 ]

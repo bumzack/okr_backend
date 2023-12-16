@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "art2img")
-public class Art2Img {
+public class Art2ImgModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -23,7 +23,7 @@ public class Art2Img {
     @Column(name = "image_id")
     private Long imageId;
 
-    public Art2Img() {
+    public Art2ImgModel() {
     }
 
     public long getId() {

@@ -1,5 +1,7 @@
 use std::convert::Infallible;
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::sync::mpsc;
+use std::thread;
 
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -59,6 +61,26 @@ pub fn price_route(pool: Pool) -> impl Filter<Extract = (impl Reply,), Error = R
 pub async fn read_price_entry(pool: Pool) -> Result<impl Reply, Rejection> {
     let resolutions = read_resolutions(&pool).await.expect("read resolutions");
     let articles = read_articles(&pool).await.expect("read articles");
+
+    let cores = num_cpus::get();
+
+    let (tx, rx) = mpsc::channel();
+
+    for i in 0..cores {
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("hi"),
+                String::from("from"),
+                String::from("the"),
+                String::from("thread"),
+            ];
+
+            for val in vals {
+                tx1.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+    }
 
     let mut res: Vec<FullImage> = vec![];
     for article in &articles {

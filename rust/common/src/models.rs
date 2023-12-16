@@ -56,8 +56,8 @@ impl From<&Row> for Image {
 
 #[derive(Debug)]
 pub struct NewArt2Img {
-    pub article_id: i32,
-    pub image_id: i32,
+    pub article_id: i64,
+    pub image_id: i64,
 }
 
 #[derive(Debug)]

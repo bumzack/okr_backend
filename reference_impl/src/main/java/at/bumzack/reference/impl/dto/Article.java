@@ -1,36 +1,15 @@
 package at.bumzack.reference.impl.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.util.List;
 
-@Entity
-@Table(name = "articles")
+
 public class Article {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-
     private String code;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "title")
     private String title;
+    private String description;
+    private List<Image> images;
 
     public Article() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(final long id) {
-        this.id = id;
     }
 
     public String getCode() {
@@ -41,6 +20,14 @@ public class Article {
         this.code = code;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -49,11 +36,12 @@ public class Article {
         this.description = description;
     }
 
-    public String getTitle() {
-        return title;
+
+    public List<Image> getImages() {
+        return images;
     }
 
-    public void setTitle(final String title) {
-        this.title = title;
+    public void setImages(final List<Image> images) {
+        this.images = images;
     }
 }

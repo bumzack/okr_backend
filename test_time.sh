@@ -32,3 +32,7 @@ echo "========================================================="
 curl  -w "@curl-format.txt" -s  -o /dev/null  http://localhost:2347/api/articles
 
 
+
+curl  -w "@curl-format.txt" -s  -o /dev/null  http://localhost:2323/api/articles/0/3
+
+

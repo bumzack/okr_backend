@@ -1,21 +1,20 @@
 use std::sync::Once;
 
-use log::info;
 use magick_rust::{magick_wand_genesis, MagickWand};
 use rand::prelude::ThreadRng;
 use rand::Rng;
-use svg::{Document, node};
+use svg::{node, Document};
 
 static START: Once = Once::new();
 
 pub fn create_image(
     w: usize,
     h: usize,
-    article_idx: usize,
     image_idx: usize,
     image_cnt: usize,
     filename: &String,
     rng: &mut ThreadRng,
+    article_code: String,
 ) {
     let cx = rng.gen_range(30..w / 2);
     let cy = rng.gen_range(30..h / 2);
@@ -84,8 +83,8 @@ pub fn create_image(
         );
 
     let t = node::Text::new(format!(
-        "article_{:010}_{:02}_{:02}",
-        article_idx + 1,
+        "img_{}_{:02}_{:02}",
+        article_code,
         image_idx + 1,
         image_cnt
     ));
@@ -102,7 +101,7 @@ pub fn create_image(
 
     let path = env!("CARGO_MANIFEST_DIR");
     let full_path = format!("{}/images/svg/{}.svg", path, filename);
-    info!("path {}          full_path {}", path, full_path);
+    //  info!("path {}          full_path {}", path, full_path);
     svg::save(full_path, &document).unwrap();
     convert_to_png(filename, w, h);
 }
@@ -113,15 +112,15 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
     });
     let path = env!("CARGO_MANIFEST_DIR");
     let input = format!("{}/images/svg/{}.svg", path, filename);
-    info!("path {}          input {}", path, input);
+    //     info!("path {}          input {}", path, input);
     let wand = MagickWand::new();
     wand.read_image(&input).expect("should find it");
     wand.fit(w, h);
     let output = format!("{}/images/png/{}.png", path, filename);
-    info!("path {}    input {}   output {}", path, input, output);
+    //  info!("path {}    input {}   output {}", path, input, output);
     let x = wand.write_image(&output);
     match x {
-        Ok(()) => println!("file save ok "),
+        Ok(()) => {}
         Err(e) => println!("file save crashed  {}", e),
     }
 
@@ -130,18 +129,18 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
         .expect("should be able to read the PNG using image")
         .into_rgb8();
 
-    println!("dimensions {:?}", img.dimensions());
+    // println!("dimensions {:?}", img.dimensions());
     // println!("{:?}", img.);
 
     // let output = format!("{}/images/png/{}_new.png", path, filename);
 
     image::save_buffer_with_format(
         &output,
-        &*img.into_raw(),
+        &img.into_raw(),
         w as u32,
         h as u32,
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-        .expect("saving as RGB works");
+    .expect("saving as RGB works");
 }

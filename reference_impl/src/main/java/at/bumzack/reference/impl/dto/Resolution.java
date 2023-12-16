@@ -1,20 +1,20 @@
 package at.bumzack.reference.impl.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "resolutions")
 public class Resolution {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    private String resolution;
+    private String name;
+    private int width;
+    private int height;
+    private boolean original;
 
+    public boolean isOriginal() {
+        return original;
+    }
+
+    public void setOriginal(final boolean original) {
+        this.original = original;
+    }
 
     public Resolution() {
     }
@@ -27,11 +27,27 @@ public class Resolution {
         this.id = id;
     }
 
-    public String getResolution() {
-        return resolution;
+    public String getName() {
+        return name;
     }
 
-    public void setResolution(final String resolution) {
-        this.resolution = resolution;
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(final int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(final int height) {
+        this.height = height;
     }
 }

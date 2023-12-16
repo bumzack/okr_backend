@@ -1,13 +1,14 @@
 package at.bumzack.reference.impl.dto;
 
-public class FullImage {
+public class Image {
 
     private String code;
     private String filename;
     private String image;
     private String resolution;
 
-    public FullImage() {
+
+    public Image() {
     }
 
     public String getCode() {
