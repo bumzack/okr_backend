@@ -1,10 +1,11 @@
 use std::io::Cursor;
+use std::time::Instant;
 
-use base64::Engine;
 use base64::engine::general_purpose;
+use base64::Engine;
 use deadpool_postgres::Pool;
-use image::{ImageFormat, ImageOutputFormat};
 use image::imageops::FilterType;
+use image::{ImageFormat, ImageOutputFormat};
 use log::info;
 use warp::{Filter, Rejection, Reply};
 
@@ -20,7 +21,7 @@ use crate::utils::get_sorted_resolutions;
 
 pub fn article_routes_single(
     pool: Pool,
-) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
+) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     let server1 = warp::path!("singlethreaded" / "api" / "articles");
     let find_all_single = server1
         .and(with_db(pool.clone()))
@@ -30,7 +31,7 @@ pub fn article_routes_single(
             find_all_singlethreaded_single(pool)
         });
 
-    let server1 = warp::path!("singlethreaded" /"api" / "articles" / u32 / u32);
+    let server1 = warp::path!("singlethreaded" / "api" / "articles" / u32 / u32);
     let find_paginated_single = server1
         .and(warp::get())
         .and(with_db(pool.clone()))
@@ -39,8 +40,7 @@ pub fn article_routes_single(
             find_paginated_single(pool, page_number, page_size)
         });
 
-    find_all_single
-        .or(find_paginated_single)
+    find_all_single.or(find_paginated_single)
 }
 
 pub async fn find_all_singlethreaded_single(pool: Pool) -> Result<impl Reply, Rejection> {
@@ -90,11 +90,15 @@ pub async fn find_paginated_single(
     page_number: u32,
     page_size: u32,
 ) -> Result<impl Reply, Rejection> {
+    let start = Instant::now();
     let resolutions =
         get_sorted_resolutions(read_resolutions(&pool).await.expect("read resolutions"));
     let articles = read_articles_paginated(&pool, page_number, page_size)
         .await
         .expect("read articles");
+
+    let dur = start.elapsed().as_millis();
+    info!("find_paginated_single took  {} ms", dur);
 
     let response = resize_all_images_single(pool.clone(), articles, resolutions).await?;
 

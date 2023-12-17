@@ -1,9 +1,8 @@
 use std::io::Cursor;
-use std::thread;
 
 use base64::engine::general_purpose;
 use base64::Engine;
-use crossbeam_channel::unbounded;
+use crossbeam_channel::bounded;
 use deadpool_postgres::Pool;
 use image::imageops::FilterType;
 use image::{ImageFormat, ImageOutputFormat};
@@ -16,7 +15,7 @@ use common::db_articles::{read_articles, read_articles_paginated};
 use common::db_image::read_images;
 use common::db_resolution::read_resolutions;
 use common::models::{ArticleModel, ImageModel};
-use common::utils::{build_response_from_json, with_db};
+use common::utils::{build_response_from_json, create_pool, with_db};
 use commonbefe::models::{Article, Image, Resolution};
 
 use crate::utils::get_sorted_resolutions;
@@ -71,64 +70,64 @@ pub async fn find_paginated_multi(
 
 pub async fn resize_all_images_multi(
     pool: Pool,
-    articles: Vec<ArticleModel>,
+    raw_articles: Vec<ArticleModel>,
     resolutions: Vec<Resolution>,
 ) -> Result<impl Reply, Rejection> {
-    let mut full_articles: Vec<Article> = vec![];
-
     let cores = num_cpus::get();
 
-    let (s, r) = unbounded::<ArticleModel>();
-    let (tx, rx) = unbounded::<Article>();
+    let cnt_articles = raw_articles.len();
 
-    info!("total articles to process {}", articles.len());
-    for a in articles {
-        s.send(a).expect("sending should work");
+    let (sender, receiver) = bounded::<ArticleModel>(cnt_articles);
+    let (tx, rx) = bounded::<Article>(cnt_articles);
+
+    info!("total articles to process {}", raw_articles.len());
+    for a in raw_articles {
+        sender.send(a).expect("sending should work");
         info!("sending article ");
     }
 
-    let mut threads = vec![];
+    let (res, duration) = crossbeam::scope(|s| {
+        let start = Instant::now();
+        let mut threads = vec![];
 
-    for _ in 0..cores {
-        let r = r.clone();
-        let tx = tx.clone();
-        let pool = pool.clone();
-        let resolutions = resolutions.clone();
-        let t = thread::spawn(move || {
-            let id = thread::current().id();
-            let start = Instant::now();
-            info!("hi from thread {:?}", id);
-            let runtime = tokio::runtime::Runtime::new().expect("Unable to create a runtime");
+        for i in 0..cores {
+            let receiver = receiver.clone();
+            let tx = tx.clone();
+            let p = create_pool("dev".into());
+            let resolutions = resolutions.clone();
+            let worker = s.spawn(move |_| {
+                let id = i;
+                let start = Instant::now();
+                info!("worker_thread {:?} started", id);
+                let runtime = tokio::runtime::Runtime::new().expect("Unable to create a runtime");
+                let mut articles_processed = 0;
+                loop {
+                    if receiver.is_empty() {
+                        info!("receiver is empty     thread {}", id);
+                        break;
+                    }
+                    let finished = match receiver.recv() {
+                        Ok(article) => {
+                            info!(
+                                "thread {} received an raw article    {:?}",
+                                id, article.code
+                            );
+                            info!("got an article to process     in thread {:?}", id);
+                            let mut images_resized = vec![];
+                            for resolution in &resolutions {
+                                // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
+                                let art2imgs = runtime
+                                    .block_on(read_art2img(&p, article.id))
+                                    .expect("read art2imgs");
 
-            let mut articles_processed = 0;
+                                let imgids: Vec<i64> =
+                                    art2imgs.iter().map(|art2img| art2img.image_id).collect();
+                                let images = runtime
+                                    .block_on(read_images(&p, &imgids))
+                                    .expect("read images");
 
-            loop {
-                let a = r.recv();
-                info!(
-                    "got an article to process     in thread {:?}    a {:?}",
-                    id, &a
-                );
-
-                if a.is_err() {
-                    info!("no article  to process     in thread {:?}", id);
-                    break;
-                }
-                match a {
-                    Ok(article) => {
-                        info!("got an article to process     in thread {:?}", id);
-                        for resolution in &resolutions {
-                            // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
-                            let art2imgs = runtime
-                                .block_on(read_art2img(&pool, article.id))
-                                .expect("read art2imgs");
-
-                            let imgids: Vec<i64> =
-                                art2imgs.iter().map(|art2img| art2img.image_id).collect();
-                            let images = runtime
-                                .block_on(read_images(&pool, &imgids))
-                                .expect("read images");
-
-                            let images_resized = resize_multi(images, resolution);
+                                images_resized.append(&mut resize_multi(images, resolution));
+                            }
                             let full_article = Article {
                                 code: article.code.clone(),
                                 title: article.title.clone(),
@@ -136,50 +135,169 @@ pub async fn resize_all_images_multi(
                                 images: images_resized,
                             };
                             info!("sending an article      in thread {:?}", id);
+                            articles_processed += 1;
                             tx.send(full_article).expect("sending should work");
+                            false
                         }
-                        articles_processed += 1;
-                    }
-                    Err(e) => {
-                        info!(
-                            "no more articles to process for thread {:?},    e {:?}",
-                            id, e
-                        );
+
+                        Err(e) => {
+                            error!("last raw article received  {:?}", e);
+                            true
+                        }
+                    };
+                    if finished {
+                        info!("thread id {}.  break out of loop of raw articles ", id);
+                        break;
                     }
                 }
-            }
-            let duration = start.elapsed().as_millis();
 
-            (id, duration, articles_processed)
-        });
-        threads.push(t);
-    }
-    info!("after startiing all threads");
+                let duration = start.elapsed().as_millis();
+                info!("worker_thread {:?} finished", id);
 
-    for article in rx {
-        info!("Got: {:?}", article);
-        full_articles.push(article)
-    }
-
-    for t in threads {
-        let res = t.join();
-        match res {
-            Ok((id, duraiton, articles_processed)) => {
-                info!(
-                    "thread {:?} processed {}  articles and took {} ms ",
-                    id, articles_processed, duraiton
-                );
-            }
-            Err(e) => {
-                error!("error in thread while processeing articles {:?}", e);
-            }
+                (id, duration)
+            });
+            threads.push(worker);
         }
-    }
+        info!("after starting all threads");
 
-    let response = build_response_from_json(full_articles);
+        let mut articles = vec![];
 
+        for i in 0..cnt_articles {
+            match rx.recv() {
+                Ok(article) => {
+                    info!("received an finisehd  {} article   {:?}", i, article.code);
+                    articles.push(article);
+                }
+                Err(e) => {
+                    error!("last article received  {:?}", e);
+                }
+            };
+        }
+
+        info!("no more articles in rx");
+
+        for child in threads {
+            let (id, duration) = child.join().unwrap();
+            info!("worker thread {:?} finished. run for {} ms", id, duration);
+        }
+
+        info!("no more full articles to receive");
+
+        let duration = start.elapsed().as_millis();
+
+        (articles, duration)
+    })
+    .expect("TODO: something went wrong");
+
+    info!("PROCESSING is finished.   it took   {} ms ", duration);
+
+    let response = build_response_from_json(res);
     Ok(response)
 }
+
+// pub async fn resize_all_images_multi(
+//     pool: Pool,
+//     articles: Vec<ArticleModel>,
+//     resolutions: Vec<Resolution>,
+// ) -> Result<impl Reply, Rejection> {
+//     let mut threads = vec![];
+//
+//     for _ in 0..cores {
+//         let r = r.clone();
+//         let tx = tx.clone();
+//         let pool = pool.clone();
+//         let resolutions = resolutions.clone();
+//         let t = thread::spawn(move || {
+//             let id = thread::current().id();
+//             let start = Instant::now();
+//             info!("hi from thread {:?}", id);
+//             let runtime = tokio::runtime::Runtime::new().expect("Unable to create a runtime");
+//
+//             let mut articles_processed = 0;
+//
+//             let mut justdoit = true;
+//             while justdoit {
+//                 if r.is_empty() {
+//                     info!("r is empty      in thread {:?}   ", id);
+//                     justdoit = false;
+//                 }
+//                 let a = r.recv();
+//                 info!(
+//                     "got an article to process     in thread {:?}    a {:?}",
+//                     id, &a
+//                 );
+//
+//                 if a.is_err() {
+//                     info!("no article  to process     in thread {:?}", id);
+//                     break;
+//                 }
+//                 match a {
+//                     Ok(article) => {
+//                         info!("got an article to process     in thread {:?}", id);
+//                         for resolution in &resolutions {
+//                             // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
+//                             let art2imgs = runtime
+//                                 .block_on(read_art2img(&pool, article.id))
+//                                 .expect("read art2imgs");
+//
+//                             let imgids: Vec<i64> =
+//                                 art2imgs.iter().map(|art2img| art2img.image_id).collect();
+//                             let images = runtime
+//                                 .block_on(read_images(&pool, &imgids))
+//                                 .expect("read images");
+//
+//                             let images_resized = resize_multi(images, resolution);
+//                             let full_article = Article {
+//                                 code: article.code.clone(),
+//                                 title: article.title.clone(),
+//                                 description: article.description.clone(),
+//                                 images: images_resized,
+//                             };
+//                             info!("sending an article      in thread {:?}", id);
+//                             tx.send(full_article).expect("sending should work");
+//                         }
+//                         articles_processed += 1;
+//                     }
+//                     Err(e) => {
+//                         info!(
+//                             "no more articles to process for thread {:?},    e {:?}",
+//                             id, e
+//                         );
+//                     }
+//                 }
+//             }
+//             let duration = start.elapsed().as_millis();
+//
+//             (id, duration, articles_processed)
+//         });
+//         threads.push(t);
+//     }
+//     info!("after startiing all threads");
+//
+//     for article in rx {
+//         info!("Got: {:?}", article);
+//         full_articles.push(article)
+//     }
+//
+//     for t in threads {
+//         let res = t.join();
+//         match res {
+//             Ok((id, duraiton, articles_processed)) => {
+//                 info!(
+//                     "thread {:?} processed {}  articles and took {} ms ",
+//                     id, articles_processed, duraiton
+//                 );
+//             }
+//             Err(e) => {
+//                 error!("error in thread while processeing articles {:?}", e);
+//             }
+//         }
+//     }
+//
+//     let response = build_response_from_json(full_articles);
+//
+//     Ok(response)
+// }
 
 fn resize_multi(images: Vec<ImageModel>, resolution: &Resolution) -> Vec<Image> {
     let res_images: Vec<Image> = images

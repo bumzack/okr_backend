@@ -26,7 +26,7 @@ const API_ARTICLES_PAGINATED_RUST_MULTI: &str = "multithreaded/api/articles";
 const API_ARTICLES_PAGINATED_RUST_RAYON: &str = "multithreaded/api/articles";
 
 const PAGE_NUMBER: i32 = 0;
-const PAGE_SIZE: i32 = 1;
+const PAGE_SIZE: i32 = 5;
 
 async fn get_java_ref_impl() -> Result<Vec<Article>, reqwasm::Error> {
     console_log!("get_java_ref_impl");

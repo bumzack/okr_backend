@@ -15,6 +15,7 @@ mod rayon;
 mod single;
 mod utils;
 
+// #[tokio::main(worker_threads = 1)]
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();

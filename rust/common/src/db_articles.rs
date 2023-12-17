@@ -1,4 +1,5 @@
 use deadpool_postgres::Pool;
+use log::info;
 use tokio_postgres::Error;
 
 use crate::models::{ArticleModel, NewArticleModel, TABLE_ARTICLES};
@@ -24,11 +25,12 @@ pub async fn read_articles_paginated(
     page_number: u32,
     page_size: u32,
 ) -> Result<Vec<ArticleModel>, Error> {
-    let offset = (page_number + 1) * page_size;
+    let offset = (page_number) * page_size;
     let query = format!(
         "SELECT * FROM  {}  ORDER BY CODE ASC LIMIT {} OFFSET {}",
         TABLE_ARTICLES, page_size, offset
     );
+    info!("query  {}", &query);
 
     let rows = pool
         .get()
@@ -39,6 +41,7 @@ pub async fn read_articles_paginated(
         .expect("should read all articles");
 
     let articles: Vec<ArticleModel> = rows.iter().map(ArticleModel::from).collect();
+    info!("{} articles from  query  {}", articles.len(), &query);
 
     Ok(articles)
 }
