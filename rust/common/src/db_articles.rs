@@ -1,9 +1,52 @@
 use deadpool_postgres::Pool;
 use tokio_postgres::Error;
 
-use crate::models::{Article, NewArticle, TABLE_ARTICLES};
+use crate::models::{ArticleModel, NewArticleModel, TABLE_ARTICLES};
 
-pub async fn insert_article(pool: &Pool, new_article: &NewArticle) -> Result<Article, Error> {
+pub async fn read_articles(pool: &Pool) -> Result<Vec<ArticleModel>, Error> {
+    let query = format!("SELECT * FROM  {}  ORDER BY code ASC ", TABLE_ARTICLES);
+
+    let rows = pool
+        .get()
+        .await
+        .unwrap()
+        .query(query.as_str(), &[])
+        .await
+        .expect("should read all articles");
+
+    let articles: Vec<ArticleModel> = rows.iter().map(ArticleModel::from).collect();
+
+    Ok(articles)
+}
+
+pub async fn read_articles_paginated(
+    pool: &Pool,
+    page_number: u32,
+    page_size: u32,
+) -> Result<Vec<ArticleModel>, Error> {
+    let offset = (page_number + 1) * page_size;
+    let query = format!(
+        "SELECT * FROM  {}  ORDER BY CODE ASC LIMIT {} OFFSET {}",
+        TABLE_ARTICLES, page_size, offset
+    );
+
+    let rows = pool
+        .get()
+        .await
+        .unwrap()
+        .query(query.as_str(), &[])
+        .await
+        .expect("should read all articles");
+
+    let articles: Vec<ArticleModel> = rows.iter().map(ArticleModel::from).collect();
+
+    Ok(articles)
+}
+
+pub async fn insert_article(
+    pool: &Pool,
+    new_article: &NewArticleModel,
+) -> Result<ArticleModel, Error> {
     let query = format!(
         "INSERT INTO {}  (code, title, description) VALUES ($1, $2, $3) RETURNING *",
         TABLE_ARTICLES
@@ -23,22 +66,6 @@ pub async fn insert_article(pool: &Pool, new_article: &NewArticle) -> Result<Art
         )
         .await;
 
-    let a = Article::from(&row.unwrap());
+    let a = ArticleModel::from(&row.unwrap());
     Ok(a)
-}
-
-pub async fn read_articles(pool: &Pool) -> Result<Vec<Article>, Error> {
-    let query = format!("SELECT * FROM  {} ", TABLE_ARTICLES);
-
-    let rows = pool
-        .get()
-        .await
-        .unwrap()
-        .query(query.as_str(), &[])
-        .await
-        .expect("should read all articles");
-
-    let articles: Vec<Article> = rows.iter().map(Article::from).collect();
-
-    Ok(articles)
 }

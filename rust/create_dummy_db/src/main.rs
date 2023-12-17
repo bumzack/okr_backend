@@ -1,17 +1,17 @@
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use tokio_postgres::Error;
 
 use common::db_art2img::insert_art2img;
 use common::db_articles::insert_article;
 use common::db_image::insert_image;
 use common::db_resolution::insert_resolution;
-use common::models::{NewArt2Img, NewArticle, NewImage, NewResolution};
+use common::models::{NewArt2ImgModel, NewArticleModel, NewImageModel, NewResolutionModel};
 use common::utils::{create_pool, dump_tables};
 
 use crate::pngimages::create_image;
@@ -32,16 +32,16 @@ async fn main() -> Result<(), Error> {
 
 async fn insert_dev_data() -> Result<(), Error> {
     let resolutions = vec![
-        NewResolution {
+        NewResolutionModel {
             resolution: "256x256".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "320x240".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "original".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "64x64".to_string(),
         },
     ];
@@ -56,37 +56,37 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
 async fn insert_prod_data() -> Result<(), Error> {
     let resolutions = vec![
-        NewResolution {
+        NewResolutionModel {
             resolution: "1920x1200".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "64x64".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "640x480".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "original".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "1280x720".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "256x256".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "320x240".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "3840x2160".to_string(),
         },
-        NewResolution {
+        NewResolutionModel {
             resolution: "7680x4320".to_string(),
         },
     ];
@@ -102,7 +102,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -111,7 +111,7 @@ async fn insert_data(
     cnt_articles: usize,
     min_cnt_images: usize,
     max_cnt_images: usize,
-    resolutions: Vec<NewResolution>,
+    resolutions: Vec<NewResolutionModel>,
 ) -> Result<(), Error> {
     let mut rng = thread_rng();
 
@@ -127,7 +127,7 @@ async fn insert_data(
         let code = rng.gen_range(0..100_000_000);
         let article_code = format!("article_{:010}_{:010}", code, art_idx + 1);
         println!("art_idx {art_idx}   -->    code {article_code}");
-        let new_article = NewArticle {
+        let new_article = NewArticleModel {
             code: article_code.clone(),
             title: format!("title for article code {:010}", article_code.clone()),
             description: format!(
@@ -171,7 +171,7 @@ async fn insert_data(
 
             let encoded: String = general_purpose::STANDARD_NO_PAD.encode(buffer);
 
-            let new_image = NewImage {
+            let new_image = NewImageModel {
                 filename: format!(
                     "img_{}_{:02}_{:02}.png",
                     article_code,
@@ -183,7 +183,7 @@ async fn insert_data(
 
             let image = insert_image(&pool, &new_image).await?;
 
-            let new_art2img = NewArt2Img {
+            let new_art2img = NewArt2ImgModel {
                 article_id: article.id,
                 image_id: image.id,
             };

@@ -2,12 +2,12 @@ use deadpool_postgres::Pool;
 use log::info;
 use tokio_postgres::Error;
 
-use crate::models::{NewResolution, Resolution, TABLE_RESOLUTION};
+use crate::models::{NewResolutionModel, ResolutionModel, TABLE_RESOLUTION};
 
 pub async fn insert_resolution(
     pool: &Pool,
-    new_resolution: &NewResolution,
-) -> Result<Resolution, Error> {
+    new_resolution: &NewResolutionModel,
+) -> Result<ResolutionModel, Error> {
     let query = format!(
         "INSERT INTO {}  (resolution) VALUES ($1) RETURNING *",
         TABLE_RESOLUTION
@@ -20,13 +20,13 @@ pub async fn insert_resolution(
         .query_one(query.as_str(), &[&new_resolution.resolution])
         .await;
 
-    let a = Resolution::from(&row.unwrap());
+    let a = ResolutionModel::from(&row.unwrap());
     info!("returned  resolution {:?}", a);
 
     Ok(a)
 }
 
-pub async fn read_resolutions(pool: &Pool) -> Result<Vec<Resolution>, Error> {
+pub async fn read_resolutions(pool: &Pool) -> Result<Vec<ResolutionModel>, Error> {
     let query = format!("SELECT * FROM  {} ", TABLE_RESOLUTION);
 
     let rows = pool
@@ -37,6 +37,6 @@ pub async fn read_resolutions(pool: &Pool) -> Result<Vec<Resolution>, Error> {
         .await
         .expect("should read all articles");
 
-    let resolutions: Vec<Resolution> = rows.iter().map(Resolution::from).collect();
+    let resolutions: Vec<ResolutionModel> = rows.iter().map(ResolutionModel::from).collect();
     Ok(resolutions)
 }

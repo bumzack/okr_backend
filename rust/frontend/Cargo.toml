@@ -28,6 +28,8 @@ features = [
     "WebSocket",
     'Document',
     'Element',
-    'HtmlParagraphElement'
+    'HtmlParagraphElement',
+    'Window',
+    'Performance'
 ]
 

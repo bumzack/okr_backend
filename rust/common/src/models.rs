@@ -5,8 +5,8 @@ pub const TABLE_IMAGES: &str = "images";
 pub const TABLE_ART2IMG: &str = "art2img";
 pub const TABLE_RESOLUTION: &str = "resolutions";
 
-#[derive(Debug)]
-pub struct Article {
+#[derive(Debug, Clone)]
+pub struct ArticleModel {
     pub id: i64,
     pub code: String,
     pub title: String,
@@ -14,15 +14,52 @@ pub struct Article {
 }
 
 #[derive(Debug)]
-pub struct NewArticle {
+pub struct NewArticleModel {
     pub code: String,
     pub title: String,
     pub description: String,
 }
 
-impl From<&Row> for Article {
+#[derive(Debug)]
+pub struct NewImageModel {
+    pub filename: String,
+    pub img_data: String,
+}
+
+#[derive(Debug)]
+pub struct ImageModel {
+    pub id: i64,
+    pub filename: String,
+    pub img_data: String,
+}
+
+#[derive(Debug)]
+pub struct NewArt2ImgModel {
+    pub article_id: i64,
+    pub image_id: i64,
+}
+
+#[derive(Debug)]
+pub struct Art2ImgModel {
+    pub id: i64,
+    pub article_id: i64,
+    pub image_id: i64,
+}
+
+#[derive(Debug)]
+pub struct NewResolutionModel {
+    pub resolution: String,
+}
+
+#[derive(Debug)]
+pub struct ResolutionModel {
+    pub id: i64,
+    pub resolution: String,
+}
+
+impl From<&Row> for ArticleModel {
     fn from(value: &Row) -> Self {
-        Article {
+        ArticleModel {
             id: value.get("id"),
             code: value.get("code"),
             title: value.get("title"),
@@ -31,22 +68,9 @@ impl From<&Row> for Article {
     }
 }
 
-#[derive(Debug)]
-pub struct NewImage {
-    pub filename: String,
-    pub img_data: String,
-}
-
-#[derive(Debug)]
-pub struct Image {
-    pub id: i64,
-    pub filename: String,
-    pub img_data: String,
-}
-
-impl From<&Row> for Image {
+impl From<&Row> for ImageModel {
     fn from(value: &Row) -> Self {
-        Image {
+        ImageModel {
             id: value.get("id"),
             filename: value.get("filename"),
             img_data: value.get("image"),
@@ -54,22 +78,9 @@ impl From<&Row> for Image {
     }
 }
 
-#[derive(Debug)]
-pub struct NewArt2Img {
-    pub article_id: i64,
-    pub image_id: i64,
-}
-
-#[derive(Debug)]
-pub struct Art2Img {
-    pub id: i64,
-    pub article_id: i64,
-    pub image_id: i64,
-}
-
-impl From<&Row> for Art2Img {
+impl From<&Row> for Art2ImgModel {
     fn from(value: &Row) -> Self {
-        Art2Img {
+        Art2ImgModel {
             id: value.get("id"),
             article_id: value.get("article_id"),
             image_id: value.get("image_id"),
@@ -77,20 +88,9 @@ impl From<&Row> for Art2Img {
     }
 }
 
-#[derive(Debug)]
-pub struct NewResolution {
-    pub resolution: String,
-}
-
-#[derive(Debug)]
-pub struct Resolution {
-    pub id: i64,
-    pub resolution: String,
-}
-
-impl From<&Row> for Resolution {
+impl From<&Row> for ResolutionModel {
     fn from(value: &Row) -> Self {
-        Resolution {
+        ResolutionModel {
             id: value.get("id"),
             resolution: value.get("resolution"),
         }

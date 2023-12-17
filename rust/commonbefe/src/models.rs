@@ -14,3 +14,11 @@ pub struct Image {
     pub image: String,
     pub resolution: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct Resolution {
+    pub name: String,
+    pub width: i32,
+    pub height: i32,
+    pub original: bool,
+}
