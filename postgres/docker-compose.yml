@@ -5,8 +5,8 @@ services:
       context: ./Docker
       dockerfile: db.Dockerfile
     environment:
-      POSTGRES_USER: dummy
-      POSTGRES_PASSWORD: dummy
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
     volumes:
       - ./pgdata_dev:/var/lib/postgresql/data
     ports:
