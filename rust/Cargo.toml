@@ -6,5 +6,6 @@ members = [
     "read_from_db",
     "warp_backend",
     "frontend",
-    "commonbefe"
+    "commonbefe",
+    "image_resize"
 ]
