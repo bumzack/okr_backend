@@ -8,7 +8,7 @@ pub const TABLE_WIKIPAGE: &str = "wiki_page";
 
 #[derive(Debug, Clone)]
 pub struct ArticleModel {
-    pub id: i64,
+    pub id: i32,
     pub code: String,
     pub title: String,
     pub description: String,
@@ -24,27 +24,33 @@ pub struct NewArticleModel {
 #[derive(Debug)]
 pub struct NewImageModel {
     pub filename: String,
-    pub img_data: String,
+    pub image_as_rgb_png: String,
+    pub image_as_json_pixels_array: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Debug)]
 pub struct ImageModel {
-    pub id: i64,
+    pub id: i32,
     pub filename: String,
-    pub img_data: String,
+    pub image_as_rgb_png: String,
+    pub image_as_json_pixels_array: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Debug)]
 pub struct NewArt2ImgModel {
-    pub article_id: i64,
-    pub image_id: i64,
+    pub article_id: i32,
+    pub image_id: i32,
 }
 
 #[derive(Debug)]
 pub struct Art2ImgModel {
-    pub id: i64,
-    pub article_id: i64,
-    pub image_id: i64,
+    pub id: i32,
+    pub article_id: i32,
+    pub image_id: i32,
 }
 
 #[derive(Debug)]
@@ -54,7 +60,7 @@ pub struct NewResolutionModel {
 
 #[derive(Debug)]
 pub struct ResolutionModel {
-    pub id: i64,
+    pub id: i32,
     pub resolution: String,
 }
 
@@ -71,10 +77,15 @@ impl From<&Row> for ArticleModel {
 
 impl From<&Row> for ImageModel {
     fn from(value: &Row) -> Self {
+        let w: i32 = value.get("width");
+        let h: i32 = value.get("height");
         ImageModel {
             id: value.get("id"),
             filename: value.get("filename"),
-            img_data: value.get("image"),
+            image_as_json_pixels_array: value.get("image_as_json_pixels_array"),
+            image_as_rgb_png: value.get("image_as_rgb_png"),
+            width: w as u32,
+            height: h as u32,
         }
     }
 }

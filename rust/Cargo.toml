@@ -3,7 +3,6 @@
 members = [
     "common",
     "create_dummy_db",
-    "read_from_db",
     "warp_backend",
     "frontend",
     "commonbefe",

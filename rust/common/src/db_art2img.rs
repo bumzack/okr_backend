@@ -26,7 +26,7 @@ pub async fn insert_art2img(
     Ok(art2img)
 }
 
-pub async fn read_art2img(pool: &Pool, aritcle_id: i64) -> Result<Vec<Art2ImgModel>, Error> {
+pub async fn read_art2img(pool: &Pool, aritcle_id: i32) -> Result<Vec<Art2ImgModel>, Error> {
     let query = format!(
         "SELECT * FROM  {}   WHERE  article_id  = $1 ",
         TABLE_ART2IMG

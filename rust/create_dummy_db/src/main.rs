@@ -1,10 +1,15 @@
+use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
+use chrono::Utc;
+use image::{GenericImageView, ImageFormat};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
+use serde_derive::{Deserialize, Serialize};
+use serde_json::json;
 use tokio_postgres::Error;
 
 use common::db_art2img::insert_art2img;
@@ -46,9 +51,10 @@ async fn insert_dev_data() -> Result<(), Error> {
         },
     ];
     let id = "dev".to_string();
-    let cnt_articles = 5;
-    let min_cnt_images = 1;
-    let max_cnt_images = 3;
+    let cnt_articles = 2;
+    let min_cnt_images = 2;
+    let max_cnt_images = 6;
+
     insert_data(
         id.clone(),
         cnt_articles,
@@ -56,7 +62,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -102,7 +108,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -117,21 +123,22 @@ async fn insert_data(
 
     let path = env!("CARGO_MANIFEST_DIR");
 
-    let img_min_width = 1000;
+    let img_min_width = 3000;
     let img_max_width = 4096;
     let ratio = 16.0 / 9.0;
 
     let pool = create_pool(id);
 
     for art_idx in 0..cnt_articles {
+        let ts = Utc::now().timestamp_millis();
         let code = rng.gen_range(0..100_000_000);
-        let article_code = format!("article_{:010}_{:010}", code, art_idx + 1);
-        println!("art_idx {art_idx}   -->    code {article_code}");
+        let article_code = format!("article_{:010}_{:010}_{}", code, art_idx + 1, ts);
+        println!("art_idx {art_idx}  -->   code {article_code}");
         let new_article = NewArticleModel {
             code: article_code.clone(),
             title: format!("title for article code {:010}", article_code.clone()),
             description: format!(
-                "a long text description for the article with code {}",
+                "a long text description for the article with code {}. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.    Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.    Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.    Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.    Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.   At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur",
                 article_code
             ),
         };
@@ -169,6 +176,21 @@ async fn insert_data(
                 .read_to_end(&mut buffer)
                 .expect("read file into buffer");
 
+            let converted_with_format =
+                image::load_from_memory_with_format(&buffer, ImageFormat::Png).unwrap();
+
+            let rgb_pixels: Vec<PixelModel> = converted_with_format
+                .pixels()
+                .into_iter()
+                .map(|p| PixelModel {
+                    r: p.2 .0[0],
+                    g: p.2 .0[1],
+                    b: p.2 .0[2],
+                })
+                .collect();
+
+            let rgb_pixels = json!(&rgb_pixels).to_string();
+
             let encoded: String = general_purpose::STANDARD_NO_PAD.encode(buffer);
 
             let new_image = NewImageModel {
@@ -178,7 +200,10 @@ async fn insert_data(
                     img_idx + 1,
                     cnt_images
                 ),
-                img_data: encoded,
+                image_as_rgb_png: encoded,
+                image_as_json_pixels_array: rgb_pixels,
+                width: img_width as u32,
+                height: img_height as u32,
             };
 
             let image = insert_image(&pool, &new_image).await?;
@@ -189,6 +214,12 @@ async fn insert_data(
             };
 
             let _ = insert_art2img(&pool, &new_art2img).await?;
+
+            let png_filename = format!("{}/images/png/{}.png", path, &filename);
+            fs::remove_file(&png_filename).expect("file delete should work");
+            let svg_filename = format!("{}/images/svg/{}.svg", path, &filename);
+            fs::remove_file(&svg_filename).expect("file delete should work");
+
             //  println!("new art2img inserted    {:?}", &art2img);
         }
     }
@@ -198,4 +229,11 @@ async fn insert_data(
     }
 
     Ok(())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct PixelModel {
+    r: u8,
+    g: u8,
+    b: u8,
 }
