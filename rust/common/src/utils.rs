@@ -1,15 +1,15 @@
 use std::convert::Infallible;
 
-use deadpool_postgres::{Manager, ManagerConfig, RecyclingMethod};
 use deadpool_postgres::Pool;
+use deadpool_postgres::{Manager, ManagerConfig, RecyclingMethod};
 use log::info;
 use serde::Serialize;
 use serde_json::json;
 use tokio_postgres::{Client, Error, NoTls};
-use warp::{Filter, Reply};
 use warp::cors::Builder;
 use warp::http::StatusCode;
 use warp::reply::Response;
+use warp::{Filter, Reply};
 
 use crate::models::{Art2ImgModel, ArticleModel, ImageModel, ResolutionModel};
 
@@ -18,13 +18,17 @@ pub async fn dump_tables(id: String) -> Result<(), Error> {
 
     let articles = client.query("SELECT * FROM articles", &[]).await?;
     articles.iter().for_each(|a| {
-        println!("article {:?}", ArticleModel::from(a));
+        let a = ArticleModel::from(a);
+        println!("article {:?}, {}", a.code, a.title);
     });
 
     let images = client.query("SELECT * FROM images", &[]).await?;
     images.iter().for_each(|a| {
         let image = ImageModel::from(a);
-        println!("image    id {:?}, filename {}", image.id, image.filename);
+        println!(
+            "image    id {:?}, filename {}   {}x{}",
+            image.id, image.filename, image.width, image.height
+        );
     });
 
     let art2img = client.query("SELECT * FROM art2img", &[]).await?;
@@ -47,7 +51,7 @@ pub fn create_pool(id: String) -> Pool {
     let password: String = id.clone();
     let host: String = "localhost".into();
     let dbname: String = id.clone();
-    let port: u16 = 54321;
+    let port: u16 = 5434;
 
     info!("user {user}, password {password}, host {host}, dbname {dbname}");
     pg_config.user(&user);
@@ -68,7 +72,7 @@ pub fn get_db_config(id: String) -> deadpool_postgres::Config {
     config.password = Some(id.clone());
     config.dbname = Some(id.clone());
     config.host = Some("localhost".into());
-    config.port = Some(54321);
+    config.port = Some(5434);
 
     config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,
@@ -78,12 +82,11 @@ pub fn get_db_config(id: String) -> deadpool_postgres::Config {
 
 pub async fn create_connection(id: String) -> Result<Client, Error> {
     let config = format!(
-        "host=localhost hostaddr=127.0.0.1 user={} password={} port=54321 dbname={}",
+        "host=localhost hostaddr=127.0.0.1 user={} password={} port=5434 dbname={}",
         id.clone(),
         id.clone(),
         id.clone()
     );
-
     let (client, connection) = tokio_postgres::connect(&config, NoTls).await?;
 
     tokio::spawn(async move {
@@ -131,7 +134,7 @@ pub fn warp_cors() -> Builder {
         .allow_methods(vec!["POST", "GET", "OPTIONS", "PUT", "DELETE", "HEAD"])
 }
 
-pub fn with_db(pool: Pool) -> impl Filter<Extract=(Pool, ), Error=Infallible> + Clone {
+pub fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + Clone {
     warp::any().map(move || pool.clone())
 }
 

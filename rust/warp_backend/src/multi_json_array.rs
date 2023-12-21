@@ -20,7 +20,7 @@ use commonbefe::models::{Article, Image, Resolution};
 
 use crate::utils::get_sorted_resolutions;
 
-pub fn article_routes_multi(
+pub fn article_routes_multi_json_array(
     pool: Pool,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     let server1 = warp::path!("multithreaded" / "api" / "articles");
@@ -44,7 +44,7 @@ pub fn article_routes_multi(
     find_all_multi.or(find_paginated_multi)
 }
 
-pub async fn find_all_multi(pool: Pool) -> Result<impl Reply, Rejection> {
+async fn find_all_multi(pool: Pool) -> Result<impl Reply, Rejection> {
     let resolutions =
         get_sorted_resolutions(read_resolutions(&pool).await.expect("read resolutions"));
     let articles = read_articles(&pool).await.expect("read articles");
@@ -52,7 +52,7 @@ pub async fn find_all_multi(pool: Pool) -> Result<impl Reply, Rejection> {
     Ok(response)
 }
 
-pub async fn find_paginated_multi(
+async fn find_paginated_multi(
     pool: Pool,
     page_number: u32,
     page_size: u32,
@@ -68,7 +68,7 @@ pub async fn find_paginated_multi(
     Ok(response)
 }
 
-pub async fn resize_all_images_multi(
+async fn resize_all_images_multi(
     pool: Pool,
     raw_articles: Vec<ArticleModel>,
     resolutions: Vec<Resolution>,
@@ -120,7 +120,7 @@ pub async fn resize_all_images_multi(
                                     .block_on(read_art2img(&p, article.id))
                                     .expect("read art2imgs");
 
-                                let imgids: Vec<i64> =
+                                let imgids: Vec<i32> =
                                     art2imgs.iter().map(|art2img| art2img.image_id).collect();
                                 let images = runtime
                                     .block_on(read_images(&p, &imgids))
@@ -195,110 +195,6 @@ pub async fn resize_all_images_multi(
     Ok(response)
 }
 
-// pub async fn resize_all_images_multi(
-//     pool: Pool,
-//     articles: Vec<ArticleModel>,
-//     resolutions: Vec<Resolution>,
-// ) -> Result<impl Reply, Rejection> {
-//     let mut threads = vec![];
-//
-//     for _ in 0..cores {
-//         let r = r.clone();
-//         let tx = tx.clone();
-//         let pool = pool.clone();
-//         let resolutions = resolutions.clone();
-//         let t = thread::spawn(move || {
-//             let id = thread::current().id();
-//             let start = Instant::now();
-//             info!("hi from thread {:?}", id);
-//             let runtime = tokio::runtime::Runtime::new().expect("Unable to create a runtime");
-//
-//             let mut articles_processed = 0;
-//
-//             let mut justdoit = true;
-//             while justdoit {
-//                 if r.is_empty() {
-//                     info!("r is empty      in thread {:?}   ", id);
-//                     justdoit = false;
-//                 }
-//                 let a = r.recv();
-//                 info!(
-//                     "got an article to process     in thread {:?}    a {:?}",
-//                     id, &a
-//                 );
-//
-//                 if a.is_err() {
-//                     info!("no article  to process     in thread {:?}", id);
-//                     break;
-//                 }
-//                 match a {
-//                     Ok(article) => {
-//                         info!("got an article to process     in thread {:?}", id);
-//                         for resolution in &resolutions {
-//                             // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
-//                             let art2imgs = runtime
-//                                 .block_on(read_art2img(&pool, article.id))
-//                                 .expect("read art2imgs");
-//
-//                             let imgids: Vec<i64> =
-//                                 art2imgs.iter().map(|art2img| art2img.image_id).collect();
-//                             let images = runtime
-//                                 .block_on(read_images(&pool, &imgids))
-//                                 .expect("read images");
-//
-//                             let images_resized = resize_multi(images, resolution);
-//                             let full_article = Article {
-//                                 code: article.code.clone(),
-//                                 title: article.title.clone(),
-//                                 description: article.description.clone(),
-//                                 images: images_resized,
-//                             };
-//                             info!("sending an article      in thread {:?}", id);
-//                             tx.send(full_article).expect("sending should work");
-//                         }
-//                         articles_processed += 1;
-//                     }
-//                     Err(e) => {
-//                         info!(
-//                             "no more articles to process for thread {:?},    e {:?}",
-//                             id, e
-//                         );
-//                     }
-//                 }
-//             }
-//             let duration = start.elapsed().as_millis();
-//
-//             (id, duration, articles_processed)
-//         });
-//         threads.push(t);
-//     }
-//     info!("after startiing all threads");
-//
-//     for article in rx {
-//         info!("Got: {:?}", article);
-//         full_articles.push(article)
-//     }
-//
-//     for t in threads {
-//         let res = t.join();
-//         match res {
-//             Ok((id, duraiton, articles_processed)) => {
-//                 info!(
-//                     "thread {:?} processed {}  articles and took {} ms ",
-//                     id, articles_processed, duraiton
-//                 );
-//             }
-//             Err(e) => {
-//                 error!("error in thread while processeing articles {:?}", e);
-//             }
-//         }
-//     }
-//
-//     let response = build_response_from_json(full_articles);
-//
-//     Ok(response)
-// }
-
 fn resize_multi(images: Vec<ImageModel>, resolution: &Resolution) -> Vec<Image> {
     let res_images: Vec<Image> = images
         .iter()
@@ -321,7 +217,7 @@ fn resize_image_multi(resolution: &Resolution, img: &ImageModel) -> Image {
         }
     } else {
         let decoded: Vec<u8> = general_purpose::STANDARD_NO_PAD
-            .decode(&img.img_data)
+            .decode(&img.image_as_rgb_png)
             .expect("decoding should work");
 
         let i = image::load_from_memory_with_format(&decoded, ImageFormat::Png)
