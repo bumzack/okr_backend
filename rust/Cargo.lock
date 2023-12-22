@@ -239,7 +239,7 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "base64",
- "deadpool-postgres 0.12.0",
+ "deadpool-postgres",
  "log",
  "magick_rust",
  "pretty_env_logger",
@@ -311,7 +311,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "common",
- "deadpool-postgres 0.11.0",
+ "deadpool-postgres",
  "image",
  "log",
  "magick_rust",
@@ -425,21 +425,9 @@ dependencies = [
 
 [[package]]
 name = "deadpool-postgres"
-version = "0.11.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40b75ba49590d27f677d3bebaf76cd15889ca8b308bc7ba99bfa25f1d7269c13"
-dependencies = [
- "deadpool",
- "tokio",
- "tokio-postgres",
- "tracing",
-]
-
-[[package]]
-name = "deadpool-postgres"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfcf8f300f6c3a1e02e847c8b261d8a1116baa3a6188563cdcc74ab5be4973e9"
+checksum = "bda39fa1cfff190d8924d447ad04fd22772c250438ca5ce1dfb3c80621c05aaa"
 dependencies = [
  "deadpool",
  "tokio",
@@ -1642,7 +1630,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "common",
- "deadpool-postgres 0.12.0",
+ "deadpool-postgres",
  "log",
  "magick_rust",
  "pretty_env_logger",
@@ -2423,7 +2411,7 @@ dependencies = [
  "commonbefe",
  "crossbeam",
  "crossbeam-channel",
- "deadpool-postgres 0.12.0",
+ "deadpool-postgres",
  "image",
  "log",
  "num_cpus",

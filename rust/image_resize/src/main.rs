@@ -6,8 +6,6 @@ use image::GenericImageView;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-
-
 fn main() {
     let image = load_image();
 
@@ -21,13 +19,11 @@ struct Pix {
     b: u8,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 struct Img {
     w: usize,
     h: usize,
     pixels: Vec<Pix>,
-
 }
 
 impl Img {
@@ -56,7 +52,6 @@ impl Img {
 //     }
 // }
 
-
 fn load_image() -> Img {
     let path = env!("CARGO_MANIFEST_DIR");
     let filename = "shrug";
@@ -71,23 +66,21 @@ fn load_image() -> Img {
         .read_to_end(&mut buffer)
         .expect("read file into buffer");
 
-    let i = image::load_from_memory_with_format(
-        &buffer,
-        image::ImageFormat::Png,
-    );
+    let i = image::load_from_memory_with_format(&buffer, image::ImageFormat::Png);
 
     let i = i.expect("should be an image");
 
-    let pixels: Vec<Pix> = i.pixels()
+    let pixels: Vec<Pix> = i
+        .pixels()
         //    .take(100)
         .map(|p| {
             // if p.2.0[0] != 255 {
             //     println!("pixel  {:?}", p);
             // }
             Pix {
-                r: p.2.0[0],
-                g: p.2.0[1],
-                b: p.2.0[2],
+                r: p.2 .0[0],
+                g: p.2 .0[1],
+                b: p.2 .0[2],
             }
         })
         .collect();
@@ -99,13 +92,8 @@ fn load_image() -> Img {
     };
 
     let json = json!(&img).to_string();
-
     let json_filename = format!("{}/{}.json", path, &filename);
-
     fs::write(json_filename, &json).expect("should write a json file");
-
-
-    //   let p = &img[378][501];
 
     let p = img.get(378, 501);
     println!("pixel {:?}", p);
@@ -130,4 +118,3 @@ fn load_image() -> Img {
     println!("pixel after get mut  {:?}", p);
     img
 }
-
