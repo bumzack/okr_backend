@@ -5,5 +5,7 @@ members = [
     "create_dummy_db",
     "warp_backend",
     "frontend",
-    "commonbefe"
+    "commonbefe",
+    "image_resize",
+    "wiki"
 ]
