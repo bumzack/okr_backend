@@ -1,9 +1,11 @@
 use std::sync::Once;
 
+use log::info;
 use magick_rust::{magick_wand_genesis, MagickWand};
 use rand::prelude::ThreadRng;
 use rand::Rng;
-use svg::{Document, node};
+use svg::node::element::Line;
+use svg::{node, Document};
 
 static START: Once = Once::new();
 
@@ -16,6 +18,36 @@ pub fn create_image(
     rng: &mut ThreadRng,
     article_code: String,
 ) {
+    let x1 = 0;
+    let y1 = 0;
+    let x2 = w;
+    let y2 = 1 * h / 4;
+    let line1 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = w;
+    let y2 = 2 * h / 4;
+    let line2 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = w;
+    let y2 = 3 * h / 4;
+    let line3 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = w;
+    let y2 = h;
+    let line4 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = 3 * w / 4;
+    let y2 = h;
+    let line5 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = 1 * w / 4;
+    let y2 = h;
+    let line6 = create_line_node(x1, y1, x2, y2);
+
+    let x2 = 2 * w / 4;
+    let y2 = h;
+    let line7 = create_line_node(x1, y1, x2, y2);
+
     let cx = rng.gen_range(30..w / 2);
     let cy = rng.gen_range(30..h / 2);
 
@@ -97,13 +129,34 @@ pub fn create_image(
         .set("fill", "blue")
         .add(t);
 
-    let document = Document::new().set("viewBox", (0, 0, w, h)).add(g).add(txt);
+    let document = Document::new()
+        .set("viewBox", (0, 0, w, h))
+        .add(g)
+        .add(txt)
+        .add(line1)
+        .add(line2)
+        .add(line3)
+        .add(line4)
+        .add(line5)
+        .add(line6)
+        .add(line7);
 
     let path = env!("CARGO_MANIFEST_DIR");
     let full_path = format!("{}/images/svg/{}.svg", path, filename);
-    //  info!("path {}          full_path {}", path, full_path);
+    info!("path {}          full_path {}", path, full_path);
     svg::save(full_path, &document).unwrap();
     convert_to_png(filename, w, h);
+}
+
+fn create_line_node(x1: i32, y1: i32, x2: usize, y2: usize) -> Line {
+    let line1 = node::element::Line::new()
+        .set("x1", x1)
+        .set("y1", y1)
+        .set("x2", x2)
+        .set("y2", y2)
+        .set("stroke", "black")
+        .set("stroke-width", "2");
+    line1
 }
 
 fn convert_to_png(filename: &str, w: usize, h: usize) {
@@ -142,5 +195,5 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-        .expect("saving as RGB works");
+    .expect("saving as RGB works");
 }
