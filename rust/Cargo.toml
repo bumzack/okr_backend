@@ -7,5 +7,6 @@ members = [
     "warp_backend",
     "frontend",
     "commonbefe",
-    "image_resize"
+    "image_resize",
+    "wiki"
 ]
