@@ -4,6 +4,7 @@ pub const TABLE_ARTICLES: &str = "articles";
 pub const TABLE_IMAGES: &str = "images";
 pub const TABLE_ART2IMG: &str = "art2img";
 pub const TABLE_RESOLUTION: &str = "resolutions";
+pub const TABLE_WIKIPAGE: &str = "wiki_page";
 
 #[derive(Debug, Clone)]
 pub struct ArticleModel {
@@ -93,6 +94,56 @@ impl From<&Row> for ResolutionModel {
         ResolutionModel {
             id: value.get("id"),
             resolution: value.get("resolution"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct NewWikipageModel {
+    pub id: i32,
+    pub title: Option<String>,
+    pub ns: Option<String>,
+    pub redirect: Option<String>,
+    pub timestamp: String,
+    pub contributor: Option<String>,
+    pub comment: Option<String>,
+    pub model: Option<String>,
+    pub format: Option<String>,
+    pub text: Option<String>,
+    pub sha1: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct WikipageModel {
+    pub dbid: i32,
+    pub id: i32,
+    pub title: Option<String>,
+    pub ns: Option<String>,
+    pub redirect: Option<String>,
+    pub timestamp: String,
+    pub contributor: Option<String>,
+    pub comment: Option<String>,
+    pub model: Option<String>,
+    pub format: Option<String>,
+    pub text: Option<String>,
+    pub sha1: Option<String>,
+}
+
+impl From<&Row> for WikipageModel {
+    fn from(value: &Row) -> Self {
+        WikipageModel {
+            dbid: value.get("dbid"),
+            id: value.get("id"),
+            title: value.get("title"),
+            ns: value.get("ns"),
+            redirect: value.get("redirect"),
+            timestamp: value.get("timestamp"),
+            contributor: value.get("contributor"),
+            comment: value.get("comment"),
+            model: value.get("model"),
+            format: value.get("format"),
+            text: value.get("text"),
+            sha1: value.get("sha1"),
         }
     }
 }
