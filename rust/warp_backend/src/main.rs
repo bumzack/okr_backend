@@ -22,7 +22,7 @@ mod multi_json_array;
 async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
-    let pool = create_pool("dev".into());
+    let pool = create_pool("prod".into());
 
     let host: String = "localhost".to_string();
     let port: u16 = 2345;
