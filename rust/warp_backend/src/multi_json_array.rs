@@ -212,7 +212,7 @@ fn resize_image_multi(resolution: &Resolution, img: &ImageModel) -> Image {
         // TODO critical: img.img_data.clone() is probably costly
         Image {
             filename: img.filename.clone(),
-            image: img.img_data.clone(),
+            image: img.image_as_rgb_png.clone(),
             resolution: resolution.name.clone(),
         }
     } else {
