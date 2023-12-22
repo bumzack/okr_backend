@@ -25,6 +25,7 @@ rust/create_dummy_db/images/png/*.png
 rust/create_dummy_db/images/svg/*.svg
 rust/read_from_db/images/*.png
 
+rust/frontend/dist/*
 
 .idea
 
