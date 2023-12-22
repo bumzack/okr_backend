@@ -7,15 +7,16 @@ use warp::Filter;
 
 use common::utils::{create_pool, warp_cors};
 
-use crate::multi_base64::article_routes_multi;
+use crate::multi_base64::article_routes_multi_base64;
+use crate::multi_json_array::article_routes_multi_json_array;
 use crate::single_base64::article_routes_single_base64;
+use crate::single_json::article_routes_single_json_array;
 
 mod multi_base64;
-mod rayon;
-mod single_base64;
-mod utils;
-mod single_json;
 mod multi_json_array;
+mod single_base64;
+mod single_json;
+mod utils;
 
 // #[tokio::main(worker_threads = 1)]
 #[tokio::main]
@@ -28,7 +29,9 @@ async fn main() -> Result<(), Error> {
     let port: u16 = 2345;
 
     let host = format!("{host}:{port}");
-    let routes = article_routes_multi(pool.clone())
+    let routes = article_routes_multi_base64(pool.clone())
+        .or(article_routes_multi_json_array(pool.clone()))
+        .or(article_routes_single_json_array(pool.clone()))
         .or(article_routes_single_base64(pool))
         .with(warp_cors());
 
