@@ -4,3 +4,4 @@ pub mod db_image;
 pub mod models;
 pub mod utils;
 pub mod db_resolution;
+pub mod db_wikipage;
