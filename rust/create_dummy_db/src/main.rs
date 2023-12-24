@@ -15,7 +15,9 @@ use common::db_art2img::insert_art2img;
 use common::db_articles::insert_article;
 use common::db_image::insert_image;
 use common::db_resolution::insert_resolution;
-use common::models::{NewArt2ImgModel, NewArticleModel, NewImageModel, NewResolutionModel};
+use common::models::{
+    NewArt2ImgModel, NewArticleModel, NewImageModel, NewResolutionModel, PixelModel,
+};
 use common::utils::{create_pool, dump_tables};
 
 use crate::pngimages::create_image;
@@ -180,7 +182,6 @@ async fn insert_data(
 
             let rgb_pixels: Vec<PixelModel> = converted_with_format
                 .pixels()
-                .into_iter()
                 .map(|p| PixelModel {
                     r: p.2 .0[0],
                     g: p.2 .0[1],
