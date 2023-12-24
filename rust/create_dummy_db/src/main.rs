@@ -8,7 +8,6 @@ use image::{GenericImageView, ImageFormat};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
 use rand::{thread_rng, Rng};
-use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
 use tokio_postgres::Error;
 
@@ -229,11 +228,4 @@ async fn insert_data(
     }
 
     Ok(())
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct PixelModel {
-    r: u8,
-    g: u8,
-    b: u8,
 }
