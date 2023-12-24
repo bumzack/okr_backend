@@ -2,6 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
+use common::models::PixelModel;
 use image::GenericImageView;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -13,31 +14,24 @@ fn main() {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Pix {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct Img {
     w: usize,
     h: usize,
-    pixels: Vec<Pix>,
+    pixels: Vec<PixelModel>,
 }
 
 impl Img {
-    fn get(&self, x: usize, y: usize) -> &Pix {
+    fn get(&self, x: usize, y: usize) -> &PixelModel {
         let idx = y * self.w + x;
         &self.pixels[idx]
     }
 
-    fn get_mut(&mut self, x: usize, y: usize) -> &mut Pix {
+    fn get_mut(&mut self, x: usize, y: usize) -> &mut PixelModel {
         let idx = y * self.w + x;
         &mut self.pixels[idx]
     }
 
-    fn set(&mut self, x: usize, y: usize, p: Pix) {
+    fn set(&mut self, x: usize, y: usize, p: PixelModel) {
         let idx = y * self.w + x;
         self.pixels[idx] = p;
     }
@@ -70,14 +64,14 @@ fn load_image() -> Img {
 
     let i = i.expect("should be an image");
 
-    let pixels: Vec<Pix> = i
+    let pixels: Vec<PixelModel> = i
         .pixels()
         //    .take(100)
         .map(|p| {
             // if p.2.0[0] != 255 {
             //     println!("pixel  {:?}", p);
             // }
-            Pix {
+            PixelModel {
                 r: p.2 .0[0],
                 g: p.2 .0[1],
                 b: p.2 .0[2],
@@ -98,7 +92,7 @@ fn load_image() -> Img {
     let p = img.get(378, 501);
     println!("pixel {:?}", p);
 
-    let p = Pix {
+    let p = PixelModel {
         r: 127,
         g: 127,
         b: 127,

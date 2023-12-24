@@ -13,7 +13,7 @@ use common::utils::create_pool;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let filename = test_file_name();
-    // let filename = "/Users/gsc/Downloads/wiki/dewiki-20231201-pages-articles-multistream.xml";
+    //  let filename = "/Users/gsc/Downloads/wiki/dewiki-20231201-pages-articles-multistream.xml";
     let mut f = File::open(filename).expect("open file should work");
 
     let start = Instant::now();
