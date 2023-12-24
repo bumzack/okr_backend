@@ -2,12 +2,12 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use image::{GenericImageView, ImageFormat};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
 use tokio_postgres::Error;
@@ -53,7 +53,7 @@ async fn insert_dev_data() -> Result<(), Error> {
     let id = "dev".to_string();
     let cnt_articles = 2;
     let min_cnt_images = 2;
-    let max_cnt_images = 6;
+    let max_cnt_images = 4;
 
     insert_data(
         id.clone(),
@@ -62,7 +62,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -108,7 +108,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -179,18 +179,19 @@ async fn insert_data(
             let converted_with_format =
                 image::load_from_memory_with_format(&buffer, ImageFormat::Png).unwrap();
 
-            let rgb_pixels: Vec<PixelModel> = converted_with_format
-                .pixels()
-                .into_iter()
-                .map(|p| PixelModel {
-                    r: p.2 .0[0],
-                    g: p.2 .0[1],
-                    b: p.2 .0[2],
-                })
-                .collect();
+            let c = PixelModel { r: 0, g: 0, b: 0 };
+            let mut rgb_pixels: Vec<PixelModel> = vec![c; img_width * img_height];
+            converted_with_format.pixels().for_each(|p| {
+                let x = p.0 as usize;
+                let y = p.1 as usize;
+                let idx = y * img_width + x;
+                let pixel = rgb_pixels.get_mut(idx).unwrap();
+                pixel.r = p.2.0[0];
+                pixel.g = p.2.0[1];
+                pixel.b = p.2.0[2];
+            });
 
             let rgb_pixels = json!(&rgb_pixels).to_string();
-
             let encoded: String = general_purpose::STANDARD_NO_PAD.encode(buffer);
 
             let new_image = NewImageModel {
@@ -231,7 +232,7 @@ async fn insert_data(
     Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct PixelModel {
     r: u8,
     g: u8,
