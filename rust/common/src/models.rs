@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use tokio_postgres::Row;
 
 pub const TABLE_ARTICLES: &str = "articles";
@@ -157,4 +158,11 @@ impl From<&Row> for WikipageModel {
             sha1: value.get("sha1"),
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct PixelModel {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
