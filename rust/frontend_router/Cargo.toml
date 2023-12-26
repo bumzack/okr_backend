@@ -1,0 +1,36 @@
+[package]
+name = "frontend_router"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sycamore = { version = "=0.9.0-beta.1", features = ["suspense"] }
+console_error_panic_hook = "0.1.7"
+console_log = "1.0.0"
+log = "0.4.20"
+reqwasm = "0.5.0"
+chrono = { version = "0.4.31", features = ["serde"] }
+wasm-bindgen = "0.2.89"
+js-sys = "0.3.66"
+serde-wasm-bindgen = "0.6.3"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = { version = "1.0.108", features = [] }
+commonbefe = { path = "../commonbefe" }
+sycamore-router = "=0.9.0-beta.1"
+
+
+[dependencies.web-sys]
+version = "0.3.66"
+features = [
+    "MessageEvent",
+    "ProgressEvent",
+    "WebSocket",
+    'Document',
+    'Element',
+    'HtmlParagraphElement',
+    'Window',
+    'Performance'
+]
+

@@ -1,7 +1,7 @@
 use deadpool_postgres::Pool;
 use tokio_postgres::Error;
 
-use crate::models::{NewWikipageModel, WikipageModel, TABLE_WIKIPAGE};
+use crate::models::{NewWikipageModel, TABLE_WIKIPAGE, WikipageModel};
 
 pub async fn insert_wikipage(
     pool: &Pool,

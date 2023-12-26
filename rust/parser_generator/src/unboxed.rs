@@ -1,6 +1,6 @@
 use common::models::PixelModel;
 
-use crate::boxed::{either, parse_number_property, quoted_string, whitespace_wrap, Parser};
+use crate::boxed::{either, parse_number_property, Parser, quoted_string, whitespace_wrap};
 
 pub fn match_literal<'a>(expected: &'static str) -> impl Parser<'a, ()> {
     move |input: &'a str| match input.get(0..expected.len()) {
@@ -40,8 +40,8 @@ pub fn identifier(input: &str) -> ParseResult<String> {
 pub type ParseResult<'a, Output> = Result<(&'a str, Output), &'a str>;
 
 impl<'a, F, Output> Parser<'a, Output> for F
-where
-    F: Fn(&'a str) -> ParseResult<Output>,
+    where
+        F: Fn(&'a str) -> ParseResult<Output>,
 {
     fn parse(&self, input: &'a str) -> ParseResult<'a, Output> {
         self(input)
@@ -49,9 +49,9 @@ where
 }
 
 pub fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
-where
-    P: Parser<'a, A>,
-    F: Fn(A) -> B,
+    where
+        P: Parser<'a, A>,
+        F: Fn(A) -> B,
 {
     move |input| {
         parser
@@ -61,9 +61,9 @@ where
 }
 
 pub fn pair<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
-where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
+    where
+        P1: Parser<'a, R1>,
+        P2: Parser<'a, R2>,
 {
     move |input| {
         parser1.parse(input).and_then(|(next_input, result1)| {
@@ -79,10 +79,10 @@ pub fn triple<'a, P1, P2, P3, R1, R2, R3>(
     parser2: P2,
     parser3: P3,
 ) -> impl Parser<'a, (R1, R2, R3)>
-where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
-    P3: Parser<'a, R3>,
+    where
+        P1: Parser<'a, R1>,
+        P2: Parser<'a, R2>,
+        P3: Parser<'a, R3>,
 {
     move |input| {
         parser1.parse(input).and_then(|(next_input, result1)| {
@@ -96,24 +96,24 @@ where
 }
 
 pub fn left<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R1>
-where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
+    where
+        P1: Parser<'a, R1>,
+        P2: Parser<'a, R2>,
 {
     map(pair(parser1, parser2), |(left, _right)| left)
 }
 
 pub fn right<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R2>
-where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
+    where
+        P1: Parser<'a, R1>,
+        P2: Parser<'a, R2>,
 {
     map(pair(parser1, parser2), |(_left, right)| right)
 }
 
 pub fn one_or_more1<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
-where
-    P: Parser<'a, A>,
+    where
+        P: Parser<'a, A>,
 {
     move |mut input| {
         let mut result = Vec::new();
@@ -135,8 +135,8 @@ where
 }
 
 pub fn zero_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
-where
-    P: Parser<'a, A>,
+    where
+        P: Parser<'a, A>,
 {
     move |mut input| {
         let mut result = Vec::new();
@@ -151,8 +151,8 @@ where
 }
 
 pub fn one_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
-where
-    P: Parser<'a, A>,
+    where
+        P: Parser<'a, A>,
 {
     move |mut input| {
         let mut result = Vec::new();
@@ -190,9 +190,9 @@ pub fn any_char(input: &str) -> ParseResult<char> {
 }
 
 pub fn pred<'a, P, A, F>(parser: P, predicate: F) -> impl Parser<'a, A>
-where
-    P: Parser<'a, A>,
-    F: Fn(&A) -> bool,
+    where
+        P: Parser<'a, A>,
+        F: Fn(&A) -> bool,
 {
     move |input| {
         if let Ok((next_input, value)) = parser.parse(input) {
@@ -280,7 +280,7 @@ pub fn pixel_obj<'a>() -> impl Parser<'a, PixelModel> {
             whitespace_wrap(match_literal("}")),
         )),
     )
-    .map(|(r, g, b)| PixelModel { r, g, b })
+        .map(|(r, g, b)| PixelModel { r, g, b })
 }
 
 pub fn pixel_array<'a>() -> impl Parser<'a, Vec<PixelModel>> {

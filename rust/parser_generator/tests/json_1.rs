@@ -1,10 +1,10 @@
 use common::models::PixelModel;
 use parser_generator::boxed::{
-    parse_number_property, parse_number_property_vec_char, whitespace_wrap, Parser,
+    parse_number_property, parse_number_property_vec_char, Parser, whitespace_wrap,
 };
 use parser_generator::unboxed::{
-    int_value_vec, left, match_literal, pixel_array, right, serialize_pixel_vec, triple,
-    ParseResult,
+    int_value_vec, left, match_literal, ParseResult, pixel_array, right, serialize_pixel_vec,
+    triple,
 };
 
 #[test]
