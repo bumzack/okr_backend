@@ -2,10 +2,11 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use common::models::PixelModel;
 use image::GenericImageView;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+use common::models::PixelModel;
 
 fn main() {
     let image = load_image();
@@ -72,9 +73,9 @@ fn load_image() -> Img {
             //     println!("pixel  {:?}", p);
             // }
             PixelModel {
-                r: p.2 .0[0],
-                g: p.2 .0[1],
-                b: p.2 .0[2],
+                r: p.2.0[0],
+                g: p.2.0[1],
+                b: p.2.0[2],
             }
         })
         .collect();

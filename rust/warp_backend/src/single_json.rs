@@ -1,11 +1,11 @@
 use std::io::Cursor;
 use std::time::Instant;
 
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
 use deadpool_postgres::Pool;
-use image::imageops::FilterType;
 use image::{ImageFormat, ImageOutputFormat};
+use image::imageops::FilterType;
 use log::info;
 use warp::{Filter, Rejection, Reply};
 
@@ -21,7 +21,7 @@ use crate::utils::get_sorted_resolutions;
 
 pub fn article_routes_single_json_array(
     pool: Pool,
-) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
     let server1 = warp::path!("singlethreaded" / "api" / "articles");
     let find_all_single_json_array = server1
         .and(with_db(pool.clone()))

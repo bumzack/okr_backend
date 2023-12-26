@@ -2,12 +2,12 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use image::{GenericImageView, ImageFormat};
 use log::LevelFilter;
 use pretty_env_logger::env_logger::Builder;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde_json::json;
 use tokio_postgres::Error;
 
@@ -63,7 +63,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -109,7 +109,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -183,9 +183,9 @@ async fn insert_data(
             let rgb_pixels: Vec<PixelModel> = converted_with_format
                 .pixels()
                 .map(|p| PixelModel {
-                    r: p.2 .0[0],
-                    g: p.2 .0[1],
-                    b: p.2 .0[2],
+                    r: p.2.0[0],
+                    g: p.2.0[1],
+                    b: p.2.0[2],
                 })
                 .collect();
 

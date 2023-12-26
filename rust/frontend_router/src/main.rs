@@ -1,12 +1,13 @@
-use commonbefe::models::{Article, Image};
 use reqwasm::http::Request;
 use sycamore::futures::spawn_local_scoped;
 use sycamore::prelude::*;
-use wasm_bindgen::prelude::wasm_bindgen;
-use web_sys::MouseEvent;
 use sycamore_router::HistoryIntegration;
 use sycamore_router::Route;
 use sycamore_router::Router;
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::MouseEvent;
+
+use commonbefe::models::{Article, Image};
 
 #[macro_export]
 macro_rules! console_log {

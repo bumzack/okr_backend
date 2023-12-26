@@ -1,11 +1,11 @@
 use std::io::Cursor;
 
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
 use crossbeam_channel::bounded;
 use deadpool_postgres::Pool;
-use image::imageops::FilterType;
 use image::{ImageFormat, ImageOutputFormat};
+use image::imageops::FilterType;
 use log::{error, info};
 use tokio::time::Instant;
 use warp::{Filter, Rejection, Reply};
@@ -22,7 +22,7 @@ use crate::utils::get_sorted_resolutions;
 
 pub fn article_routes_multi_json_array(
     pool: Pool,
-) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
     let server1 = warp::path!("multithreaded" / "api" / "articles");
     let find_all_multi = server1
         .and(with_db(pool.clone()))
@@ -187,7 +187,7 @@ async fn resize_all_images_multi(
 
         (articles, duration)
     })
-    .expect("TODO: something went wrong");
+        .expect("TODO: something went wrong");
 
     info!("PROCESSING is finished.   it took   {} ms ", duration);
 
