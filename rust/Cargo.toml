@@ -9,5 +9,6 @@ members = [
     "commonbefe",
     "image_resize",
     "wiki",
-    "parser_generator"
+    "parser_generator",
+    "frontend_router"
 ]

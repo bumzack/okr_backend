@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, Criterion, criterion_group, criterion_main};
 
 use common::models::PixelModel;
 use parser_generator::boxed::Parser;
