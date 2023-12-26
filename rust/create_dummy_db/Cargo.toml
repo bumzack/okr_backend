@@ -10,7 +10,7 @@ svg = "0.14.0"
 magick_rust = "0.19.1"
 rand = "0.8.5"
 tokio-postgres = "0.7.10"
-tokio = { version = "1.35.0", features = ["full"] }
+tokio = { version = "1.35.1", features = ["full"] }
 deadpool-postgres = "0.12.1"
 pretty_env_logger = "0.5.0"
 log = "0.4.20"
