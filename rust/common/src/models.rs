@@ -7,7 +7,7 @@ pub const TABLE_RESOLUTION: &str = "resolutions";
 
 #[derive(Debug, Clone)]
 pub struct ArticleModel {
-    pub id: i64,
+    pub id: i32,
     pub code: String,
     pub title: String,
     pub description: String,
@@ -28,22 +28,22 @@ pub struct NewImageModel {
 
 #[derive(Debug)]
 pub struct ImageModel {
-    pub id: i64,
+    pub id: i32,
     pub filename: String,
     pub img_data: String,
 }
 
 #[derive(Debug)]
 pub struct NewArt2ImgModel {
-    pub article_id: i64,
-    pub image_id: i64,
+    pub article_id: i32,
+    pub image_id: i32,
 }
 
 #[derive(Debug)]
 pub struct Art2ImgModel {
-    pub id: i64,
-    pub article_id: i64,
-    pub image_id: i64,
+    pub id: i32,
+    pub article_id: i32,
+    pub image_id: i32,
 }
 
 #[derive(Debug)]
@@ -53,7 +53,7 @@ pub struct NewResolutionModel {
 
 #[derive(Debug)]
 pub struct ResolutionModel {
-    pub id: i64,
+    pub id: i32,
     pub resolution: String,
 }
 

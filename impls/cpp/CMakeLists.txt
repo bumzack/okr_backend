@@ -56,6 +56,7 @@ add_executable(${project_name}-exe
         src/App.cpp
         src/service/ArticleService.cpp
         src/controller/ArticleController.hpp
+        src/db/ResolutionDb.hpp
 )
 target_link_libraries(${project_name}-exe ${project_name}-lib)
 add_dependencies(${project_name}-exe ${project_name}-lib)
