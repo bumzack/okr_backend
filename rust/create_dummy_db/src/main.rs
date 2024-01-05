@@ -29,7 +29,7 @@ async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
     insert_dev_data().await?;
-    dump_tables("dev".into()).await?;
+    dump_tables("bumzack".into()).await?;
 
     //  insert_prod_data().await?;
 
@@ -51,7 +51,7 @@ async fn insert_dev_data() -> Result<(), Error> {
             resolution: "64x64".to_string(),
         },
     ];
-    let id = "dev".to_string();
+    let id = "bumzack".to_string();
     let cnt_articles = 2;
     let min_cnt_images = 2;
     let max_cnt_images = 6;
@@ -124,8 +124,8 @@ async fn insert_data(
 
     let path = env!("CARGO_MANIFEST_DIR");
 
-    let img_min_width = 3000;
-    let img_max_width = 4096;
+    let img_min_width = 1000;
+    let img_max_width = 2000;
     let ratio = 16.0 / 9.0;
 
     let pool = create_pool(id);
