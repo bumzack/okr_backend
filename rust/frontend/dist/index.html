@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,7 +14,8 @@
 
     <script crossorigin="anonymous" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
             src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
+
+  <style>
         .scrollspy-example {
             height: 100vh;
             margin-top: .5rem;
@@ -42,16 +44,13 @@
         }
     </style>
 
-    <link as="fetch" crossorigin="" href="/okrfrontend-8a641ac22c5e16_bg.wasm" rel="preload" type="application/wasm">
-    <link href="/okrfrontend-8a641ac22c5e16.js" rel="modulepreload">
-</head>
+<link rel="preload" href="/okrfrontend-137569dcf4e571dd_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/okrfrontend-137569dcf4e571dd.js"></head>
 <body>
 
 
-<script type="module">import init from '/okrfrontend-8a641ac22c5e16.js';
-
-init('/okrfrontend-8a641ac22c5e16_bg.wasm');</script>
-<script>(function () {
+<script type="module">import init from '/okrfrontend-137569dcf4e571dd.js';init('/okrfrontend-137569dcf4e571dd_bg.wasm');</script><script>(function () {
+ 
     var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     var url = protocol + '//' + window.location.host + '/_trunk/ws';
     var poll_interval = 5000;
@@ -78,6 +77,8 @@ init('/okrfrontend-8a641ac22c5e16_bg.wasm');</script>
     };
     ws.onclose = reload_upon_connect;
 })()
+ 
 </script>
 </body>
 </html>
+ 

@@ -120,6 +120,7 @@ pub fn create_image(
         image_idx + 1,
         image_cnt
     ));
+
     let txt = svg::node::element::Text::new()
         .set("x", 100)
         .set("y", 100)

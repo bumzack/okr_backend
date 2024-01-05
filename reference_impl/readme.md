@@ -18,6 +18,7 @@
 - Tests
 - Fehlerbehandlung
 - Logging
+- Security
 
 
 ## Anforderungen

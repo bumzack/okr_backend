@@ -29,7 +29,7 @@ async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
     insert_dev_data().await?;
-    dump_tables("dev".into()).await?;
+    dump_tables("bumzack".into()).await?;
 
     //  insert_prod_data().await?;
 
@@ -51,10 +51,10 @@ async fn insert_dev_data() -> Result<(), Error> {
             resolution: "64x64".to_string(),
         },
     ];
-    let id = "dev".to_string();
-    let cnt_articles = 2;
-    let min_cnt_images = 2;
-    let max_cnt_images = 6;
+    let id = "bumzack".to_string();
+    let cnt_articles = 5;
+    let min_cnt_images = 1;
+    let max_cnt_images = 3;
 
     insert_data(
         id.clone(),
