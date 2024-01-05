@@ -11,11 +11,9 @@ class ResolutionDto : public oatpp::DTO {
 
     DTO_INIT(ResolutionDto, DTO)
 
-    DTO_FIELD(String, id);
+    DTO_FIELD(UInt32, id);
 
     DTO_FIELD(String, resolution, "resolution");
-
-
 
 };
 

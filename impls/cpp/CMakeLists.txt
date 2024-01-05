@@ -57,6 +57,17 @@ add_executable(${project_name}-exe
         src/service/ArticleService.cpp
         src/controller/ArticleController.hpp
         src/db/ResolutionDb.hpp
+        src/dto/Art2ImgDto.hpp
+        src/dto/ImageDto.hpp
+        src/dto/ResolutionDto.hpp
+        src/service/ResolutionService.hpp
+        src/service/ResolutionService.cpp
+        src/dto/ArticlelDto.hpp
+        src/service/ImageService.hpp
+        src/service/ImageService.cpp
+        src/service/ImageService.cpp
+        src/service/Art2ImgService.hpp
+        src/service/Art2ImgService.cpp
 )
 target_link_libraries(${project_name}-exe ${project_name}-lib)
 add_dependencies(${project_name}-exe ${project_name}-lib)

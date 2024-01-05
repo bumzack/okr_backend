@@ -11,7 +11,7 @@ class ArticleDto : public oatpp::DTO {
 
     DTO_INIT(ArticleDto, DTO)
 
-    DTO_FIELD(String, id);
+    DTO_FIELD(UInt32, id);
 
     DTO_FIELD(String, title, "title");
 

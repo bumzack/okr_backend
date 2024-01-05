@@ -9,9 +9,12 @@
 
 class Art2ImgDto : public oatpp::DTO {
     DTO_INIT(Art2ImgDto, DTO)
-    DTO_FIELD(String, id);
-    DTO_FIELD(String, article_id, "article_id");
-    DTO_FIELD(String, image_id, "image_id");
+
+    DTO_FIELD(UInt32, id);
+
+    DTO_FIELD(UInt32, article_id, "article_id");
+
+    DTO_FIELD(UInt32, image_id, "image_id");
 };
 
 #include OATPP_CODEGEN_END(DTO)

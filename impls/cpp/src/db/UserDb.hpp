@@ -72,7 +72,7 @@ public:
 
     QUERY(getAllResolutions,
           "SELECT * FROM resolutions "
-          )
+    )
 
     QUERY(getAllImagesForArticleId,
           "DELETE FROM AppUser WHERE article_id=:id;",

@@ -9,10 +9,10 @@
 /**
  * RESOLUTIONDB client definitions.
  */
-class RESOLUTIONDB : public oatpp::orm::DbClient {
+class ResolutionDb : public oatpp::orm::DbClient {
 public:
 
-    explicit RESOLUTIONDB(const std::shared_ptr<oatpp::orm::Executor> &executor)
+    explicit ResolutionDb(const std::shared_ptr<oatpp::orm::Executor> &executor)
             : oatpp::orm::DbClient(executor) {
 
 //        oatpp::orm::SchemaMigration migration(executor);
@@ -20,16 +20,13 @@ public:
 //        // TODO - Add more migrations here.
 //        migration.migrate(); // <-- run migrations. This guy will throw on error.
 //
-       auto version = executor->getSchemaVersion();
-//        OATPP_LOGD("RESOLUTIONDB", "Migration - OK. Version=%ld.", version);
-        OATPP_LOGD("RESOLUTIONDB", "constructor - OK. Version=%ld.", version);
+        auto version = executor->getSchemaVersion();
+        OATPP_LOGD("ResolutionDb", "constructor - OK. Version=%ld.", version);
     }
 
-    QUERY(getAllArticles,
-          "SELECT * FROM articles LIMIT :limit OFFSET :offset;",
-          PREPARE(true), //<-- user prepared statement!
-          PARAM(oatpp::UInt32, offset),
-          PARAM(oatpp::UInt32, limit))
+    QUERY(getAllResolutions,
+          "SELECT * FROM resolutions "
+    )
 
 };
 

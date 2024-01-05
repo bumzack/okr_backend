@@ -20,7 +20,7 @@ public:
 //        // TODO - Add more migrations here.
 //        migration.migrate(); // <-- run migrations. This guy will throw on error.
 //
-       auto version = executor->getSchemaVersion();
+        auto version = executor->getSchemaVersion();
 //        OATPP_LOGD("ArticleDb", "Migration - OK. Version=%ld.", version);
         OATPP_LOGD("ArticleDb", "constructor - OK. Version=%ld.", version);
     }
