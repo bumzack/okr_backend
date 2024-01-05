@@ -24,7 +24,6 @@ CREATE TABLE art2img
     id         serial  NOT NULL,
     article_id INTEGER NOT NULL,
     image_id   INTEGER NOT NULL,
-    PRIMARY KEY (article_id, image_id),
     FOREIGN KEY (article_id)
         REFERENCES articles (id),
     FOREIGN KEY (image_id)
