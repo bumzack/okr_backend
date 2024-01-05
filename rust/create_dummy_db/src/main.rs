@@ -32,9 +32,6 @@ async fn main() -> Result<(), Error> {
 
     let start = Instant::now();
     insert_dev_data().await?;
-    // dump_tables("dev".into()).await?;
-
-     insert_prod_data().await?;
 
     let elapsed = start.elapsed().as_secs();
 
