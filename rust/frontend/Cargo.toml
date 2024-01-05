@@ -15,8 +15,8 @@ chrono = { version = "0.4.31", features = ["serde"] }
 wasm-bindgen = "0.2.89"
 js-sys = "0.3.66"
 serde-wasm-bindgen = "0.6.3"
-serde = { version = "1.0.193", features = ["derive"] }
-serde_json = { version = "1.0.108", features = [] }
+serde = { version = "1.0.194", features = ["derive"] }
+serde_json = { version = "1.0.111", features = [] } 
 commonbefe = { path = "../commonbefe" }
 
 

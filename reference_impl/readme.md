@@ -24,6 +24,7 @@ ALTER DATABASE dummy REFRESH COLLATION VERSION;
 - Tests
 - Fehlerbehandlung
 - Logging
+- Security
 
 
 ## Anforderungen
