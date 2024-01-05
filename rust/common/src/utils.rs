@@ -71,8 +71,8 @@ pub fn get_db_config(id: String) -> deadpool_postgres::Config {
     config.user = Some(id.clone());
     config.password = Some(id.clone());
     config.dbname = Some(id.clone());
-    config.host = Some("192.168.0.11".into());
-    config.port = Some(5432);
+    config.host = Some("localhost".into());
+    config.port = Some(5434);
 
     config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,
