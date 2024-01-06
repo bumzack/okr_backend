@@ -30,7 +30,7 @@ import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 public class ArticleService {
 
     public static final String PROPERTY_CODE = "code";
-    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
+    private static final Logger LOG = LogManager.getLogger(at.bumzack.reference.impl.ArticleService.class);
     private final ArticleRepository articleRepository;
     private final Art2ImgRepository art2ImgRepository;
     private final ImageRepository imageRepository;
@@ -242,6 +242,7 @@ public class ArticleService {
         }
         return null;
     }
+
 
 
 }
