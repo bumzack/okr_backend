@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.0.4")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.0.5")
     implementation("org.springframework.boot:spring-boot-starter-web:3.1.0")
     runtimeOnly("org.postgresql:postgresql:42.5.4")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.0")

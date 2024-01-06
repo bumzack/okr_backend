@@ -2,21 +2,24 @@ package at.bumzack.reference.impl.dto;
 
 public class Image {
 
-    private String code;
+    private Long id;
     private String filename;
     private String image;
     private String resolution;
 
+    private Integer width;
+
+    private Integer height;
 
     public Image() {
     }
 
-    public String getCode() {
-        return code;
+    public Long getId() {
+        return id;
     }
 
-    public void setCode(final String code) {
-        this.code = code;
+    public void setId(final Long id) {
+        this.id = id;
     }
 
     public String getFilename() {
@@ -41,5 +44,21 @@ public class Image {
 
     public void setResolution(final String resolution) {
         this.resolution = resolution;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
     }
 }

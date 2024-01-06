@@ -36,7 +36,6 @@ CREATE TABLE art2img
     id         serial  NOT NULL,
     article_id INTEGER NOT NULL,
     image_id   INTEGER NOT NULL,
-    PRIMARY KEY (article_id, image_id),
     FOREIGN KEY (article_id)
         REFERENCES articles (id),
     FOREIGN KEY (image_id)
@@ -45,8 +44,6 @@ CREATE TABLE art2img
 
 
 CREATE UNIQUE INDEX art2img_id_idx ON art2img (id);
-CREATE UNIQUE INDEX art2img_article_id_idx ON art2img (article_id);
-CREATE UNIQUE INDEX art2img_image_id_idx ON art2img (image_id);
 
 
 CREATE TABLE resolutions

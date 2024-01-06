@@ -24,12 +24,6 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @GetMapping("/articles")
-    public ResponseEntity<List<Article>> findAll() {
-        final var fullArticles = articleService.findAll();
-        return ResponseEntity.ok(fullArticles);
-    }
-
     @GetMapping("/articles/{pageNumber}/{pageSize}")
     public ResponseEntity<List<Article>> findPaginated(@PathVariable final int pageNumber,
                                                        @PathVariable final int pageSize) {

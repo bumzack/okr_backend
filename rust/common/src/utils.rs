@@ -49,9 +49,9 @@ pub fn create_pool(id: String) -> Pool {
 
     let user: String = id.clone();
     let password: String = id.clone();
-    let host: String = "localhost".into();
+    let host: String = "192.168.0.115".into();
     let dbname: String = id.clone();
-    let port: u16 = 5434;
+    let port: u16 = 5432;
 
     info!("user {user}, password {password}, host {host}, dbname {dbname}");
     pg_config.user(&user);
@@ -71,8 +71,8 @@ pub fn get_db_config(id: String) -> deadpool_postgres::Config {
     config.user = Some(id.clone());
     config.password = Some(id.clone());
     config.dbname = Some(id.clone());
-    config.host = Some("localhost".into());
-    config.port = Some(5434);
+    config.host = Some("192.168.0.11".into());
+    config.port = Some(5432);
 
     config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,

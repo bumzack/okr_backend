@@ -50,4 +50,15 @@ public class Resolution {
     public void setHeight(final int height) {
         this.height = height;
     }
+
+    @Override
+    public String toString() {
+        return "Resolution{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                ", original=" + original +
+                '}';
+    }
 }

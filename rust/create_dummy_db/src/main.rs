@@ -1,11 +1,12 @@
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
+use std::time::Instant;
 
 use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use image::{GenericImageView, ImageFormat};
-use log::LevelFilter;
+use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
 use rand::{Rng, thread_rng};
 use serde_json::json;
@@ -18,7 +19,7 @@ use common::db_resolution::insert_resolution;
 use common::models::{
     NewArt2ImgModel, NewArticleModel, NewImageModel, NewResolutionModel, PixelModel,
 };
-use common::utils::{create_pool, dump_tables};
+use common::utils::create_pool;
 
 use crate::pngimages::create_image;
 
@@ -28,10 +29,15 @@ mod pngimages;
 async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
+    let start = Instant::now();
     insert_dev_data().await?;
-    dump_tables("bumzack".into()).await?;
+    // dump_tables("dev".into()).await?;
 
     //  insert_prod_data().await?;
+
+    let elapsed = start.elapsed().as_secs();
+
+    info!("inserting articles & images took {} secs", elapsed);
 
     Ok(())
 }
@@ -51,10 +57,10 @@ async fn insert_dev_data() -> Result<(), Error> {
             resolution: "64x64".to_string(),
         },
     ];
-    let id = "bumzack".to_string();
+    let id = "dev".to_string();
     let cnt_articles = 2;
     let min_cnt_images = 2;
-    let max_cnt_images = 6;
+    let max_cnt_images = 3;
 
     insert_data(
         id.clone(),
@@ -121,7 +127,7 @@ async fn insert_data(
     resolutions: Vec<NewResolutionModel>,
 ) -> Result<(), Error> {
     let mut rng = thread_rng();
-
+    let remove_files = false;
     let path = env!("CARGO_MANIFEST_DIR");
 
     let img_min_width = 1000;
@@ -180,14 +186,22 @@ async fn insert_data(
             let converted_with_format =
                 image::load_from_memory_with_format(&buffer, ImageFormat::Png).unwrap();
 
-            let rgb_pixels: Vec<PixelModel> = converted_with_format
-                .pixels()
-                .map(|p| PixelModel {
-                    r: p.2.0[0],
-                    g: p.2.0[1],
-                    b: p.2.0[2],
-                })
-                .collect();
+            let mut rgb_pixels: Vec<PixelModel> = vec![];
+
+            for y in 0..img_height {
+                for x in 0..img_width {
+                    let yy = img_height - 1 - y;
+                    let xx = img_width - 1 - x;
+
+                    let p = converted_with_format.get_pixel(xx as u32, yy as u32);
+                    let new_pixel = PixelModel {
+                        r: 255 - p[0],
+                        g: 255 - p[1],
+                        b: 255 - p[2],
+                    };
+                    rgb_pixels.push(new_pixel);
+                }
+            }
 
             let rgb_pixels = json!(&rgb_pixels).to_string();
 
@@ -208,17 +222,23 @@ async fn insert_data(
 
             let image = insert_image(&pool, &new_image).await?;
 
+            let s = format!("article id {}, image id {}", article.id, image.id);
+            info!("{}",s);
+
             let new_art2img = NewArt2ImgModel {
                 article_id: article.id,
                 image_id: image.id,
             };
+            info!("new_art2img   {:?}", &new_art2img);
 
             let _ = insert_art2img(&pool, &new_art2img).await?;
 
-            let png_filename = format!("{}/images/png/{}.png", path, &filename);
-            fs::remove_file(&png_filename).expect("file delete should work");
-            let svg_filename = format!("{}/images/svg/{}.svg", path, &filename);
-            fs::remove_file(&svg_filename).expect("file delete should work");
+            if remove_files {
+                let png_filename = format!("{}/images/png/{}.png", path, &filename);
+                fs::remove_file(&png_filename).expect("file delete should work");
+                let svg_filename = format!("{}/images/svg/{}.svg", path, &filename);
+                fs::remove_file(&svg_filename).expect("file delete should work");
+            }
 
             //  println!("new art2img inserted    {:?}", &art2img);
         }
