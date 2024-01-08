@@ -1,7 +1,12 @@
 package at.bumzack.reference.impl;
 
+import at.bumzack.reference.impl.dto.Art2ImgModel;
+import at.bumzack.reference.impl.dto.Article;
+import at.bumzack.reference.impl.dto.ArticleModel;
 import at.bumzack.reference.impl.dto.Image;
-import at.bumzack.reference.impl.dto.*;
+import at.bumzack.reference.impl.dto.ImageModel;
+import at.bumzack.reference.impl.dto.Pixel;
+import at.bumzack.reference.impl.dto.Resolution;
 import at.bumzack.reference.impl.repository.Art2ImgRepository;
 import at.bumzack.reference.impl.repository.ArticleRepository;
 import at.bumzack.reference.impl.repository.ImageRepository;
@@ -16,7 +21,9 @@ import org.springframework.stereotype.Component;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +62,7 @@ public class ArticleService {
 
         final var resolutions = resolutionService.findAll();
         final var articles = articleRepository.findAll(p);
-
+        LOG.info("articles {}", articles.getTotalElements());
         return articles.stream()
                 .map(a -> findArticlesAndMapToFullArticle(a, resolutions))
                 .toList();
@@ -65,6 +72,7 @@ public class ArticleService {
         final var imgIds = art2ImgRepository.findByArticleId(articleModel.getId()).stream()
                 .map(Art2ImgModel::getImageId)
                 .toList();
+        LOG.info("imgIds {}", imgIds.size());
 
         final var images = imageRepository.findByIdIn(imgIds).stream()
                 .toList();
@@ -89,6 +97,7 @@ public class ArticleService {
     }
 
     private void convertImageAndAddToList(final ImageModel img, final Resolution resolution, final List<Image> res) {
+       LOG.info("resizing images");
         try {
             LOG.info("resolution  {}", resolution);
             final var json = img.getImageJson();
@@ -96,6 +105,15 @@ public class ArticleService {
             LOG.info("converting to JSON ok ");
             final var ppm = toPPM(img, resolution, pixels);
             LOG.info("converting to PPM ok ");
+
+            final var dbImg = createPPMFile(img.getWidth(), img.getHeight(), pixels);
+
+            final var filename = String.format("%s_orig_db_%s.ppm", img.getFilename(), resolution.getName());
+            final BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+            writer.write(dbImg.toString());
+            writer.close();
+            LOG.info("wrote PPM to filename {} ", filename);
+
 
             final var finalImage = new Image();
             finalImage.setId(img.getId());
@@ -121,14 +139,14 @@ public class ArticleService {
             final TypeReference<List<Pixel>> type = new TypeReference<>() {
             };
             return mapper.readValue(json, type);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOG.error("error deserializing the image {}", e.getMessage());
             LOG.error(e);
         }
         return null;
     }
 
-    private String toPPM(ImageModel i, Resolution resolution, List<Pixel> pixels) {
+    private String toPPM(final ImageModel img, final Resolution resolution, final List<Pixel> pixels) {
         final List<Pixel> mirrored = new ArrayList<>();
 
         try {
@@ -138,7 +156,7 @@ public class ArticleService {
                     final var xx = resolution.getWidth() - 1 - x;
                     final var yy = resolution.getHeight() - 1 - y;
 
-                    final var idxMirrored = yy * i.getWidth() + xx;
+                    final var idxMirrored = yy * img.getWidth() + xx;
 
                     final var p = pixels.get(idxMirrored);
                     mirrored.add(p);
@@ -147,6 +165,8 @@ public class ArticleService {
         } catch (final Exception e) {
             LOG.error("error mirroing the image   {}", e.getMessage());
         }
+
+
         // crop to resolution image
         final List<Pixel> cropped = new ArrayList<>();
 
@@ -181,7 +201,7 @@ public class ArticleService {
         }
 
         try {
-            final StringBuilder ppm = getStringBuilder(resolution, inverted);
+            final StringBuilder ppm = createPPMFile(resolution.getWidth(), resolution.getHeight(), inverted);
             //LOG.info("ppm    \n {}", ppm.toString());
             return ppm.toString();
         } catch (final Exception e) {
@@ -190,12 +210,12 @@ public class ArticleService {
         return null;
     }
 
-    private static StringBuilder getStringBuilder(Resolution resolution, List<Pixel> inverted) {
+    private static StringBuilder createPPMFile(final int width, final int height, final List<Pixel> inverted) {
         // create a PPM file format
         final StringBuilder ppm = new StringBuilder();
         ppm.append("P3");
         ppm.append("\n");
-        final var s = String.format("%d %d", resolution.getWidth(), resolution.getHeight());
+        final var s = String.format("%d %d", width, height);
         ppm.append(s);
         ppm.append("\n");
         ppm.append("255");
@@ -203,9 +223,9 @@ public class ArticleService {
 
         StringBuilder line = new StringBuilder();
 
-        for (int y = 0; y < resolution.getHeight(); y++) {
-            for (int x = 0; x < resolution.getWidth(); x++) {
-                final var idx = y * resolution.getWidth() + x;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final var idx = y * width + x;
                 final var p = inverted.get(idx);
 
                 final var pixelsAsString = String.format("%d %d %d ", p.getR(), p.getG(), p.getB());

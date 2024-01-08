@@ -1,14 +1,13 @@
-use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
 
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use image::{GenericImageView, ImageFormat};
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 use serde_json::json;
 use tokio_postgres::Error;
 
@@ -69,7 +68,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -115,7 +114,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         max_cnt_images,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -223,7 +222,7 @@ async fn insert_data(
             let image = insert_image(&pool, &new_image).await?;
 
             let s = format!("article id {}, image id {}", article.id, image.id);
-            info!("{}",s);
+            info!("{}", s);
 
             let new_art2img = NewArt2ImgModel {
                 article_id: article.id,
