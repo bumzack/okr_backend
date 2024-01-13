@@ -1,10 +1,12 @@
+use std::fs;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Read, Write};
+use std::path::Path;
 use std::time::Instant;
 
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
-use image::{GenericImageView, ImageFormat};
+use image::{GenericImageView, ImageBuffer, ImageFormat, RgbImage};
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
 use rand::{thread_rng, Rng};
@@ -44,10 +46,7 @@ async fn main() -> Result<(), Error> {
 async fn insert_dev_data() -> Result<(), Error> {
     let resolutions = vec![
         NewResolutionModel {
-            resolution: "256x256".to_string(),
-        },
-        NewResolutionModel {
-            resolution: "320x240".to_string(),
+            resolution: "32x32".to_string(),
         },
         NewResolutionModel {
             resolution: "original".to_string(),
@@ -57,15 +56,22 @@ async fn insert_dev_data() -> Result<(), Error> {
         },
     ];
     let id = "dev".to_string();
-    let cnt_articles = 2;
+    let cnt_articles = 1;
     let min_cnt_images = 2;
     let max_cnt_images = 3;
+
+    let img_min_width = 100;
+    let img_max_width = 200;
+    let ratio = 16.0 / 9.0;
 
     insert_data(
         id.clone(),
         cnt_articles,
         min_cnt_images,
         max_cnt_images,
+        img_min_width,
+        img_max_width,
+        ratio,
         resolutions,
     )
     .await?;
@@ -107,11 +113,19 @@ async fn insert_prod_data() -> Result<(), Error> {
     let cnt_articles = 1_000;
     let min_cnt_images = 2;
     let max_cnt_images = 10;
+
+    let img_min_width = 1000;
+    let img_max_width = 2000;
+    let ratio = 16.0 / 9.0;
+
     insert_data(
         id.clone(),
         cnt_articles,
         min_cnt_images,
         max_cnt_images,
+        img_min_width,
+        img_max_width,
+        ratio,
         resolutions,
     )
     .await?;
@@ -123,15 +137,14 @@ async fn insert_data(
     cnt_articles: usize,
     min_cnt_images: usize,
     max_cnt_images: usize,
+    img_min_width: usize,
+    img_max_width: usize,
+    ratio: f64,
     resolutions: Vec<NewResolutionModel>,
 ) -> Result<(), Error> {
     let mut rng = thread_rng();
     let remove_files = false;
     let path = env!("CARGO_MANIFEST_DIR");
-
-    let img_min_width = 1000;
-    let img_max_width = 2000;
-    let ratio = 16.0 / 9.0;
 
     let pool = create_pool(id);
 
@@ -174,7 +187,7 @@ async fn insert_data(
             );
             let png_filename = format!("{}/images/png/{}.png", path, &filename);
 
-            let f = File::open(png_filename).expect("open");
+            let f = File::open(&png_filename).expect("open");
             let mut reader = BufReader::new(f);
             let mut buffer = Vec::new();
 
@@ -201,6 +214,12 @@ async fn insert_data(
                     rgb_pixels.push(new_pixel);
                 }
             }
+
+            let filen = format!("{}/images/png/{}_cropped_inverted.png", path, &filename);
+            info!("saving file {}", &filen);
+            save_png(&rgb_pixels, &filen, img_width, img_height);
+            let filen = format!("{}/images/png/{}_cropped_inverted.ppm", path, &filename);
+            save_ppm(&rgb_pixels, &filen, img_width, img_height);
 
             let rgb_pixels = json!(&rgb_pixels).to_string();
 
@@ -230,16 +249,15 @@ async fn insert_data(
             };
             info!("new_art2img   {:?}", &new_art2img);
 
-            let _ = insert_art2img(&pool, &new_art2img).await?;
+            let art2img = insert_art2img(&pool, &new_art2img).await?;
 
             if remove_files {
-                let png_filename = format!("{}/images/png/{}.png", path, &filename);
                 fs::remove_file(&png_filename).expect("file delete should work");
                 let svg_filename = format!("{}/images/svg/{}.svg", path, &filename);
                 fs::remove_file(&svg_filename).expect("file delete should work");
             }
 
-            //  println!("new art2img inserted    {:?}", &art2img);
+            info!("new art2img inserted    {:?}", &art2img);
         }
     }
 
@@ -248,4 +266,36 @@ async fn insert_data(
     }
 
     Ok(())
+}
+
+fn save_ppm(pixels: &[PixelModel], filename: &String, width: usize, height: usize) {
+    let mut f = File::create(filename).expect("create file");
+    let s = format!("P3 \n {} {} \n {}", width, height, 255);
+    let _ = f.write(&s.into_bytes()).expect("expect to write files");
+    pixels.iter().for_each(|p| {
+        let s = format!(" {} {} {} \n ", p.r, p.g, p.b);
+        let _ = f.write(&s.into_bytes()).expect("expect to write files");
+    })
+}
+
+fn save_png(pixels: &[PixelModel], filename: &String, width: usize, height: usize) {
+    let mut img: RgbImage = ImageBuffer::new(width as u32, height as u32);
+
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let idx = (y * width as u32 + x) as usize;
+        info!(
+            "x {}    y  {}    width  {}   height {}      idx {}",
+            x, y, width, height, idx
+        );
+
+        let r = pixels[idx].r;
+        let g = pixels[idx].g;
+        let b = pixels[idx].b;
+
+        *pixel = image::Rgb([r, g, b]);
+    }
+
+    let p = Path::new(filename);
+    img.save_with_format(p, ImageFormat::Png)
+        .expect("saving png should work");
 }
