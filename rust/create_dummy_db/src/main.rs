@@ -215,6 +215,7 @@ async fn insert_data(
     Ok(())
 }
 
+
 async fn insert_resolutions(resolutions: &Vec<NewResolutionModel>, pool: &Pool) -> Result<(), Error> {
     for r in resolutions {
         insert_resolution(&pool, r).await?;
