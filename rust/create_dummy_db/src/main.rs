@@ -1,15 +1,15 @@
 use std::fs;
 use std::fs::File;
-use std::io::{BufReader, Read, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 use std::time::Instant;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use image::{GenericImageView, ImageBuffer, ImageFormat, RgbImage};
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde_json::json;
 use tokio_postgres::Error;
 
@@ -22,7 +22,7 @@ use common::models::{
 };
 use common::utils::create_pool;
 
-use crate::pngimages::create_image;
+use crate::pngimages::create_image_vec_u8;
 
 mod pngimages;
 
@@ -74,7 +74,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         ratio,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -101,21 +101,15 @@ async fn insert_prod_data() -> Result<(), Error> {
         NewResolutionModel {
             resolution: "320x240".to_string(),
         },
-        NewResolutionModel {
-            resolution: "3840x2160".to_string(),
-        },
-        NewResolutionModel {
-            resolution: "7680x4320".to_string(),
-        },
     ];
 
     let id = "prod".to_string();
-    let cnt_articles = 1_000;
+    let cnt_articles = 100;
     let min_cnt_images = 2;
     let max_cnt_images = 10;
 
-    let img_min_width = 1000;
-    let img_max_width = 2000;
+    let img_min_width = 3000;
+    let img_max_width = 4000;
     let ratio = 16.0 / 9.0;
 
     insert_data(
@@ -128,7 +122,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         ratio,
         resolutions,
     )
-    .await?;
+        .await?;
     Ok(())
 }
 
@@ -152,7 +146,7 @@ async fn insert_data(
         let ts = Utc::now().timestamp_millis();
         let code = rng.gen_range(0..100_000_000);
         let article_code = format!("article_{:010}_{:010}_{}", code, art_idx + 1, ts);
-        println!("art_idx {art_idx}  -->   code {article_code}");
+        //println!("art_idx {art_idx}  -->   code {article_code}");
         let new_article = NewArticleModel {
             code: article_code.clone(),
             title: format!("title for article code {:010}", article_code.clone()),
@@ -176,24 +170,33 @@ async fn insert_data(
                 cnt_images
             );
 
-            create_image(
+            let buffer = create_image_vec_u8(
                 img_width,
                 img_height,
                 img_idx,
                 cnt_images,
-                &filename,
                 &mut rng,
                 article_code.clone(),
             );
-            let png_filename = format!("{}/images/png/{}.png", path, &filename);
 
-            let f = File::open(&png_filename).expect("open");
-            let mut reader = BufReader::new(f);
-            let mut buffer = Vec::new();
-
-            reader
-                .read_to_end(&mut buffer)
-                .expect("read file into buffer");
+            // create_image(
+            //     img_width,
+            //     img_height,
+            //     img_idx,
+            //     cnt_images,
+            //     &filename,
+            //     &mut rng,
+            //     article_code.clone(),
+            // );
+            // let png_filename = format!("{}/images/png/{}.png", path, &filename);
+            //
+            // let f = File::open(&png_filename).expect("open");
+            // let mut reader = BufReader::new(f);
+            // let mut buffer = Vec::new();
+            //
+            // reader
+            //     .read_to_end(&mut buffer)
+            //     .expect("read file into buffer");
 
             let converted_with_format =
                 image::load_from_memory_with_format(&buffer, ImageFormat::Png).unwrap();
@@ -215,11 +218,11 @@ async fn insert_data(
                 }
             }
 
-            let filen = format!("{}/images/png/{}_cropped_inverted.png", path, &filename);
-            info!("saving file {}", &filen);
-            save_png(&rgb_pixels, &filen, img_width, img_height);
-            let filen = format!("{}/images/png/{}_cropped_inverted.ppm", path, &filename);
-            save_ppm(&rgb_pixels, &filen, img_width, img_height);
+            // let filen = format!("{}/images/png/{}_cropped_inverted.png", path, &filename);
+            // info!("saving file {}", &filen);
+            // save_png(&rgb_pixels, &filen, img_width, img_height);
+            // let filen = format!("{}/images/png/{}_cropped_inverted.ppm", path, &filename);
+            // save_ppm(&rgb_pixels, &filen, img_width, img_height);
 
             let rgb_pixels = json!(&rgb_pixels).to_string();
 
@@ -240,19 +243,19 @@ async fn insert_data(
 
             let image = insert_image(&pool, &new_image).await?;
 
-            let s = format!("article id {}, image id {}", article.id, image.id);
-            info!("{}", s);
+            // let s = format!("article id {}, image id {}", article.id, image.id);
+            // info!("{}", s);
 
             let new_art2img = NewArt2ImgModel {
                 article_id: article.id,
                 image_id: image.id,
             };
-            info!("new_art2img   {:?}", &new_art2img);
+            // info!("new_art2img   {:?}", &new_art2img);
 
             let art2img = insert_art2img(&pool, &new_art2img).await?;
 
             if remove_files {
-                fs::remove_file(&png_filename).expect("file delete should work");
+                //  fs::remove_file(&png_filename).expect("file delete should work");
                 let svg_filename = format!("{}/images/svg/{}.svg", path, &filename);
                 fs::remove_file(&svg_filename).expect("file delete should work");
             }
