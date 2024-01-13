@@ -52,16 +52,16 @@ async fn insert_dev_data() -> Result<(), Error> {
             resolution: "original".to_string(),
         },
         NewResolutionModel {
-            resolution: "64x64".to_string(),
+            resolution: "256x256".to_string(),
         },
     ];
     let id = "dev".to_string();
-    let cnt_articles = 1;
+    let cnt_articles = 2;
     let min_cnt_images = 2;
     let max_cnt_images = 3;
 
-    let img_min_width = 100;
-    let img_max_width = 200;
+    let img_min_width = 600;
+    let img_max_width = 700;
     let ratio = 16.0 / 9.0;
 
     insert_data(
@@ -283,10 +283,6 @@ fn save_png(pixels: &[PixelModel], filename: &String, width: usize, height: usiz
 
     for (x, y, pixel) in img.enumerate_pixels_mut() {
         let idx = (y * width as u32 + x) as usize;
-        info!(
-            "x {}    y  {}    width  {}   height {}      idx {}",
-            x, y, width, height, idx
-        );
 
         let r = pixels[idx].r;
         let g = pixels[idx].g;

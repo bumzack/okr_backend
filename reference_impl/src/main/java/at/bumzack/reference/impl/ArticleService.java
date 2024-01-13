@@ -1,12 +1,7 @@
 package at.bumzack.reference.impl;
 
-import at.bumzack.reference.impl.dto.Art2ImgModel;
-import at.bumzack.reference.impl.dto.Article;
-import at.bumzack.reference.impl.dto.ArticleModel;
 import at.bumzack.reference.impl.dto.Image;
-import at.bumzack.reference.impl.dto.ImageModel;
-import at.bumzack.reference.impl.dto.Pixel;
-import at.bumzack.reference.impl.dto.Resolution;
+import at.bumzack.reference.impl.dto.*;
 import at.bumzack.reference.impl.repository.Art2ImgRepository;
 import at.bumzack.reference.impl.repository.ArticleRepository;
 import at.bumzack.reference.impl.repository.ImageRepository;
@@ -28,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 
@@ -35,9 +31,8 @@ import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 @Component
 public class ArticleService {
 
-    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
     public static final String PROPERTY_CODE = "code";
-
+    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
     private final ArticleRepository articleRepository;
     private final Art2ImgRepository art2ImgRepository;
     private final ImageRepository imageRepository;
@@ -57,10 +52,50 @@ public class ArticleService {
         this.mapper = mapper;
     }
 
+    private static StringBuilder createPPMFile(final List<Pixel> pixels, final int width, final int height) {
+        // create a PPM file format
+        final StringBuilder ppm = new StringBuilder();
+        ppm.append("P3");
+        ppm.append("\n");
+        final var s = String.format("%d %d", width, height);
+        ppm.append(s);
+        ppm.append("\n");
+        ppm.append("255");
+        ppm.append("\n");
+
+        StringBuilder line = new StringBuilder();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final var idx = y * width + x;
+                final var p = pixels.get(idx);
+
+                final var pixelsAsString = String.format("%d %d %d ", p.getR(), p.getG(), p.getB());
+                if (line.length() + pixelsAsString.length() > 70) {
+                    ppm.append(line);
+                    ppm.append("\n");
+                    line = new StringBuilder();
+                    line.append(pixelsAsString);
+                } else {
+                    line.append(pixelsAsString);
+                }
+            }
+            ppm.append(line);
+            line = new StringBuilder();
+        }
+        return ppm;
+    }
+
     public List<Article> findPaginated(final int pageNumber, final int pageSize) {
         final var p = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
 
         final var resolutions = resolutionService.findAll();
+
+        final String db = resolutions.stream()
+                .map(Resolution::toString)
+                .collect(Collectors.joining(" // "));
+        LOG.info("all resolutions in DB     {}", db);
+
         final var articles = articleRepository.findAll(p);
         LOG.info("articles {}", articles.getTotalElements());
         return articles.stream()
@@ -97,18 +132,18 @@ public class ArticleService {
     }
 
     private void convertImageAndAddToList(final ImageModel img, final Resolution resolution, final List<Image> res) {
-       LOG.info("resizing images");
+        LOG.info("resizing images");
         try {
             LOG.info("resolution  {}", resolution);
             final var json = img.getImageJson();
             final var pixels = convertToPixelArray(json);
             LOG.info("converting to JSON ok ");
-            final var ppm = toPPM(pixels,img.getWidth(), img.getHeight(), resolution );
+            final var ppm = toPPM(pixels, img.getWidth(), img.getHeight(), resolution, img.getFilename());
             LOG.info("converting to PPM ok ");
 
-            final var dbImg = createPPMFile(img.getWidth(), img.getHeight(), pixels);
+            final var dbImg = createPPMFile(pixels, img.getWidth(), img.getHeight());
 
-            final var filename = String.format("%s_orig_db_%s.ppm", img.getFilename(), resolution.getName());
+            final var filename = String.format("%s_java_orig_db_%s.ppm", img.getFilename(), resolution.getName());
             final BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
             writer.write(dbImg.toString());
             writer.close();
@@ -146,53 +181,79 @@ public class ArticleService {
         return null;
     }
 
-    private String toPPM(final List<Pixel> pixels,
-                         final  Integer sourceWidth,
-                         final  Integer sourceHeight,
-                         final  Resolution resolution) {
-        final List<Pixel> mirrored = new ArrayList<>();
+    private String toPPM(final List<Pixel> source,
+                         final Integer sourceWidth,
+                         final Integer sourceHeight,
+                         final Resolution resolution,
+                         final String filename) throws IOException {
 
+        final List<Pixel> mirroredPix = new ArrayList<>();
+
+        LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}",
+                sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight());
         try {
             // mirror image
-            for (int ySource = 0; ySource < sourceHeight    ; ySource++) {
-                for (int xSource = 0; xSource < resolution.getWidth(); xSource++) {
-                        final var idxSource = ySource * sourceWidth + xSource;
-
-                    final var p = pixels.get(idxSource);
-                    mirrored.add(p);
+            for (int yTarget = 0; yTarget < sourceHeight; yTarget++) {
+                for (int xTarget = 0; xTarget < sourceWidth; xTarget++) {
+                    final var xSource = sourceWidth - xTarget - 1;
+                    final var ySource = sourceHeight - yTarget - 1;
+                    final var idxSource = ySource * sourceWidth + xSource;
+                    final var p = source.get(idxSource);
+                    mirroredPix.add(p);
                 }
             }
         } catch (final Exception e) {
             LOG.error("error mirroring the image   {}", e.getMessage());
         }
 
+        final var mirroredPpm = createPPMFile(mirroredPix, sourceWidth, sourceHeight);
+        final var fn = String.format("%s_orig_db_mirrored_%s.ppm", filename, resolution.getName());
+        final BufferedWriter writer = new BufferedWriter(new FileWriter(fn));
+        writer.write(mirroredPpm.toString());
+        writer.close();
+
+        final var targetSize = resolution.getWidth() * resolution.getHeight();
+        LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}   mirrored.length  {}    targetSize   {}",
+                sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight(), mirroredPix.size(), targetSize);
+
+
         // crop to resolution image
-        final List<Pixel> cropped = new ArrayList<>();
+        final List<Pixel> croppedPix = new ArrayList<>();
 
         try {
             for (int yTarget = 0; yTarget < resolution.getHeight(); yTarget++) {
                 for (int xTarget = 0; xTarget < resolution.getWidth(); xTarget++) {
                     final var idxSource = yTarget * sourceWidth + xTarget;
-                    final var p = mirrored.get(idxSource);
-                    cropped.add(p);
+                    final var p = mirroredPix.get(idxSource);
+                    croppedPix.add(p);
                 }
             }
         } catch (final Exception e) {
             LOG.error("error cropping the image   {}", e.getMessage());
+            LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}   mirrored.length  {}    targetSize   {}",
+                    sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight(), mirroredPix.size(), targetSize);
+            throw new RuntimeException("cropping crashed");
         }
+
+        final var croppedPpm = createPPMFile(croppedPix, resolution.getWidth(), resolution.getHeight());
+        final var fn1 = String.format("%s_orig_db_cropped_%s.ppm", filename, resolution.getName());
+        final BufferedWriter writer1 = new BufferedWriter(new FileWriter(fn1));
+        writer1.write(croppedPpm.toString());
+        writer1.close();
+
         // invert image pixels
-        final List<Pixel> inverted = new ArrayList<>();
+        final List<Pixel> invertedPix = new ArrayList<>();
 
         try {
             for (int y = 0; y < resolution.getHeight(); y++) {
                 for (int x = 0; x < resolution.getWidth(); x++) {
                     final var idx = y * resolution.getWidth() + x;
-                    final var p = cropped.get(idx);
+                    final var p = croppedPix.get(idx);
                     final var invertedPixel = new Pixel();
                     invertedPixel.setR(255 - p.getR());
                     invertedPixel.setG(255 - p.getG());
                     invertedPixel.setB(255 - p.getB());
-                    inverted.add(invertedPixel);
+                    invertedPix.add(invertedPixel);
                 }
             }
         } catch (final Exception e) {
@@ -200,44 +261,13 @@ public class ArticleService {
         }
 
         try {
-            final StringBuilder ppm = createPPMFile(resolution.getWidth(), resolution.getHeight(), inverted);
+            final StringBuilder ppm = createPPMFile(invertedPix, resolution.getWidth(), resolution.getHeight());
             //LOG.info("ppm    \n {}", ppm.toString());
             return ppm.toString();
         } catch (final Exception e) {
             LOG.error("error creating the PPM   {}", e.getMessage());
         }
         return null;
-    }
-
-    private static StringBuilder createPPMFile(final int width, final int height, final List<Pixel> inverted) {
-        // create a PPM file format
-        final StringBuilder ppm = new StringBuilder();
-        ppm.append("P3");
-        ppm.append("\n");
-        final var s = String.format("%d %d", width, height);
-        ppm.append(s);
-        ppm.append("\n");
-        ppm.append("255");
-        ppm.append("\n");
-
-        StringBuilder line = new StringBuilder();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                final var idx = y * width + x;
-                final var p = inverted.get(idx);
-
-                final var pixelsAsString = String.format("%d %d %d ", p.getR(), p.getG(), p.getB());
-                if (line.length() + pixelsAsString.length() > 70) {
-                    ppm.append(line);
-                    ppm.append("\n");
-                    line = new StringBuilder();
-                }
-                line.append(pixelsAsString);
-            }
-            ppm.append(line);
-        }
-        return ppm;
     }
 
     private void base64Stuff(ImageModel i, Resolution resolution, List<Image> res) throws IOException {
