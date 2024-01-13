@@ -103,7 +103,7 @@ public class ArticleService {
             final var json = img.getImageJson();
             final var pixels = convertToPixelArray(json);
             LOG.info("converting to JSON ok ");
-            final var ppm = toPPM(img, resolution, pixels);
+            final var ppm = toPPM(pixels,img.getWidth(), img.getHeight(), resolution );
             LOG.info("converting to PPM ok ");
 
             final var dbImg = createPPMFile(img.getWidth(), img.getHeight(), pixels);
@@ -146,35 +146,34 @@ public class ArticleService {
         return null;
     }
 
-    private String toPPM(final ImageModel img, final Resolution resolution, final List<Pixel> pixels) {
+    private String toPPM(final List<Pixel> pixels,
+                         final  Integer sourceWidth,
+                         final  Integer sourceHeight,
+                         final  Resolution resolution) {
         final List<Pixel> mirrored = new ArrayList<>();
 
         try {
             // mirror image
-            for (int y = 0; y < resolution.getHeight(); y++) {
-                for (int x = 0; x < resolution.getWidth(); x++) {
-                    final var xx = resolution.getWidth() - 1 - x;
-                    final var yy = resolution.getHeight() - 1 - y;
+            for (int ySource = 0; ySource < sourceHeight    ; ySource++) {
+                for (int xSource = 0; xSource < resolution.getWidth(); xSource++) {
+                        final var idxSource = ySource * sourceWidth + xSource;
 
-                    final var idxMirrored = yy * img.getWidth() + xx;
-
-                    final var p = pixels.get(idxMirrored);
+                    final var p = pixels.get(idxSource);
                     mirrored.add(p);
                 }
             }
         } catch (final Exception e) {
-            LOG.error("error mirroing the image   {}", e.getMessage());
+            LOG.error("error mirroring the image   {}", e.getMessage());
         }
-
 
         // crop to resolution image
         final List<Pixel> cropped = new ArrayList<>();
 
         try {
-            for (int y = 0; y < resolution.getHeight(); y++) {
-                for (int x = 0; x < resolution.getWidth(); x++) {
-                    final var idx = y * resolution.getWidth() + x;
-                    final var p = mirrored.get(idx);
+            for (int yTarget = 0; yTarget < resolution.getHeight(); yTarget++) {
+                for (int xTarget = 0; xTarget < resolution.getWidth(); xTarget++) {
+                    final var idxSource = yTarget * sourceWidth + xTarget;
+                    final var p = mirrored.get(idxSource);
                     cropped.add(p);
                 }
             }
