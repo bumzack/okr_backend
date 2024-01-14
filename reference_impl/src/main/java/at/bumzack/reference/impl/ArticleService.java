@@ -16,9 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,21 +132,14 @@ public class ArticleService {
     private void convertImageAndAddToList(final ImageModel img, final Resolution resolution, final List<Image> res) {
         //LOG.info("resizing images");
         try {
-            LOG.info("resolution  {}", resolution);
             final var json = img.getImageJson();
             final var pixels = convertToPixelArray(json);
             //LOG.info("converting to JSON ok ");
+            if (resolution.isOriginal()) {
+                resolution.setWidth(img.getWidth());
+                resolution.setHeight(img.getHeight());
+            }
             final var ppm = toPPM(pixels, img.getWidth(), img.getHeight(), resolution, img.getFilename());
-            //LOG.info("converting to PPM ok ");
-
-//            final var dbImg = createPPMFile(pixels, img.getWidth(), img.getHeight());
-//
-//            final var filename = String.format("%s_java_orig_db_%s.ppm", img.getFilename(), resolution.getName());
-//            final BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-//            writer.write(dbImg.toString());
-//            writer.close();
-//            LOG.info("wrote PPM to filename {} ", filename);
-
 
             final var finalImage = new Image();
             finalImage.setId(img.getId());
@@ -189,8 +180,6 @@ public class ArticleService {
 
         final List<Pixel> mirroredPix = new ArrayList<>();
 
-//        LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}",
-//                sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight());
         try {
             // mirror image
             for (int yTarget = 0; yTarget < sourceHeight; yTarget++) {
@@ -204,20 +193,11 @@ public class ArticleService {
             }
         } catch (final Exception e) {
             LOG.error("error mirroring the image   {}", e.getMessage());
+            throw new RuntimeException("mirroring crashed");
         }
 
-//        final var mirroredPpm = createPPMFile(mirroredPix, sourceWidth, sourceHeight);
-//        final var fn = String.format("%s_orig_db_mirrored_%s.ppm", filename, resolution.getName());
-//        final BufferedWriter writer = new BufferedWriter(new FileWriter(fn));
-//        writer.write(mirroredPpm.toString());
-//        writer.close();
 
-//        final var targetSize = resolution.getWidth() * resolution.getHeight();
-//        LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}   mirrored.length  {}    targetSize   {}",
-//                sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight(), mirroredPix.size(), targetSize);
-
-
-        // crop to resolution image
+        // crop to target image resolution
         final List<Pixel> croppedPix = new ArrayList<>();
 
         try {
@@ -230,16 +210,9 @@ public class ArticleService {
             }
         } catch (final Exception e) {
             LOG.error("error cropping the image   {}", e.getMessage());
-//            LOG.info("sourceWidth   {} ,  sourceHeight   {},      resolution.width {}, resolution.height  {}   mirrored.length  {}    targetSize   {}",
-//                    sourceWidth, sourceHeight, resolution.getWidth(), resolution.getHeight(), mirroredPix.size(), targetSize);
-//            throw new RuntimeException("cropping crashed");
+            throw new RuntimeException("cropping crashed");
         }
 
-//        final var croppedPpm = createPPMFile(croppedPix, resolution.getWidth(), resolution.getHeight());
-//        final var fn1 = String.format("%s_orig_db_cropped_%s.ppm", filename, resolution.getName());
-//        final BufferedWriter writer1 = new BufferedWriter(new FileWriter(fn1));
-//        writer1.write(croppedPpm.toString());
-//        writer1.close();
 
         // invert image pixels
         final List<Pixel> invertedPix = new ArrayList<>();
@@ -258,6 +231,7 @@ public class ArticleService {
             }
         } catch (final Exception e) {
             LOG.error("error inverting the image   {}", e.getMessage());
+            throw new RuntimeException("inverting crashed");
         }
 
         try {
@@ -269,39 +243,5 @@ public class ArticleService {
         return null;
     }
 
-    private void base64Stuff(ImageModel i, Resolution resolution, List<Image> res) throws IOException {
-//        final byte[] data = Base64.getDecoder().decode(i.getImage());
-//        final var output = resize(data, resolution.getWidth(), resolution.getHeight());
-
-//        final var os = new ByteArrayOutputStream();
-//        ImageIO.write(output, "png", os);
-//
-//        final var bytes = os.toByteArray();
-//        final var im = Base64.getEncoder().encodeToString(bytes);
-
-        final var finalImage = new Image();
-        finalImage.setId(i.getId());
-        finalImage.setFilename(i.getFilename());
-        // finalImage.setImage(im);
-        finalImage.setResolution(resolution.getName());
-
-        res.add(finalImage);
-    }
-
-    public BufferedImage resize(final byte[] data, int scaledWidth, int scaledHeight) throws IOException {
-        // reads input image
-        final var bis = new ByteArrayInputStream(data);
-        final BufferedImage bImage = ImageIO.read(bis);
-
-        // creates output image
-        final BufferedImage outputImage = new BufferedImage(scaledWidth, scaledHeight, TYPE_3BYTE_BGR);
-
-        // scales the input image to the output image
-        final Graphics2D g2d = outputImage.createGraphics();
-        g2d.drawImage(bImage, 0, 0, scaledWidth, scaledHeight, null);
-        g2d.dispose();
-
-        return outputImage;
-    }
 
 }
