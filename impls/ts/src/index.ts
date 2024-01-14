@@ -7,8 +7,10 @@ import logger from 'koa-logger';
 import * as db from './db';
 import * as dotenv from "dotenv";
 import {getResolutions} from "./resolutionservice";
-import {getArticles} from "./articleservice";
-import {getArt2Img} from "./art2imgservice";
+import {Resolution} from "./models";
+import {processAllImagesV1} from "./image-utils-v1";
+import {processAllImagesV2} from "./image-utils-v2";
+import {getArticlesV3} from "./articleservice_v3";
 
 const router = new Router();
 const app = new Koa();
@@ -22,23 +24,66 @@ dotenv.config()
 
 const port = process.env.PORT || 5000
 
-
-router.get('/api/v1/resolutions', async (ctx: Koa.Context, next: Koa.Next) => {
+router.get('/api/v1/articles/:pagenumber/:pagesize', async (ctx: Koa.Context, next: Koa.Next) => {
     const client = await db.pool.connect();
-    //  const email = ctx.params.email;
-    // console.log(`got an email?:   ${email}`);
+    const pagenumber = ctx.params.pagenumber as number;
+    const pagesize = ctx.params.pagesize as number;
+    console.log(`got url parameters?: pagenumber  ${pagenumber}  pagesize ${pagesize}  `);
     try {
-        const articles = await getArticles(0, 3);
-        console.log(`got articles: ${JSON.stringify(articles, null, 4)}`);
+        const resolutions: Array<Resolution> = await getResolutions()
 
-        const article_id = articles[0].id
-        const art2imgs = await getArt2Img(article_id)
-        console.log(`got art2imgs: ${JSON.stringify(art2imgs, null, 4)}`)
+        const offset = pagenumber * pagesize
+        const articles = await processAllImagesV1(offset, pagesize, resolutions);
+        if (articles.length > 0) {
+            ctx.body = JSON.stringify(articles)
+        } else {
+            ctx.status = 404
+        }
+    } finally {
+        client.release()
+    }
+    await next;
+});
 
-        const resolutions = await getResolutions()
-        console.log(`got resolutions: ${JSON.stringify(resolutions, null, 4)}`)
-        if (resolutions.length > 0) {
-            ctx.body = JSON.stringify(resolutions)
+
+router.get('/api/v2/articles/:pagenumber/:pagesize', async (ctx: Koa.Context, next: Koa.Next) => {
+    const client = await db.pool.connect();
+    const pagenumber = ctx.params.pagenumber as number;
+    const pagesize = ctx.params.pagesize as number;
+    console.log(`got url parameters?: pagenumber  ${pagenumber}  pagesize ${pagesize}  `);
+    try {
+        const resolutions: Array<Resolution> = await getResolutions()
+
+        const offset = pagenumber * pagesize
+        const articles = await processAllImagesV2(offset, pagesize, resolutions);
+        if (articles.length > 0) {
+            ctx.body = JSON.stringify(articles)
+        } else {
+            ctx.status = 404
+        }
+    } finally {
+        client.release()
+    }
+    await next;
+});
+
+
+router.get('/api/v3/articles/:pagenumber/:pagesize', async (ctx: Koa.Context, next: Koa.Next) => {
+    const client = await db.pool.connect();
+    const pagenumber = ctx.params.pagenumber as number;
+    const pagesize = ctx.params.pagesize as number;
+    console.log(`got url parameters?: pagenumber  ${pagenumber}  pagesize ${pagesize}  `);
+    try {
+        // const resolutions: Array<Resolution> = await getResolutions()
+
+        const offset = pagenumber * pagesize
+        const articles = await getArticlesV3(offset, pagesize);
+        articles.forEach(e => {
+            e.image_as_json_pixels_array = ""
+            e.description = ""
+        })
+        if (articles.length > 0) {
+            ctx.body = JSON.stringify(articles)
         } else {
             ctx.status = 404
         }

@@ -1,10 +1,10 @@
 const Pool = require('pg-pool')
 
-const db =  process.env.DB || "dev"
-const username =  process.env.USERNAME || "dev"
-const password =  process.env.PASSWORD || "dev"
-const port =  process.env.DBPORT || 5432
-const host =  process.env.HOST || "localhost"
+const db = process.env.DB || "dev"
+const username = process.env.USERNAME || "dev"
+const password = process.env.PASSWORD || "dev"
+const port = process.env.DBPORT || 5432
+const host = process.env.HOST || "localhost"
 
 
 const pool = new Pool({
