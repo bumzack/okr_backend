@@ -9,7 +9,7 @@ pub const TABLE_WIKIPAGE: &str = "wiki_page";
 
 #[derive(Debug, Clone)]
 pub struct ArticleModel {
-    pub id: i32,
+    pub id: i64,
     pub code: String,
     pub title: String,
     pub description: String,
@@ -33,7 +33,7 @@ pub struct NewImageModel {
 
 #[derive(Debug)]
 pub struct ImageModel {
-    pub id: i32,
+    pub id: i64,
     pub filename: String,
     pub image_as_rgb_png: String,
     pub image_as_json_pixels_array: String,
@@ -43,15 +43,15 @@ pub struct ImageModel {
 
 #[derive(Debug)]
 pub struct NewArt2ImgModel {
-    pub article_id: i32,
-    pub image_id: i32,
+    pub article_id: i64,
+    pub image_id: i64,
 }
 
 #[derive(Debug)]
 pub struct Art2ImgModel {
-    pub id: i32,
-    pub article_id: i32,
-    pub image_id: i32,
+    pub id: i64,
+    pub article_id: i64,
+    pub image_id: i64,
 }
 
 #[derive(Debug)]
@@ -61,7 +61,7 @@ pub struct NewResolutionModel {
 
 #[derive(Debug)]
 pub struct ResolutionModel {
-    pub id: i32,
+    pub id: i64,
     pub resolution: String,
 }
 
@@ -112,7 +112,7 @@ impl From<&Row> for ResolutionModel {
 
 #[derive(Debug)]
 pub struct NewWikipageModel {
-    pub id: i32,
+    pub id: i64,
     pub title: Option<String>,
     pub ns: Option<String>,
     pub redirect: Option<String>,
@@ -127,8 +127,8 @@ pub struct NewWikipageModel {
 
 #[derive(Debug)]
 pub struct WikipageModel {
-    pub dbid: i32,
-    pub id: i32,
+    pub dbid: i64,
+    pub id: i64,
     pub title: Option<String>,
     pub ns: Option<String>,
     pub redirect: Option<String>,

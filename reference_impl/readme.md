@@ -1,5 +1,11 @@
 # OKR Backend Thingi
 
+REINDEX DATABASE dummy;
+
+ALTER DATABASE dummy REFRESH COLLATION VERSION;
+
+
+
 ## Ziele
 
 - praxisnahe Beschäftigung mit einer (praxistauglichen) Programmiersprache.

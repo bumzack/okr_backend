@@ -1,11 +1,6 @@
 package at.bumzack.reference.impl.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "art2img")
@@ -13,9 +8,6 @@ public class Art2ImgModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
-
-    @Column(name = "code")
-    private String code;
 
     @Column(name = "article_id")
     private Long articleId;
@@ -32,14 +24,6 @@ public class Art2ImgModel {
 
     public void setId(final long id) {
         this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(final String code) {
-        this.code = code;
     }
 
     public Long getArticleId() {

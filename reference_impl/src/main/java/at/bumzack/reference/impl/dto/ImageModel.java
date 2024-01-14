@@ -1,11 +1,6 @@
 package at.bumzack.reference.impl.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "images")
@@ -15,13 +10,19 @@ public class ImageModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    private String code;
 
     @Column(name = "filename")
     private String filename;
 
-    @Column(name = "image")
-    private String image;
+    @Column(name = "image_as_rgb_png")
+    private String imagePng;
+
+    @Column(name = "image_as_json_pixels_array")
+    private String imageJson;
+
+    private Integer width;
+    private Integer height;
+
 
     public ImageModel() {
     }
@@ -30,31 +31,47 @@ public class ImageModel {
         return id;
     }
 
-    public void setId(final long id) {
+    public void setId(long id) {
         this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(final String code) {
-        this.code = code;
     }
 
     public String getFilename() {
         return filename;
     }
 
-    public void setFilename(final String filename) {
+    public void setFilename(String filename) {
         this.filename = filename;
     }
 
-    public String getImage() {
-        return image;
+    public String getImagePng() {
+        return imagePng;
     }
 
-    public void setImage(final String image) {
-        this.image = image;
+    public void setImagePng(String imagePng) {
+        this.imagePng = imagePng;
+    }
+
+    public String getImageJson() {
+        return imageJson;
+    }
+
+    public void setImageJson(String imageJson) {
+        this.imageJson = imageJson;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
     }
 }

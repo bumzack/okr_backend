@@ -18,9 +18,8 @@ import java.util.stream.Collectors;
 @Component
 public class ResolutionService {
 
-    private static final Logger LOG = LogManager.getLogger(ResolutionService.class);
     public static final String ORIGINAL = "original";
-
+    private static final Logger LOG = LogManager.getLogger(ResolutionService.class);
     private final ResolutionRepository resolutionRepository;
 
     public ResolutionService(final ResolutionRepository resolutionRepository) {
@@ -30,20 +29,11 @@ public class ResolutionService {
 
     public List<Resolution> findAll() {
         final var resolutions = resolutionRepository.findAll();
-        final String db = resolutions.stream()
-                .map(r -> String.valueOf(r.getResolution()))
-                .collect(Collectors.joining(" // "));
-        LOG.info("all resolutions in DB     {}", db);
 
         final var original = resolutions.stream()
                 .filter(r -> ORIGINAL.equals(r.getResolution()))
                 .map(r -> toResolution(r, true))
                 .toList();
-
-        final String collect = original.stream()
-                .map(Resolution::getName)
-                .collect(Collectors.joining(" // "));
-        LOG.info("originals     {}", collect);
 
         if (CollectionUtils.isEmpty(original)) {
             LOG.info("error   originals is empty ");

@@ -44,8 +44,6 @@ CREATE TABLE art2img
 
 
 CREATE UNIQUE INDEX art2img_id_idx ON art2img (id);
-CREATE UNIQUE INDEX art2img_article_id_idx ON art2img (article_id);
-CREATE UNIQUE INDEX art2img_image_id_idx ON art2img (image_id);
 
 
 CREATE TABLE resolutions

@@ -1,11 +1,10 @@
 use std::sync::Once;
 
-use log::info;
 use magick_rust::{magick_wand_genesis, MagickWand};
 use rand::prelude::ThreadRng;
 use rand::Rng;
 use svg::{Document, node};
-use svg::node::element::Line;
+use svg::node::element::{Line, SVG};
 
 static START: Once = Once::new();
 
@@ -18,6 +17,30 @@ pub fn create_image(
     rng: &mut ThreadRng,
     article_code: String,
 ) {
+    let document = create_svg(w, h, image_idx, image_cnt, rng, article_code);
+
+    let path = env!("CARGO_MANIFEST_DIR");
+    let full_path = format!("{}/images/svg/{}.svg", path, filename);
+    // info!("path {}          full_path {}", path, full_path);
+
+    svg::save(full_path, &document).unwrap();
+    convert_to_png(filename, w, h);
+}
+
+pub fn create_image_vec_u8(
+    w: usize,
+    h: usize,
+    image_idx: usize,
+    image_cnt: usize,
+    rng: &mut ThreadRng,
+    article_code: String,
+) -> Vec<u8> {
+    let document = create_svg(w, h, image_idx, image_cnt, rng, article_code);
+    convert_to_u8_vec(&document, w, h)
+}
+
+
+fn create_svg(w: usize, h: usize, image_idx: usize, image_cnt: usize, rng: &mut ThreadRng, article_code: String) -> SVG {
     let x1 = 0;
     let y1 = 0;
     let x2 = w;
@@ -141,12 +164,7 @@ pub fn create_image(
         .add(line5)
         .add(line6)
         .add(line7);
-
-    let path = env!("CARGO_MANIFEST_DIR");
-    let full_path = format!("{}/images/svg/{}.svg", path, filename);
-    info!("path {}          full_path {}", path, full_path);
-    svg::save(full_path, &document).unwrap();
-    convert_to_png(filename, w, h);
+    document
 }
 
 fn create_line_node(x1: i32, y1: i32, x2: usize, y2: usize) -> Line {
@@ -198,3 +216,16 @@ fn convert_to_png(filename: &str, w: usize, h: usize) {
     )
         .expect("saving as RGB works");
 }
+
+fn convert_to_u8_vec(document: &SVG, w: usize, h: usize) -> Vec<u8> {
+    START.call_once(|| {
+        magick_wand_genesis();
+    });
+    let wand = MagickWand::new();
+    wand.read_image_blob(document.to_string().as_bytes()).expect("should read SVG");
+    // MagickWand::read_image_blob(document.to_string().as_bytes());
+    wand.fit(w, h);
+    let x = wand.write_image_blob("PNG").expect("should write a PNG");
+    x
+}
+
