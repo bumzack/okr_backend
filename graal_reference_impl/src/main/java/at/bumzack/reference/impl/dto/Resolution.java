@@ -8,15 +8,15 @@ public class Resolution {
     private int height;
     private boolean original;
 
+    public Resolution() {
+    }
+
     public boolean isOriginal() {
         return original;
     }
 
     public void setOriginal(final boolean original) {
         this.original = original;
-    }
-
-    public Resolution() {
     }
 
     public long getId() {
@@ -49,5 +49,16 @@ public class Resolution {
 
     public void setHeight(final int height) {
         this.height = height;
+    }
+
+    @Override
+    public String toString() {
+        return "Resolution{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                ", original=" + original +
+                '}';
     }
 }
