@@ -75,7 +75,6 @@ public class ImageUtilsV1 {
 
         final var mirrored = mirrorImage(source, sourceWidth, sourceHeight);
         final var croppedPix = cropImage(sourceWidth, resolution, mirrored);
-
         return invertImage(resolution, croppedPix);
     }
 
@@ -139,6 +138,4 @@ public class ImageUtilsV1 {
         }
         return mirroredPix;
     }
-
-
 }

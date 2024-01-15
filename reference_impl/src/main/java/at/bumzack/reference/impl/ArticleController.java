@@ -1,7 +1,6 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
-import at.bumzack.reference.impl.dto.ArticleAndImageModel;
 import at.bumzack.reference.impl.dto.SysInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,25 +17,23 @@ import java.util.List;
 @RequestMapping("/api")
 public class ArticleController {
     private static final Logger LOG = LogManager.getLogger(ArticleController.class);
+
     private final ArticleServiceV1 articleServiceV1;
 
     private final ArticleServiceV2 articleServiceV2;
 
-    private final ArticleServiceV3 articleServiceV3;
 
     public ArticleController(final ArticleServiceV1 articleServiceV1,
-                             final ArticleServiceV2 articleServiceV2,
-                             final ArticleServiceV3 articleServiceV3) {
-        this.articleServiceV2 = articleServiceV2;
+                             final ArticleServiceV2 articleServiceV2) {
         this.articleServiceV1 = articleServiceV1;
-        this.articleServiceV3 = articleServiceV3;
+        this.articleServiceV2 = articleServiceV2;
     }
 
     @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
     public ResponseEntity<List<Article>> findPaginatedV1(@PathVariable final int pageNumber,
                                                          @PathVariable final int pageSize) {
         LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
-        final var fullArticles = articleServiceV2.findPaginated(pageNumber, pageSize);
+        final var fullArticles = articleServiceV1.findPaginated(pageNumber, pageSize);
         return ResponseEntity.ok(fullArticles);
     }
 
@@ -56,7 +53,7 @@ public class ArticleController {
     public ResponseEntity<List<Article>> findPaginatedV2(@PathVariable final int pageNumber,
                                                          @PathVariable final int pageSize) {
         LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
-        final var fullArticles = articleServiceV1.findPaginated(pageNumber, pageSize);
+        final var fullArticles = articleServiceV2.findPaginated(pageNumber, pageSize);
         return ResponseEntity.ok(fullArticles);
     }
 
@@ -74,26 +71,26 @@ public class ArticleController {
     }
 
 
-    @GetMapping("/v3/articles/{pageNumber}/{pageSize}")
-    public ResponseEntity<List<ArticleAndImageModel>> findPaginatedV3(@PathVariable final int pageNumber,
-                                                                      @PathVariable final int pageSize) {
-        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
-        final var fullArticles = articleServiceV3.findPaginated(pageNumber, pageSize);
-        return ResponseEntity.ok(fullArticles);
-    }
-
-
-    @GetMapping("/v3/sysinfo")
-    public ResponseEntity<SysInfo> sysinfoV3() {
-        final var sysInfo = new SysInfo();
-        sysInfo.setAuthor("gsc");
-        sysInfo.setFramework("Spring Boot 3.2.1");
-        sysInfo.setComment("image manipulation optimised; DB access optimized");
-        sysInfo.setLanguage("Java 21");
-        sysInfo.setMultithreaded(false);
-
-        return ResponseEntity.ok(sysInfo);
-    }
+//    @GetMapping("/v3/articles/{pageNumber}/{pageSize}")
+//    public ResponseEntity<List<ArticleAndImageModel>> findPaginatedV3(@PathVariable final int pageNumber,
+//                                                                      @PathVariable final int pageSize) {
+//        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
+//        final var fullArticles = articleServiceV3.findPaginated(pageNumber, pageSize);
+//        return ResponseEntity.ok(fullArticles);
+//    }
+//
+//
+//    @GetMapping("/v3/sysinfo")
+//    public ResponseEntity<SysInfo> sysinfoV3() {
+//        final var sysInfo = new SysInfo();
+//        sysInfo.setAuthor("gsc");
+//        sysInfo.setFramework("Spring Boot 3.2.1");
+//        sysInfo.setComment("image manipulation optimised; DB access optimized");
+//        sysInfo.setLanguage("Java 21");
+//        sysInfo.setMultithreaded(false);
+//
+//        return ResponseEntity.ok(sysInfo);
+//    }
 
 
 }

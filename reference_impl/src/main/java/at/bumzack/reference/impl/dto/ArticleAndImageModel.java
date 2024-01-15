@@ -1,9 +1,7 @@
 package at.bumzack.reference.impl.dto;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 
-@Entity
 public class ArticleAndImageModel {
     private long id;
 
@@ -98,4 +96,6 @@ public class ArticleAndImageModel {
     public void setHeight(final Integer height) {
         this.height = height;
     }
+
+
 }

@@ -2625,6 +2625,7 @@ dependencies = [
  "crossbeam-channel",
  "deadpool-postgres",
  "image",
+ "lazy_static",
  "log",
  "num_cpus",
  "pretty_env_logger",

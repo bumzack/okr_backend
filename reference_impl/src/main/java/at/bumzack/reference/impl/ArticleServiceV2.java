@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static at.bumzack.reference.impl.ImageUtilsV2.convertImageV2;
 
@@ -44,52 +43,11 @@ public class ArticleServiceV2 {
         this.mapper = mapper;
     }
 
-    private static StringBuilder createPPMFile(final List<Pixel> pixels, final int width, final int height) {
-        // create a PPM file format
-        final StringBuilder ppm = new StringBuilder();
-        ppm.append("P3");
-        ppm.append("\n");
-        final var s = String.format("%d %d", width, height);
-        ppm.append(s);
-        ppm.append("\n");
-        ppm.append("255");
-        ppm.append("\n");
-
-        StringBuilder line = new StringBuilder();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                final var idx = y * width + x;
-                final var p = pixels.get(idx);
-
-                final var pixelsAsString = String.format("%d %d %d ", p.getR(), p.getG(), p.getB());
-                if (line.length() + pixelsAsString.length() > 70) {
-                    ppm.append(line);
-                    ppm.append("\n");
-                    line = new StringBuilder();
-                    line.append(pixelsAsString);
-                } else {
-                    line.append(pixelsAsString);
-                }
-            }
-            ppm.append(line);
-            line = new StringBuilder();
-        }
-        return ppm;
-    }
 
     public List<Article> findPaginated(final int pageNumber, final int pageSize) {
         final var p = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
-
         final var resolutions = resolutionService.findAll();
-
-        final String db = resolutions.stream()
-                .map(Resolution::toString)
-                .collect(Collectors.joining(" // "));
-        // LOG.info("all resolutions in DB     {}", db);
-
         final var articles = articleRepository.findAll(p);
-        // LOG.info("articles {}", articles.getTotalElements());
         return articles.stream()
                 .map(a -> findArticlesAndMapToFullArticle(a, resolutions))
                 .toList();

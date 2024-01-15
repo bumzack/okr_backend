@@ -75,7 +75,8 @@ public class ArticleServiceV1 {
     }
 
     private List<Image> resizeImage(final ImageModel img, final List<Resolution> resolutions) {
-        return resolutions.stream().map(resolution -> {
+        return resolutions.stream()
+                .map(resolution -> {
                     final var pixels = convertToPixelArray(img.getImageJson());
                     final var newPixels = convertImage(pixels, img.getWidth(), img.getHeight(), resolution);
 

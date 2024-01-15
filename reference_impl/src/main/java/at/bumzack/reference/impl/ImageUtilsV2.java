@@ -36,7 +36,16 @@ public class ImageUtilsV2 {
     private static String manipulateImage(final List<Pixel> source,
                                           final Integer sourceWidth,
                                           final Resolution resolution) {
+        // create a PPM file format
         final StringBuilder ppm = new StringBuilder();
+        ppm.append("P3");
+        ppm.append("\n");
+        final var s = String.format("%d %d", resolution.getWidth(), resolution.getHeight());
+        ppm.append(s);
+        ppm.append("\n");
+        ppm.append("255");
+        ppm.append("\n");
+
         try {
             StringBuilder line = new StringBuilder();
 
