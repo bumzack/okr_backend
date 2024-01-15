@@ -13,7 +13,7 @@ pub struct Image {
     pub filename: String,
     pub image: String,
     pub resolution: String,
-    pub width:i32,
+    pub width: i32,
     pub height: i32,
 }
 

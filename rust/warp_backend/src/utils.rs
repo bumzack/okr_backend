@@ -75,8 +75,8 @@ pub fn mirror_image(pixels: &Vec<PixelModel>, width: usize, height: usize) -> Ve
 
     for y in 0..height {
         for x in 0..width {
-            let xx = width - x -1;
-            let yy = height-y-1;
+            let xx = width - x - 1;
+            let yy = height - y - 1;
             let idx = yy * width + xx;
             let p = pixels[idx].clone();
             mirrored.push(p);
@@ -121,19 +121,16 @@ pub fn invert_image(pixels: &Vec<PixelModel>, width: usize, height: usize) -> Ve
     inverted
 }
 
-
-
-
 pub fn create_ppm_all_in_one(pixels: &Vec<PixelModel>, source_width: usize, source_height: usize, width: usize, height: usize) -> String {
     let mut ppm = format!("P3\n{} {}\n255\n", width, height);
     let mut line = String::new();
     for y in 0..height {
         for x in 0..width {
-            let xx = source_width-x-1;
-            let yy = source_height-y-1;
+            let xx = source_width - x - 1;
+            let yy = source_height - y - 1;
             let idx = yy * source_width + xx;
             let p = &pixels[idx];
-            let pixel_as_string = format!("{} {} {} ", 255-p.r, 255-p.g, 255-p.b);
+            let pixel_as_string = format!("{} {} {} ", 255 - p.r, 255 - p.g, 255 - p.b);
             if line.len() + pixel_as_string.len() > 70 {
                 ppm.push_str(&line);
                 ppm.push_str("\n");

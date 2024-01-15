@@ -160,7 +160,7 @@ impl From<&Row> for WikipageModel {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq,Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct PixelModel {
     pub r: u8,
     pub g: u8,
