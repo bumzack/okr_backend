@@ -6,9 +6,7 @@ public class Image {
     private String filename;
     private String image;
     private String resolution;
-
     private Integer width;
-
     private Integer height;
 
     public Image() {

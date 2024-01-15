@@ -32,11 +32,12 @@ pub async fn read_art2img(pool: &Pool, aritcle_id: i32) -> Result<Vec<Art2ImgMod
         TABLE_ART2IMG
     );
 
+    let id = aritcle_id as i64;
     let row = pool
         .get()
         .await
         .unwrap()
-        .query(query.as_str(), &[&aritcle_id])
+        .query(query.as_str(), &[&id])
         .await
         .expect("should read a lot of art2img entries");
 

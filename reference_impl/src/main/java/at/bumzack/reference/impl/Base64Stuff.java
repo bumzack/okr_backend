@@ -1,16 +1,8 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Image;
-import at.bumzack.reference.impl.dto.*;
-import at.bumzack.reference.impl.repository.Art2ImgRepository;
-import at.bumzack.reference.impl.repository.ArticleRepository;
-import at.bumzack.reference.impl.repository.ImageRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import at.bumzack.reference.impl.dto.ImageModel;
+import at.bumzack.reference.impl.dto.Resolution;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -18,18 +10,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 
 
 @Component
 public class Base64Stuff {
-
-
 
 
     private void base64Stuff(ImageModel i, Resolution resolution, List<Image> res) throws IOException {
