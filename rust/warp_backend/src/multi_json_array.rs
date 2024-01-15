@@ -61,7 +61,7 @@ async fn resize_all_images_multi(
     raw_articles: Vec<ArticleModel>,
     resolutions: Vec<Resolution>,
 ) -> Result<impl Reply, Rejection> {
-    let cores = 4;// num_cpus::get();
+    let cores = 4; // num_cpus::get();
 
     let cnt_articles = raw_articles.len();
 
@@ -69,10 +69,11 @@ async fn resize_all_images_multi(
     let (tx, rx) = bounded::<Article>(cnt_articles);
 
     info!("total articles to process {}", raw_articles.len());
-    for a in raw_articles {
-        sender.send(a).expect("sending should work");
-        info!("sending article ");
+    for (idx, a) in raw_articles.iter().enumerate() {
+        sender.send(a.clone()).expect("sending should work");
+        info!("sending article {}, id {}", idx, a.id);
     }
+    drop(sender);
 
     let (res, duration) = crossbeam::scope(|s| {
         let start = Instant::now();
@@ -87,57 +88,74 @@ async fn resize_all_images_multi(
                 let start = Instant::now();
                 info!("worker_thread {:?} started", id);
                 let runtime = tokio::runtime::Runtime::new().expect("Unable to create a runtime");
-                let mut articles_processed = 0;
+                // let mut articles_processed = 0;
+
                 loop {
-                    if receiver.is_empty() {
-                        info!("receiver is empty     thread {}", id);
-                        break;
-                    }
-                    let finished = match receiver.recv() {
-                        Ok(article) => {
-                            info!(
-                                "thread {} received a raw article    {:?}",
-                                id, article.code
-                            );
-                            info!("got an article to process     in thread {:?}", id);
+                    match receiver.recv() {
+                        Ok(a) => {
                             let mut images_resized = vec![];
+                            info!("processing article id  {}   in thread {:?}",a.id, id);
                             for resolution in &resolutions {
-                                // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
                                 let art2imgs = runtime
-                                    .block_on(read_art2img(&POOL, article.id as i32))
+                                    .block_on(read_art2img(&POOL, a.id as i32))
                                     .expect("read art2imgs");
 
                                 let imgids: Vec<i32> =
-                                    art2imgs.iter().map(|art2img| art2img.image_id as i32).collect();
+                                    art2imgs.iter().
+                                        map(|art2img| art2img.image_id as i32)
+                                        .collect();
                                 let images = runtime
                                     .block_on(read_images(&POOL, &imgids))
                                     .expect("read images");
 
                                 images_resized.append(&mut resize_multi(images, resolution));
                             }
+
                             let full_article = Article {
-                                code: article.code.clone(),
-                                title: article.title.clone(),
-                                description: article.description.clone(),
+                                code: a.code.clone(),
+                                title: a.title.clone(),
+                                description: a.description.clone(),
                                 images: images_resized,
                             };
-                            info!("sending an article      in thread {:?}", id);
-                            articles_processed += 1;
+                            info!("sending completed article   {}    in thread {:?}", a.id, id);
+                            //  articles_processed += 1;
                             tx.send(full_article).expect("sending should work");
-                            false
                         }
-
                         Err(e) => {
-                            error!("last raw article received  {:?}", e);
-                            true
+                            error!("error in thread  {:?} ,    error {}", id,e);
+                            break;
                         }
-                    };
-                    if finished {
-                        info!("thread id {}.  break out of loop of raw articles ", id);
-                        break;
                     }
                 }
-
+                // for r in receiver.iter() {
+                //     info!("processing article id  {}   in thread {:?}",r.id, id);
+                //     let mut images_resized = vec![];
+                //     for resolution in &resolutions {
+                //         // https://stackoverflow.com/questions/52521201/how-do-i-synchronously-return-a-value-calculated-in-an-asynchronous-future
+                //         // let art2imgs = runtime
+                //         //     .block_on(read_art2img(&POOL, r.id as i32))
+                //         //     .expect("read art2imgs");
+                //         //
+                //         // let imgids: Vec<i32> =
+                //         //     art2imgs.iter().
+                //         //         map(|art2img| art2img.image_id as i32)
+                //         //         .collect();
+                //         // let images = runtime
+                //         //     .block_on(read_images(&POOL, &imgids))
+                //         //     .expect("read images");
+                //         //
+                //         // images_resized.append(&mut resize_multi(images, resolution));
+                //     }
+                //     let full_article = Article {
+                //         code: r.code.clone(),
+                //         title: format!("{}", r.id.clone()),
+                //         description: r.description.clone(),
+                //         images: images_resized,
+                //     };
+                //     info!("sending completed article   {}    in thread {:?}", r.id, id);
+                //     articles_processed += 1;
+                //     tx.send(full_article).expect("sending should work");
+                // }
                 let duration = start.elapsed().as_millis();
                 info!("worker_thread {:?} finished", id);
 
@@ -145,21 +163,28 @@ async fn resize_all_images_multi(
             });
             threads.push(worker);
         }
+
         info!("after starting all threads");
 
-        let mut articles = vec![];
-
-        for i in 0..cnt_articles {
+        let mut articles: Vec<Article> = vec![];
+        loop {
             match rx.recv() {
-                Ok(article) => {
-                    info!("received a finished  {} article   {:?}", i, article.code);
-                    articles.push(article);
+                Ok(a) => {
+                    info!("got article id  {}   ",a.title);
                 }
                 Err(e) => {
-                    error!("last article received  {:?}", e);
+                    error!("error  receiving article   error {}",e);
+                    break;
                 }
-            };
+            }
+            if rx.is_empty() {
+                break;
+            }
         }
+        // for art in rx.iter() {
+        //     info!("received a finished  article   {:?}", art.title);
+        //     articles.push(art);
+        // }
 
         info!("no more articles in rx");
 

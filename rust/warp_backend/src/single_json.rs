@@ -156,7 +156,7 @@ pub async fn find_paginated_single_json_array_v2(
 }
 
 
-fn resize_single_json_array(images: Vec<ImageModel>, resolution: &Resolution) -> Vec<Image> {
+pub(crate) fn resize_single_json_array(images: Vec<ImageModel>, resolution: &Resolution) -> Vec<Image> {
     images
         .iter()
         .map(|img| resize_image_single_json_array(resolution, img))
