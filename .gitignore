@@ -15,7 +15,7 @@ target/
 *.pdb
 
 
-rust/create_dummy_db/target
+rust/create_data/target
 
 
 postgres/pgadmin-data
