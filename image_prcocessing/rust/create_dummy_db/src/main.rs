@@ -3,13 +3,13 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::Instant;
 
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use deadpool_postgres::Pool;
 use image::{GenericImageView, ImageBuffer, ImageFormat, RgbImage};
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 use serde_json::json;
 use tokio_postgres::Error;
 
@@ -31,8 +31,8 @@ async fn main() -> Result<(), Error> {
     Builder::new().filter_level(LevelFilter::Info).init();
 
     let start = Instant::now();
-    insert_dev_data().await?;
-
+    // insert_dev_data().await?;
+    insert_prod_data().await?;
     let elapsed = start.elapsed().as_secs();
 
     info!("inserting articles & images took {} secs", elapsed);
@@ -71,7 +71,7 @@ async fn insert_dev_data() -> Result<(), Error> {
         ratio,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -96,8 +96,8 @@ async fn insert_prod_data() -> Result<(), Error> {
 
     let id = "prod".to_string();
     let cnt_articles = 1000;
-    let min_cnt_images = 4;
-    let max_cnt_images = 10;
+    let min_cnt_images = 2;
+    let max_cnt_images = 6;
 
     let img_min_width = 3000;
     let img_max_width = 4000;
@@ -113,7 +113,7 @@ async fn insert_prod_data() -> Result<(), Error> {
         ratio,
         resolutions,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -215,8 +215,10 @@ async fn insert_data(
     Ok(())
 }
 
-
-async fn insert_resolutions(resolutions: &Vec<NewResolutionModel>, pool: &Pool) -> Result<(), Error> {
+async fn insert_resolutions(
+    resolutions: &Vec<NewResolutionModel>,
+    pool: &Pool,
+) -> Result<(), Error> {
     for r in resolutions {
         insert_resolution(&pool, r).await?;
     }
