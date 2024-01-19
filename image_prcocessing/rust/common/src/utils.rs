@@ -1,15 +1,15 @@
 use std::convert::Infallible;
 
-use deadpool_postgres::{Manager, ManagerConfig, RecyclingMethod};
 use deadpool_postgres::Pool;
+use deadpool_postgres::{Manager, ManagerConfig, RecyclingMethod};
 use log::info;
 use serde::Serialize;
 use serde_json::json;
 use tokio_postgres::{Client, Error, NoTls};
-use warp::{Filter, Reply};
 use warp::cors::Builder;
 use warp::http::StatusCode;
 use warp::reply::Response;
+use warp::{Filter, Reply};
 
 use crate::models::{Art2ImgModel, ArticleModel, ImageModel, ResolutionModel};
 
@@ -49,9 +49,9 @@ pub fn create_pool(id: String) -> Pool {
 
     let user: String = id.clone();
     let password: String = id.clone();
-    let host: String = "192.168.0.115".into();
+    let host: String = "localhost".into();
     let dbname: String = id.clone();
-    let port: u16 = 5432;
+    let port: u16 = 54321;
 
     info!("user {user}, password {password}, host {host}, dbname {dbname}");
     pg_config.user(&user);
@@ -134,7 +134,7 @@ pub fn warp_cors() -> Builder {
         .allow_methods(vec!["POST", "GET", "OPTIONS", "PUT", "DELETE", "HEAD"])
 }
 
-pub fn with_db(pool: Pool) -> impl Filter<Extract=(Pool, ), Error=Infallible> + Clone {
+pub fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + Clone {
     warp::any().map(move || pool.clone())
 }
 
