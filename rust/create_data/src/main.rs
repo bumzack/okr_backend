@@ -15,85 +15,90 @@ async fn main() -> Result<(), Error> {
 
     let mut rng = thread_rng();
 
-    let cnt_files = 1;
-    let cnt_articles_min = 5_000_000;
-    let cnt_articles_max = 7_000_000;
-    let cnt_pos = 50;
+    let cnt_articles_per_file_avg = 9_0;
+    let cnt_articles_min = 50_0;
+    let cnt_articles_max = 70_0;
+    let cnt_pos = 5;
 
-    write_files(&mut rng, cnt_files, cnt_articles_min, cnt_articles_max, cnt_pos);
+    write_files(&mut rng, cnt_articles_per_file_avg, cnt_articles_min, cnt_articles_max, cnt_pos);
 
     Ok(())
 }
 
-fn write_files(mut rng: &mut ThreadRng, cnt_files: usize, cnt_articles_min: usize, cnt_articles_max: usize, cnt_pos: usize) {
+fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_articles_min: usize, cnt_articles_max: usize, cnt_pos: usize) {
     let path = env!("CARGO_MANIFEST_DIR");
 
-    let filenames = [
-        "articles_001_010.txt".to_string(),
-        "articles_002_010.txt".to_string(),
-        "articles_003_010.txt".to_string(),
-        "articles_004_010.txt".to_string(),
-        "articles_005_010.txt".to_string(),
-        "articles_006_010.txt".to_string(),
-        "articles_007_010.txt".to_string(),
-        "articles_008_010.txt".to_string(),
-        "articles_009_010.txt".to_string(),
-        "articles_010_010.txt".to_string(),
-    ];
+    let start = Instant::now();
+    let cnt_articles: usize = rng.gen_range(cnt_articles_min..cnt_articles_max);
+    let mut articles_per_file = get_article_cnt_for_file(&mut rng, cnt_articles_per_file_avg);
+    let mut current_cnt_articles_per_file = 0;
+
     let mut articles = vec![];
+    let mut file_cnt = 1;
 
-    let filenames: Vec<&String> = filenames.iter().take(cnt_files).collect();
+    for i in 0..cnt_articles {
+        // info!("create article code  {}", i);
 
+        for pos in 0..cnt_pos {
+            let pos = format!("{0:0>10}", pos);
 
-    for f in filenames {
-        let start = Instant::now();
-        info!("start writing file {} at {:?}", f,& start);
+            let cnt_prices: usize = rng.gen_range(2..8);
+            let shirt_or_notebook = rng.gen_range(0..1);
 
-        let cnt_articles: usize = rng.gen_range(cnt_articles_min..cnt_articles_max);
+            let mut article = match shirt_or_notebook {
+                0 => tshirt(i, &mut rng),
+                _ => notebook(i, &mut rng),
+            };
+            article.pos = pos;
 
-        for i in 0..cnt_articles {
-            for pos in 0..cnt_pos {
-                let pos = format!("{0:0>10}", pos);
+            for _ in 0..cnt_prices {
+                let price: f64 = rng.gen_range(23.0..2345.0);
 
-                let cnt_prices: usize = rng.gen_range(2..8);
-                let shirt_or_notebook = rng.gen_range(0..1);
+                let start_date = chrono::Utc::now().sub(Duration::days(rng.gen_range(23..400)));
+                let end_date = chrono::Utc::now().add(Duration::days(rng.gen_range(123..400)));
 
-                let mut article = match shirt_or_notebook {
-                    0 => tshirt(i, &mut rng),
-                    _ => notebook(i, &mut rng),
-                };
-                article.pos = pos;
-
-                for _ in 0..cnt_prices {
-                    let price: f64 = rng.gen_range(23.0..2345.0);
-
-                    let start_date = chrono::Utc::now().sub(Duration::days(rng.gen_range(23..400)));
-                    let end_date = chrono::Utc::now().add(Duration::days(rng.gen_range(123..400)));
-
-                    article.start_date = start_date.timestamp().to_string();
-                    article.end_date = end_date.timestamp().to_string();
-                    article.price = price;
-                    articles.push(convert_to_string(&article));
-                }
+                article.start_date = start_date.timestamp().to_string();
+                article.end_date = end_date.timestamp().to_string();
+                article.price = price;
+                articles.push(convert_to_string(&article));
             }
         }
-        info!("write file start");
-        let filename = format!("{}/{}", path, f);
-        let mut file = File::create(filename).expect("should open file");
+        current_cnt_articles_per_file += 1;
+        if current_cnt_articles_per_file > articles_per_file {
+            info!("current_cnt_articles_per_file {},   articles_per_file {}",current_cnt_articles_per_file ,articles_per_file);
 
-        articles.iter().for_each(|a| {
-            file.write(a.as_bytes()).expect("should write an article");
-            file.write("\n".as_bytes()).expect("should write an article");
-        });
-        info!("finished writing file {} at {:?}. took  {}ms", f,& Instant::now(), start.elapsed().as_millis());
+            let start_file = Instant::now();
+
+            let filename = format!("{}/../articles_{:0>6}.txt", path, file_cnt);
+            let mut f = File::create(&filename).expect("creating file should work");
+            info!("write file start {} ", filename);
+
+            articles.iter().for_each(|a| {
+                f.write(a.as_bytes()).expect("should write an article");
+            });
+
+            info!("finished writing file {} at {:?}. took  {}ms", filename, & Instant::now(), start_file.elapsed().as_millis());
+            articles.clear();
+            articles_per_file = get_article_cnt_for_file(&mut rng, cnt_articles_per_file_avg);
+            file_cnt += 1;
+            current_cnt_articles_per_file = 0;
+        }
     }
+
+    info!("finished writing all files  at {:?}.     took  {}ms   or {}secs",& Instant::now(), start.elapsed().as_millis(), start.elapsed().as_secs());
+}
+
+fn get_article_cnt_for_file(rng: &mut &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
+    let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 15;
+    let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 15;
+    rng.gen_range(min..max)
 }
 
 fn convert_to_string(a: &Article) -> String {
     let precision = 4;
     let p = format!("{:0>20.1$}", a.price, precision);
 
-    format!("{0:0>20}{1: <100}{2: <1700}{3: <200}{4: <200}{5: <30}{6}{7:0>25}{8:0>25}",
+    format!("{0:0>20}{1: <100}{2: <1700}{3: <200}{4: <200}{5: <30}{6}{7:0>25}{8:0>25}\n",
             a.code,
             a.title,
             a.description,

@@ -37,6 +37,7 @@ impls/cpp/cmake-build-debug
 build/
 .gradle
 
+articles*.txt
 
 node_modules
 
