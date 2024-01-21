@@ -1,57 +1,41 @@
--- CREATE USER  prod  WITH PASSWORD 'prod';
--- CREATE DATABASE prod;
+-- CREATE USER  shop  WITH PASSWORD 'shop';
+-- CREATE DATABASE shop;
 
--- GRANT ALL PRIVILEGES ON DATABASE prod TO prod;
+-- GRANT ALL PRIVILEGES ON DATABASE shop TO shop;
 
 
+CREATE ROLE shop WITH LOGIN PASSWORD 'shop';
+CREATE DATABASE shop WITH OWNER shop;
+\c shop shop;
 
-CREATE TABLE images
-(
-    id                         serial PRIMARY KEY,
-    filename                   VARCHAR(255) NOT NULL,
-    image_as_rgb_png           TEXT         NOT NULL,
-    image_as_json_pixels_array TEXT         NOT NULL,
-    width                      INTEGER      NOT NULL,
-    height                     INTEGER      NOT NULL
-);
 
-CREATE UNIQUE INDEX image_filename_idx ON images (filename);
-CREATE UNIQUE INDEX image_id_idx ON images (id);
+GRANT ALL
+ON ALL TABLES
+IN SCHEMA "public"
+TO shop;
+
+psql -d shop -U shop
+
 
 CREATE TABLE articles
 (
-    id          serial PRIMARY KEY,
-    code        VARCHAR(255) NOT NULL,
-    title       VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL
+    id          serial   NOT NULL,
+    code        VARCHAR(12)    NOT NULL,
+    title       TEXT,
+    description TEXT           NOT NULL,
+    categories  TEXT           NOT NULL,
+    attributes  TEXT           NOT NULL,
+    start_data  TIMESTAMP      NOT NULL,
+    end_data    TIMESTAMP      NOT NULL,
+    pos         VARCHAR(12)    NOT NULL,
+    price       NUMERIC(14, 4) NOT NULL,
+    PRIMARY KEY (id)
 );
 
-
-CREATE UNIQUE INDEX article_id_ix ON articles (id);
-CREATE UNIQUE INDEX article_code_ix ON articles (code);
-
-
-CREATE TABLE art2img
-(
-    id         serial  NOT NULL,
-    article_id INTEGER NOT NULL,
-    image_id   INTEGER NOT NULL,
-    FOREIGN KEY (article_id)
-        REFERENCES articles (id),
-    FOREIGN KEY (image_id)
-        REFERENCES images (id)
-);
+CREATE UNIQUE INDEX articles_id_idx ON articles (id);
+CREATE UNIQUE INDEX articles_pos_code_idx ON articles (code, pos);
 
 
-CREATE UNIQUE INDEX art2img_id_idx ON art2img (id);
 
-
-CREATE TABLE resolutions
-(
-    id         serial       NOT NULL,
-    resolution VARCHAR(255) NOT NULL
-);
-
-CREATE UNIQUE INDEX resolutions_id_idx ON resolutions (id);
-CREATE UNIQUE INDEX resolutions_resolution_idx ON resolutions (resolution);
-
+ALTER SEQUENCE public.articles_seq
+    OWNER TO shop;
