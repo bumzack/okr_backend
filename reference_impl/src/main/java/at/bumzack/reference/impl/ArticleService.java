@@ -138,8 +138,9 @@ public class ArticleService {
 
             if (articles.size() > 50) {
                 // articles.forEach(LOG::info);
-                articleRepository.saveAll(articles);
+                // articleRepository.saveAll(articles);
                 dbRowsWritten += articles.size();
+                //  LOG.info("filename {}  ,  {} articles  written", f.getName(), articles.size());
                 articles.clear();
             }
 
@@ -193,14 +194,8 @@ public class ArticleService {
 
     private String trimLeadingZeroes(final String s) {
         int i = 0;
-        try {
-            while (s.charAt(i) == '0') {
-                i++;
-            }
-        } catch (final Exception e) {
-            LOG.error("error trimming leading zeros for input string '{}'", s);
-            LOG.error(e.getMessage());
-            return s;
+        while (s.charAt(i) == '0') {
+            i++;
         }
         return s.substring(i);
     }
