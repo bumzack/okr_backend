@@ -37,16 +37,12 @@ export const insertArticle = async (article: ArticleModel, client: any): Promise
 export const importArticles = async (): Promise<ImportResult> => {
     const fileList = fs.readdirSync("/home/bumzack/stoff/rust/okr_backend/rust/");
     const files = fileList.filter(f => {
-        console.log(`filename ${f.toLowerCase()}`)
         return f.toLowerCase().endsWith(".txt")
     })
 
     let db_rows_written = 0
     let lines_processed = 0
     const client = await db.pool.connect()
-
-    console.log("XXXXXXXXXXXXXXXX ")
-    files.forEach(f => console.log("file " + f))
 
     for (const f of files) {
         const s = `/home/bumzack/stoff/rust/okr_backend/rust/${f}`;
@@ -78,7 +74,6 @@ export const importArticles = async (): Promise<ImportResult> => {
                 // articles.forEach(a => {
                 //     insertArticle(a, client)
                 // })
-                // console.log(`written articles to db ${articles.length},   lines_processed ${lines_processed}`)
                 db_rows_written += articles.length;
                 articles = []
             }

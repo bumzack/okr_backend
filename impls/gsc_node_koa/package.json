@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "start": "../node_modules/.bin/tsnd --respawn server.ts",
-    "build": "../node_modules/.bin/tsc -b tsconfig.json",
+    "build": "tsc -b tsconfig.json",
     "start:dev": "npx nodemon"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "@types/koa-router": "^7.4.8",
     "@types/node": "^20.11.0",
     "ts-node-dev": "^2.0.0",
+    "tsc": "^2.0.4",
     "typescript": "^5.3.3"
   }
 }
