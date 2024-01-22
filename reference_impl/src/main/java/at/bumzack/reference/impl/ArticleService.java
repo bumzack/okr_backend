@@ -93,6 +93,7 @@ public class ArticleService {
         LOG.info("===================================================================   ");
 
         return fileNames.stream()
+                .sorted(Comparator.comparing(File::getName))
                 .map(this::tryProcessFile)
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
@@ -118,7 +119,9 @@ public class ArticleService {
         while (line != null) {
             final var article = processLine(line);
             if (!tmp.isEmpty()) {
-                if (tmp.getLast().getCode().equals(article.getCode())) {
+                final var last = tmp.getLast();
+                // group by code and pos
+                if (last.getCode().equals(article.getCode()) && (last.getPos().equals(article.getPos()))) {
                     tmp.add(article);
                 } else {
                     final var c = tmp.stream()
