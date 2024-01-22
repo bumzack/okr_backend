@@ -16,8 +16,8 @@ public class Article {
     private BigDecimal price;
     private String pos;
 
-    private Long startDate;
-    private Long endDate;
+    private String startDate;
+    private String endDate;
 
     public Article() {
     }
@@ -86,19 +86,19 @@ public class Article {
         this.pos = pos;
     }
 
-    public Long getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Long startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
 
-    public Long getEndDate() {
+    public String getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Long endDate) {
+    public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
 

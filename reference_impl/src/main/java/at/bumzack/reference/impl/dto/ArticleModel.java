@@ -3,12 +3,14 @@ package at.bumzack.reference.impl.dto;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "articles")
 public class ArticleModel {
     @Id
-    @SequenceGenerator(name = "articles_local_seq", sequenceName = "articles_seq", allocationSize = 1)
+    //@SequenceGenerator(name = "articles_local_seq", sequenceName = "shop_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
@@ -24,9 +26,9 @@ public class ArticleModel {
     private String pos;
     @Column(name = "start_data")
 
-    private Long startDate;
+    private LocalDateTime startDate;
     @Column(name = "end_data")
-    private Long endDate;
+    private LocalDateTime endDate;
 
     public ArticleModel() {
     }
@@ -95,19 +97,19 @@ public class ArticleModel {
         this.pos = pos;
     }
 
-    public Long getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Long startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 
-    public Long getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Long endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 

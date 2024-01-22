@@ -1,12 +1,14 @@
 package at.bumzack.reference.impl.dto;
 
 public class ImportResult {
-    private Long linesProcessed;
+    private long linesProcessed;
 
-    private Long dbRowsWritten;
+    private long dbRowsWritten;
 
 
     public ImportResult() {
+        this.dbRowsWritten = 0L;
+        this.linesProcessed = 0L;
     }
 
     public Long getLinesProcessed() {

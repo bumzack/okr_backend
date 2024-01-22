@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -53,8 +55,8 @@ public class ArticleService {
                     target.setId(a.getId());
                     target.setPos(a.getPos());
                     target.setTitle(a.getTitle());
-                    target.setStartDate(a.getStartDate());
-                    target.setEndDate(a.getEndDate());
+                    target.setStartDate(a.getStartDate().toString());
+                    target.setEndDate(a.getEndDate().toString());
 
                     return target;
                 }).toList();
@@ -67,7 +69,7 @@ public class ArticleService {
         LOG.info("currentDirFile {}", currentDirFile.getName());
         LOG.info("helper {}", helper);
         LOG.info("sourceFilesFolder {}", sourceFilesFolder);
-        final var absPath = helper + sourceFilesFolder;
+        final var absPath = helper + "/" + sourceFilesFolder;
         LOG.info("absPath {}", absPath);
 
         final File folder = new File(absPath);
@@ -91,17 +93,18 @@ public class ArticleService {
         LOG.info("===================================================================   ");
 
         return fileNames.stream()
-                .map(f -> {
-                            try {
-                                final var res = processFile(f);
-                                LOG.info("filename {}  ,  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
-                                return res;
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                )
+                .map(this::tryProcessFile)
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
+    }
+
+    private ImportResult tryProcessFile(final File f) {
+        try {
+            final var res = processFile(f);
+            LOG.info("filename {}  ,  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
+            return res;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ImportResult processFile(final File f) throws IOException {
@@ -131,6 +134,7 @@ public class ArticleService {
             linesProcessed++;
 
             if (articles.size() > 50) {
+                // articles.forEach(LOG::info);
                 articleRepository.saveAll(articles);
                 dbRowsWritten += articles.size();
                 articles.clear();
@@ -175,18 +179,25 @@ public class ArticleService {
         article.setDescription(line.substring(beginDesc, beginAttr).trim());
         article.setAttributes(line.substring(beginAttr, beginCat).trim());
         article.setCategories(line.substring(beginCat, beginPos).trim());
-        article.setPos(line.substring(beginPos, beginPrice).trim());
+        article.setPos(trimLeadingZeroes(line.substring(beginPos, beginPrice).trim()));
         article.setPrice(BigDecimal.valueOf(Double.parseDouble(line.substring(beginPrice, beginStartDate))));
-        article.setStartDate(Long.parseLong(line.substring(beginStartDate, beginEndDate)));
-        article.setEndDate(Long.parseLong(line.substring(beginEndDate)));
-
+        article.setStartDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginStartDate, beginEndDate))),
+                TimeZone.getDefault().toZoneId())));
+        article.setEndDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginEndDate))),
+                TimeZone.getDefault().toZoneId())));
         return article;
     }
 
     private String trimLeadingZeroes(final String s) {
         int i = 0;
-        while (s.charAt(i) == '0') {
-            i++;
+        try {
+            while (s.charAt(i) == '0') {
+                i++;
+            }
+        } catch (final Exception e) {
+            LOG.error("error trimming leading zeros for input string '{}'", s);
+            LOG.error(e.getMessage());
+            return s;
         }
         return s.substring(i);
     }

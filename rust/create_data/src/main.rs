@@ -9,20 +9,37 @@ use pretty_env_logger::env_logger::Builder;
 use rand::{Rng, thread_rng};
 use rand::prelude::ThreadRng;
 
+
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    Builder::new().filter_level(LevelFilter::Info).init();
+    Builder::new()
+        .filter_level(LevelFilter::Info)
+        .init();
 
     let mut rng = thread_rng();
 
+    prod_data(&mut rng);
+
+    Ok(())
+}
+
+fn dev_data(mut rng: &mut ThreadRng) {
     let cnt_articles_per_file_avg = 9_0;
-    let cnt_articles_min = 50_0;
-    let cnt_articles_max = 70_0;
+    let cnt_articles_min = 30_0;
+    let cnt_articles_max = 90_0;
     let cnt_pos = 5;
 
     write_files(&mut rng, cnt_articles_per_file_avg, cnt_articles_min, cnt_articles_max, cnt_pos);
+}
 
-    Ok(())
+fn prod_data(mut rng: &mut ThreadRng) {
+    let cnt_articles_per_file_avg = 100_000;
+    let cnt_articles_min = 1_000_000;
+    let cnt_articles_max = 1_500_000;
+    let cnt_pos = 10;
+
+    write_files(&mut rng, cnt_articles_per_file_avg, cnt_articles_min, cnt_articles_max, cnt_pos);
 }
 
 fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_articles_min: usize, cnt_articles_max: usize, cnt_pos: usize) {
@@ -36,10 +53,10 @@ fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_ar
     let mut articles = vec![];
     let mut file_cnt = 1;
 
-    for i in 0..cnt_articles {
+    for i in 1..=cnt_articles {
         // info!("create article code  {}", i);
 
-        for pos in 0..cnt_pos {
+        for pos in 1..=cnt_pos {
             let pos = format!("{0:0>10}", pos);
 
             let cnt_prices: usize = rng.gen_range(2..8);
@@ -88,7 +105,7 @@ fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_ar
     info!("finished writing all files  at {:?}.     took  {}ms   or {}secs",& Instant::now(), start.elapsed().as_millis(), start.elapsed().as_secs());
 }
 
-fn get_article_cnt_for_file(rng: &mut &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
+fn get_article_cnt_for_file(rng: &mut  ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
     let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 15;
     let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 15;
     rng.gen_range(min..max)

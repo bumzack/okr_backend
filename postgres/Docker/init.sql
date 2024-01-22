@@ -4,19 +4,6 @@
 -- GRANT ALL PRIVILEGES ON DATABASE shop TO shop;
 
 
-CREATE ROLE shop WITH LOGIN PASSWORD 'shop';
-CREATE DATABASE shop WITH OWNER shop;
-\c shop shop;
-
-
-GRANT ALL
-ON ALL TABLES
-IN SCHEMA "public"
-TO shop;
-
-psql -d shop -U shop
-
-
 CREATE TABLE articles
 (
     id          serial   NOT NULL,
@@ -32,10 +19,5 @@ CREATE TABLE articles
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX articles_id_idx ON articles (id);
-CREATE UNIQUE INDEX articles_pos_code_idx ON articles (code, pos);
+ALTER TABLE public.articles OWNER TO shop;
 
-
-
-ALTER SEQUENCE public.articles_seq
-    OWNER TO shop;
