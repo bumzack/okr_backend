@@ -6,7 +6,7 @@ import logger from 'koa-logger';
 
 import * as db from './db';
 import * as dotenv from "dotenv";
-import {getArticles} from "./articleservice";
+import {getArticles, importArticles} from "./articleservice";
 
 const router = new Router();
 const app = new Koa();
@@ -44,20 +44,13 @@ router.get('/api/v1/articles/:pagenumber/:pagesize', async (ctx: Koa.Context, ne
 router.post('/api/v1/articles/import', async (ctx: Koa.Context, next: Koa.Next) => {
     const client = await db.pool.connect();
     try {
-        const articles = await importArticles();
-        if (articles.length > 0) {
-            ctx.body = JSON.stringify(articles)
-        } else {
-            ctx.status = 404
-        }
+        const res = await importArticles();
+        ctx.body = JSON.stringify(res)
     } finally {
         client.release()
     }
     await next;
 });
-
-
-
 
 
 app.listen(port, () => {

@@ -49,7 +49,7 @@ async fn main() -> Result<(), Error> {
             info!("row {:?}", r.get::<&str, i64>("count"));
         });
 
-    let import_result = import_articles().await .expect("import should succeed");
+    let import_result = import_articles().await.expect("import should succeed");
 
     info!("import_result {:?}", &import_result);
 
@@ -75,11 +75,11 @@ async fn import_articles() -> Result<ImportResult, Error> {
             info!("file name {:?}", n);
         });
 
-    let mut res= vec![];
+    let mut res = vec![];
     for f in files {
         let n = f.as_ref().expect("is a file").file_name();
         info!("processing file name {:?}", n);
-        let ir =  process_file(&n, &data_dir).await;
+        let ir = process_file(&n, &data_dir).await;
         info!("import result {:?} for file {:?}", &ir, &n);
         res.push(ir);
     }
@@ -87,11 +87,11 @@ async fn import_articles() -> Result<ImportResult, Error> {
     let mut lines_processed = 0;
     let mut db_rows_written = 0;
 
-    res.iter().for_each(|ir| {
-        lines_processed += ir.lines_processed;
-        db_rows_written += ir.db_rows_written;
-    });
-
+    res.iter()
+        .for_each(|ir| {
+            lines_processed += ir.lines_processed;
+            db_rows_written += ir.db_rows_written;
+        });
 
     let ir = ImportResult {
         lines_processed,
@@ -110,8 +110,8 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let mut articles: Vec<NewArticleModel> = vec![];
     let mut current_article: Vec<NewArticleModel> = vec![];
 
-    let mut db_rows_written=0;
-    let mut lines_processed=0;
+    let mut db_rows_written = 0;
+    let mut lines_processed = 0;
 
     for (idx, line) in lines.enumerate() {
         let article = convert_to_new_article_model(line.expect("line should be a string"));
@@ -136,10 +136,10 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
             for a in &articles {
                 let _res = insert_article(&POOL, a).await.expect("insert should work");
             };
-            db_rows_written+= articles.len();
+            db_rows_written += articles.len();
             articles.clear();
         }
-        lines_processed+=1;
+        lines_processed += 1;
     }
 
     ImportResult {

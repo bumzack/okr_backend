@@ -20,23 +20,23 @@ pub struct NewArticleModel {
     pub categories: String,
     pub attributes: String,
     pub price: f64,
-    pub start_date: DateTime::<Utc>,
-    pub end_date: DateTime::<Utc>,
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
     pub pos: String,
 }
 
 
 #[derive(Debug, Clone)]
-pub struct NewArticleModelRefsOnly <'a>{
+pub struct NewArticleModelRefsOnly<'a> {
     pub code: &'a str,
     pub title: &'a str,
     pub description: &'a str,
-    pub categories:&'a str,
+    pub categories: &'a str,
     pub attributes: &'a str,
     pub price: f64,
-    pub start_date: DateTime::<Utc>,
-    pub end_date: DateTime::<Utc>,
-    pub pos:&'a str,
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
+    pub pos: &'a str,
 }
 
 #[derive(Debug, Clone)]
@@ -48,8 +48,8 @@ pub struct ArticleModel {
     pub categories: String,
     pub attributes: String,
     pub price: f64,
-    pub start_date:  DateTime::<Utc>,
-    pub end_date:  DateTime::<Utc>,
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
     pub pos: String,
 }
 
@@ -142,8 +142,8 @@ impl From<&Row> for ArticleModel {
             categories: value.get::<&str, String>("categories"),
             attributes: value.get::<&str, String>("attributes"),
             price: value.get::<&str, f64>("price"),
-            start_date: value.get::<&str,  DateTime::<Utc>>("start_date"),
-            end_date: value.get::<&str, DateTime::<Utc>>("end_date"),
+            start_date: value.get::<&str, DateTime<Utc>>("start_date"),
+            end_date: value.get::<&str, DateTime<Utc>>("end_date"),
             pos: value.get::<&str, String>("pos"),
         }
     }
