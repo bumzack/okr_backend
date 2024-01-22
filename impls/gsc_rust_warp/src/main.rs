@@ -1,15 +1,17 @@
-use std::{env, fs, io};
+use std::env;
 use std::ffi::OsString;
-use std::fs::File;
-use std::io::{BufRead, Error};
+use std::io::Error;
 
 use chrono::{DateTime, Utc};
 use deadpool_postgres::Pool;
 use dotenvy::dotenv;
-use log::{info, LevelFilter};
+use log::{error, info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
+use tokio::{fs, io};
+use tokio::fs::File;
+use tokio::io::AsyncBufReadExt;
 
-use crate::db::{create_pool, ImportResult, insert_article, NewArticleModel};
+use crate::db::{create_pool, ImportResult, NewArticleModel};
 
 const LEN_CODE: usize = 20;
 const LEN_TITLE: usize = 100;
@@ -36,10 +38,6 @@ async fn main() -> Result<(), Error> {
 
     dotenv().expect(".env file not found");
 
-    for (key, value) in env::vars() {
-        println!("{key}: {value}");
-    }
-
     let c = POOL.get().await.expect("should get client");
     let row = c.query("SELECT COUNT(*) FROM articles", &[]).await.expect("select count");
 
@@ -49,7 +47,7 @@ async fn main() -> Result<(), Error> {
             info!("row {:?}", r.get::<&str, i64>("count"));
         });
 
-    let import_result = import_articles().await .expect("import should succeed");
+    let import_result = import_articles().await.expect("import should succeed");
 
     info!("import_result {:?}", &import_result);
 
@@ -59,27 +57,39 @@ async fn main() -> Result<(), Error> {
 
 async fn import_articles() -> Result<ImportResult, Error> {
     let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
-    let paths = fs::read_dir(&data_dir).unwrap();
-    let mut files: Vec<Result<fs::DirEntry, Error>> = paths.into_iter()
-        .filter(|f| {
-            let string = f.as_ref().expect("is a file").file_name().to_ascii_lowercase();
-            let f = string.to_str().expect("to str");
-            f.ends_with(".txt")
-        })
-        .collect();
+    info!("data dir {}", &data_dir);
+    let mut paths = fs::read_dir(&data_dir).await.unwrap();
+    let mut files: Vec<fs::DirEntry> = vec![];
+    while let Ok(e) = paths.next_entry().await {
+        match e {
+            Some(entry) => {
+                info!("this is a entry   {:?}", &entry);
+                let string = entry.file_name().to_ascii_lowercase();
+                let f = string.to_str().expect("to str");
+                if f.ends_with(".txt") {
+                    files.push(entry)
+                }
+            }
+            None => {
+                error!("not a entry");
+                break;
+            }
+        }
+    }
 
-    files.sort_by(|a, b| a.as_ref().unwrap().file_name().partial_cmp(&b.as_ref().unwrap().file_name()).unwrap());
+
+    files.sort_by(|a, b| a.file_name().partial_cmp(&b.file_name()).unwrap());
     files.iter()
         .for_each(|f| {
-            let n = f.as_ref().expect("is a file").file_name();
+            let n = f.file_name();
             info!("file name {:?}", n);
         });
 
-    let mut res= vec![];
+    let mut res = vec![];
     for f in files {
-        let n = f.as_ref().expect("is a file").file_name();
+        let n = f.file_name();
         info!("processing file name {:?}", n);
-        let ir =  process_file(&n, &data_dir).await;
+        let ir = process_file(&n, &data_dir).await;
         info!("import result {:?} for file {:?}", &ir, &n);
         res.push(ir);
     }
@@ -104,42 +114,51 @@ async fn import_articles() -> Result<ImportResult, Error> {
 async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let exp_msg = format!("file open of file '{}' should work", file_name.to_str().expect("filename"));
     let f = format!("{}/{}", data_dir, file_name.to_str().expect("sould do it"));
-    let f = File::open(f).expect(&exp_msg);
-    let lines = io::BufReader::new(f).lines();
+    let f = File::open(f).await.expect(&exp_msg);
+    let mut lines = io::BufReader::new(f).lines();
 
     let mut articles: Vec<NewArticleModel> = vec![];
     let mut current_article: Vec<NewArticleModel> = vec![];
 
-    let mut db_rows_written=0;
-    let mut lines_processed=0;
+    let mut db_rows_written = 0;
+    let mut lines_processed = 0;
 
-    for (idx, line) in lines.enumerate() {
-        let article = convert_to_new_article_model(line.expect("line should be a string"));
+    while let Ok(l) = lines.next_line().await {
+        //  info!("l   {:?}", &l);
+        match l {
+            Some(line) => {
+                let article = convert_to_new_article_model(line);
 
-        match current_article.last() {
-            Some(last) => {
-                if (last.code == article.code) && (last.pos == article.pos) {
-                    current_article.push(article);
-                } else {
-                    current_article
-                        .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
-                    articles.push(current_article.first().expect("at least 1 article should be in the file").clone());
-                    current_article.clear();
+                match current_article.last() {
+                    Some(last) => {
+                        if (last.code == article.code) && (last.pos == article.pos) {
+                            current_article.push(article);
+                        } else {
+                            current_article
+                                .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
+                            articles.push(current_article.first().expect("at least 1 article should be in the file").clone());
+                            current_article.clear();
+                        }
+                    }
+                    None => {
+                        articles.push(article);
+                    }
                 }
+
+                if articles.len() > 50 {
+                    // for a in &articles {
+                    //     let _res = insert_article(&POOL, a).await.expect("insert should work");
+                    // };
+                    db_rows_written += articles.len();
+                    articles.clear();
+                }
+                lines_processed += 1;
             }
             None => {
-                articles.push(article);
+                error!("file {:?} no line found", file_name);
+                break;
             }
         }
-
-        if articles.len() > 50 {
-            for a in &articles {
-                let _res = insert_article(&POOL, a).await.expect("insert should work");
-            };
-            db_rows_written+= articles.len();
-            articles.clear();
-        }
-        lines_processed+=1;
     }
 
     ImportResult {
