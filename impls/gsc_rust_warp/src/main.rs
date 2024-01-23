@@ -178,9 +178,10 @@ fn convert_to_new_article_model(line: String) -> NewArticleModel {
         price,
         start_date: DateTime::<Utc>::from_timestamp(start_date, 0).expect("invalid timestamp starte date"),
         end_date: DateTime::<Utc>::from_timestamp(end_date, 0).expect("invalid timestamp end date"),
-        pos: pos.clone().to_string().trim().trim_start_matches("0").to_string(),
+        pos: pos.to_string().trim().trim_start_matches("0").to_string(),
     }
 }
+
 //
 // fn convert_to_new_article_model_refs_only<'a>(line: String) -> NewArticleModelRefsOnly <'a>{
 //     let start_title = LEN_CODE;
