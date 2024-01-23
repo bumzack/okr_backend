@@ -9,7 +9,7 @@ use dotenvy::dotenv;
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
 
-use crate::db::{create_pool, ImportResult, insert_article, NewArticleModel};
+use crate::db::{create_pool, ImportResult, NewArticleModel};
 
 const LEN_CODE: usize = 20;
 const LEN_TITLE: usize = 100;
@@ -113,7 +113,7 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let mut db_rows_written = 0;
     let mut lines_processed = 0;
 
-    for (idx, line) in lines.enumerate() {
+    for line in lines {
         let article = convert_to_new_article_model(line.expect("line should be a string"));
 
         match current_article.last() {
