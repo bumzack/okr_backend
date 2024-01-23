@@ -1,9 +1,9 @@
 package at.bumzack.refimpl.dto
 
 data class SysInfo(
-        var author: String = "null",
-        var language: String = "null",
-        var framework: String = "null",
-        var multithreaded: Boolean = false,
-        var comment: String = "null",
+        val author: String = "null",
+        val language: String = "null",
+        val framework: String = "null",
+        val multithreaded: Boolean = false,
+        val comment: String = "null",
 )

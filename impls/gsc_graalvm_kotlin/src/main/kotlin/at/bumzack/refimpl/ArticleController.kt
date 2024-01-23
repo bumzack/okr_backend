@@ -3,14 +3,9 @@ package at.bumzack.refimpl
 import at.bumzack.refimpl.dto.ImportResult
 import at.bumzack.refimpl.dto.SysInfo
 import org.slf4j.LoggerFactory
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 private val LOG = LoggerFactory.getLogger(ArticleController::class.java)
-
 
 @RestController
 @RequestMapping("/api")
@@ -27,14 +22,14 @@ class ArticleController(
 //    }
 
     @PostMapping("/v1/articles/import")
-    fun importArticles(): ResponseEntity<ImportResult> {
-        val res: ImportResult = articleService.importArticles()
-
-        return ResponseEntity.ok<ImportResult>(res)
+    @ResponseBody
+    fun importArticles(): ImportResult {
+        return articleService.importArticles()
     }
 
     @GetMapping("/v1/sysinfo")
-    fun sysinfoV1(): ResponseEntity<SysInfo> {
+    @ResponseBody
+    fun sysinfo(): SysInfo {
         val sysInfo = SysInfo(
                 author = "gsc",
                 framework = "Spring Boot 3.2.2",
@@ -42,10 +37,8 @@ class ArticleController(
                 language = "Graal VM & Kotlin 1.9.0",
                 multithreaded = false,
         )
-
-        LOG.info("sysInfo {}", sysInfo)
-
-        return ResponseEntity.ok(sysInfo)
+        LOG.info("sysinfo {}", sysInfo)
+        return sysInfo
     }
 }
 
