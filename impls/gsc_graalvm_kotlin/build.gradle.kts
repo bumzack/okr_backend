@@ -54,7 +54,7 @@ graalvmNative {
 	binaries {
 		named("main") {
 			imageName.set("graal-ref-impl-app")
-			mainClass.set("at.bumzack.reference.impl.ReferenceImplApplication")
+			//mainClass.set("at.bumzack.refimpl.GraalApplication")
 			buildArgs.add("-O4")
 			buildArgs.add("-march=native")
 			javaLauncher.set(javaToolchains.launcherFor {
@@ -70,6 +70,5 @@ graalvmNative {
 	binaries.all {
 		buildArgs.add("--verbose")
 		buildArgs.add("--enable-preview")
-
 	}
 }

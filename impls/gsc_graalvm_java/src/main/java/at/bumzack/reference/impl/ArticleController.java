@@ -18,7 +18,6 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
-
     public ArticleController(final ArticleService articleService) {
         this.articleService = articleService;
     }
