@@ -1,14 +1,12 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
+import at.bumzack.reference.impl.dto.ImportResult;
 import at.bumzack.reference.impl.dto.SysInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,13 +30,12 @@ public class ArticleController {
         final var fullArticles = articleService.findPaginated(pageNumber, pageSize);
         return ResponseEntity.ok(fullArticles);
     }
-//
-//    @PostMapping("/v1/articles/import")
-//    public ResponseEntity<ImportResult> importArticles() throws IOException {
-//        final var res = articleService.importArticles();
-//
-//        return ResponseEntity.ok(res);
-//    }
+
+    @PostMapping("/v1/articles/import")
+    public ResponseEntity<ImportResult> importArticles() {
+        final var res = articleService.importArticles();
+        return ResponseEntity.ok(res);
+    }
 
     @GetMapping("/v1/sysinfo")
     public ResponseEntity<SysInfo> sysinfoV1() {
@@ -49,7 +46,7 @@ public class ArticleController {
         sysInfo.setLanguage("Java 21");
         sysInfo.setMultithreaded(false);
 
-        LOG.info("sysInfo {}",sysInfo);
+        LOG.info("sysInfo {}", sysInfo);
 
         return ResponseEntity.ok(sysInfo);
     }

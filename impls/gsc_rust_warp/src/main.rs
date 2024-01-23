@@ -133,9 +133,9 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
         }
 
         if articles.len() > 50 {
-            for a in &articles {
-                let _res = insert_article(&POOL, a).await.expect("insert should work");
-            };
+            // for a in &articles {
+            //     let _res = insert_article(&POOL, a).await.expect("insert should work");
+            // };
             db_rows_written += articles.len();
             articles.clear();
         }

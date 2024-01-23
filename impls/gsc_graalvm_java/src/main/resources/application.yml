@@ -1,5 +1,5 @@
 
-sourcefilesFolder: "./rust/"
+sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/rust/"
 
 
 server:
