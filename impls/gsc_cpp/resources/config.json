@@ -1,0 +1,14 @@
+{
+  "dev": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "swaggerHost": "192.168.0.115:8000",
+    "dbConnectionString": "postgresql://shop:shop@localhost:5432/shop"
+  },
+  "local-docker": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "swaggerHost": "192.168.0.115:8000",
+    "dbConnectionString": "postgresql://shop:shop@db:5432/shop"
+  }
+}

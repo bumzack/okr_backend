@@ -15,7 +15,7 @@ target/
 *.pdb
 
 
-rust/create_dummy_db/target
+rust/create_data/target
 
 
 postgres/pgadmin-data
@@ -37,6 +37,7 @@ impls/cpp/cmake-build-debug
 build/
 .gradle
 
+articles*.txt
 
 node_modules
 

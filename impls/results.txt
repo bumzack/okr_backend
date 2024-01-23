@@ -1,0 +1,7 @@
+graal kotlin native                 0.01s user 0.02s system 0% cpu 4:05.37 total
+graal kotlin java vm                0.02s user 0.03s system 0% cpu 7:54.90 total
+rust                                55.31s user 14.54s system 99% cpu 1:09.86 total
+nodejs koa build                    0.03s user 0.04s system 0% cpu 15:01.81 total
+cpp                                 0.01s user 0.02s system 0% cpu 3:34.86 total
+cpp -O3                             0.01s user 0.02s system 0% cpu 3:31.75 total
+

@@ -1,0 +1,4 @@
+server:
+  port: 9876
+
+sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/rust/"
