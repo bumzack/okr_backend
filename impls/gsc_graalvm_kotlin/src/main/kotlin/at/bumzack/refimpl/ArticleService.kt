@@ -1,9 +1,12 @@
 package at.bumzack.refimpl
 
 import at.bumzack.refimpl.dto.Article
+import at.bumzack.refimpl.dto.ArticleModel
 import at.bumzack.refimpl.dto.ImportResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
 import java.io.File
@@ -24,23 +27,28 @@ private const val LEN_POS = 30
 private const val LEN_PRICE = 20
 private const val LEN_START = 25
 
+private const val PROPERTY_CODE = "code"
+
+
 @Service
 class ArticleService(
+        val articleRepository: ArticleRepository
 ) {
-    //private val articleRepository: ArticleRepository = articleRepository
 
     @Value("\${sourcefilesFolder}")
     private val sourceFilesFolder: String = ""
 
-//    fun findPaginated(pageNumber: Int, pageSize: Int): List<Article> {
-//        val p: PageRequest = PageRequest.of(pageNumber, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, PROPERTY_CODE))
-//        return convert(articleRepository.findAll(p).toList())
-//    }
+    fun findPaginated(pageNumber: Int, pageSize: Int): List<Article> {
+        val p: PageRequest = PageRequest.of(pageNumber, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, PROPERTY_CODE))
+        val findAll: Page<ArticleModel> = articleRepository.findAll(p)
+        val findAll2: MutableList<ArticleModel> =findAll.toList()
+        return convert(findAll2)
+    }
 
-    private fun convert(source: List<Article>): List<Article> {
+    private fun convert(source: MutableList<ArticleModel>): List<Article> {
         return source.stream()
-                .map { a: Article ->
-                    val target = Article(
+                .map { a: ArticleModel ->
+                    val target = Article (
                             attributes = a.attributes,
                             categories = a.categories,
                             code = a.code,
@@ -122,23 +130,23 @@ class ArticleService(
         val reader = BufferedReader(java.io.FileReader(f))
 
         var line: String? = reader.readLine()
-        val tmp: ArrayList<Article> = ArrayList<Article>()
-        val articles: ArrayList<Article> = ArrayList<Article>()
+        val tmp: ArrayList<ArticleModel> = ArrayList<ArticleModel>()
+        val articles: ArrayList<ArticleModel> = ArrayList<ArticleModel>()
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
         while (line != null) {
             val article = processLine(line)
-            if (!tmp.isEmpty()) {
-                val last: Article = tmp.last()
+            if (tmp.isNotEmpty()) {
+                val last: ArticleModel = tmp.last()
                 // group by code and pos
                 if (last.code == article.code && (last.pos == article.pos)) {
                     tmp.add(article)
                 } else {
-                    val c: List<Article> = tmp.stream()
-                            .sorted(Comparator.comparing { obj: Article -> obj.price })
+                    val c: List<ArticleModel> = tmp.stream()
+                            .sorted(Comparator.comparing { obj: ArticleModel -> obj.price })
                             .limit(1)
                             .toList()
-                    articles.add(c.first)
+                    articles.add(c.first())
                     tmp.clear()
                 }
             } else {
@@ -148,7 +156,7 @@ class ArticleService(
 
             if (articles.size > 50) {
                 // articles.forEach(LOG::info);
-                // articleRepository.saveAll(articles);
+                articleRepository.saveAll(articles);
                 dbRowsWritten += articles.size.toLong()
                 //  LOG.info("filename {}  ,  {} articles  written", f.getName(), articles.size());
                 articles.clear()
@@ -165,7 +173,7 @@ class ArticleService(
     }
 
     // private static final int LEN_END = 25;
-    private fun processLine(line: String): Article {
+    private fun processLine(line: String): ArticleModel {
         val beginDesc = LEN_CODE + LEN_TITLE
         val beginAttr = LEN_CODE + LEN_TITLE + LEN_DESC
         val beginCat = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES
@@ -173,7 +181,7 @@ class ArticleService(
         val beginPrice = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS
         val beginStartDate = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE
         val beginEndDate = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE + LEN_START
-        val article = Article(
+        val article = ArticleModel(
                 code = trimLeadingZeroes(line.substring(0, LEN_CODE)),
                 title = line.substring(LEN_CODE, beginDesc).trim { it <= ' ' },
                 description = line.substring(beginDesc, beginAttr).trim { it <= ' ' },
@@ -183,6 +191,7 @@ class ArticleService(
                 price = BigDecimal.valueOf(line.substring(beginPrice, beginStartDate).toDouble()),
                 startDate = LocalDateTime.from(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(line.substring(beginStartDate, beginEndDate).toLong()), TimeZone.getDefault().toZoneId())),
                 endDate = LocalDateTime.from(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(line.substring(beginEndDate).toLong()), TimeZone.getDefault().toZoneId())),
+                id = null,
         )
 
         return article

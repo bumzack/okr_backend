@@ -1,5 +1,6 @@
 package at.bumzack.refimpl
 
+import at.bumzack.refimpl.dto.Article
 import at.bumzack.refimpl.dto.ImportResult
 import at.bumzack.refimpl.dto.SysInfo
 import org.slf4j.LoggerFactory
@@ -13,13 +14,14 @@ class ArticleController(
         val articleService: ArticleService
 ) {
 
-//    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
-//    fun findPaginatedV1(@PathVariable pageNumber: Int,
-//                        @PathVariable pageSize: Int): ResponseEntity<List<Article>> {
-//        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize)
-//        val fullArticles: List<Article> = articleService.findPaginated(pageNumber, pageSize)
-//        return ResponseEntity.ok<List<Article>>(fullArticles)
-//    }
+    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
+    @ResponseBody
+    fun findPaginatedV1(@PathVariable pageNumber: Int,
+                        @PathVariable pageSize: Int): List<Article> {
+        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize)
+        val fullArticles: List<Article> = articleService.findPaginated(pageNumber, pageSize)
+        return fullArticles
+    }
 
     @PostMapping("/v1/articles/import")
     @ResponseBody
