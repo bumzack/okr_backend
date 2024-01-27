@@ -167,12 +167,12 @@ fn write_files(
 
 fn get_article_cnt_for_file(rng: &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
     if rng.gen_range (0.0 .. 1.0) > 0.5 {
-        let min = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 33;
-        let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 20;
+        let min = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 3;
+        let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 2;
         rng.gen_range(min..max)
     } else { 
-        let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 20;
-        let max = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 33;
+        let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 2;
+        let max = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 3;
         rng.gen_range(min..max)
     }
 }
