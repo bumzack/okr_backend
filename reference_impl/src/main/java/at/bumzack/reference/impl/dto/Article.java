@@ -3,8 +3,6 @@ package at.bumzack.reference.impl.dto;
 import java.math.BigDecimal;
 
 public class Article {
-    private long id;
-
     private String code;
 
     private String description;
@@ -22,13 +20,6 @@ public class Article {
     public Article() {
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public String getCode() {
         return code;
@@ -105,8 +96,7 @@ public class Article {
     @Override
     public String toString() {
         return "ArticleModel{" +
-                "id=" + id +
-                ", code='" + code + '\'' +
+                "code=" + code +
                 ", description='" + description + '\'' +
                 ", title='" + title + '\'' +
                 ", categories='" + categories + '\'' +
