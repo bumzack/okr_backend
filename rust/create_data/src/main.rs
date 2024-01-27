@@ -6,31 +6,34 @@ use std::time::Instant;
 use chrono::Duration;
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
-use rand::{Rng, thread_rng};
 use rand::prelude::ThreadRng;
-
-
+use rand::{thread_rng, Rng};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    Builder::new()
-        .filter_level(LevelFilter::Info)
-        .init();
+    Builder::new().filter_level(LevelFilter::Info).init();
 
     let mut rng = thread_rng();
 
-    prod_data(&mut rng);
+    // prod_data(&mut rng);
+    dev_data(&mut rng);
 
     Ok(())
 }
 
-fn dev_data(mut rng: &mut ThreadRng) {
-    let cnt_articles_per_file_avg = 9_0;
-    let cnt_articles_min = 30_0;
-    let cnt_articles_max = 90_0;
+fn dev_data(rng: &mut ThreadRng) {
+    let cnt_articles_per_file_avg = 900;
+    let cnt_articles_min = 3000;
+    let cnt_articles_max = 4000;
     let cnt_pos = 5;
 
-    write_files(&mut rng, cnt_articles_per_file_avg, cnt_articles_min, cnt_articles_max, cnt_pos);
+    write_files(
+        rng,
+        cnt_articles_per_file_avg,
+        cnt_articles_min,
+        cnt_articles_max,
+        cnt_pos,
+    );
 }
 
 fn prod_data(mut rng: &mut ThreadRng) {
@@ -39,10 +42,22 @@ fn prod_data(mut rng: &mut ThreadRng) {
     let cnt_articles_max = 1_500_000;
     let cnt_pos = 10;
 
-    write_files(&mut rng, cnt_articles_per_file_avg, cnt_articles_min, cnt_articles_max, cnt_pos);
+    write_files(
+        &mut rng,
+        cnt_articles_per_file_avg,
+        cnt_articles_min,
+        cnt_articles_max,
+        cnt_pos,
+    );
 }
 
-fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_articles_min: usize, cnt_articles_max: usize, cnt_pos: usize) {
+fn write_files(
+    mut rng: &mut ThreadRng,
+    cnt_articles_per_file_avg: usize,
+    cnt_articles_min: usize,
+    cnt_articles_max: usize,
+    cnt_pos: usize,
+) {
     let path = env!("CARGO_MANIFEST_DIR");
 
     let start = Instant::now();
@@ -80,9 +95,13 @@ fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_ar
                 articles.push(convert_to_string(&article));
             }
         }
+
         current_cnt_articles_per_file += 1;
         if current_cnt_articles_per_file > articles_per_file {
-            info!("current_cnt_articles_per_file {},   articles_per_file {}",current_cnt_articles_per_file ,articles_per_file);
+            info!(
+                "current_cnt_articles_per_file {},   articles_per_file {}",
+                current_cnt_articles_per_file, articles_per_file
+            );
 
             let start_file = Instant::now();
 
@@ -91,40 +110,49 @@ fn write_files(mut rng: &mut ThreadRng, cnt_articles_per_file_avg: usize, cnt_ar
             info!("write file start {} ", filename);
 
             articles.iter().for_each(|a| {
-                f.write(a.as_bytes()).expect("should write an article");
+                let _ = f.write(a.as_bytes()).expect("should write an article");
             });
 
-            info!("finished writing file {} at {:?}. took  {}ms", filename, & Instant::now(), start_file.elapsed().as_millis());
+            info!(
+                "finished writing file {}.  took  {}ms",
+                filename,
+                start_file.elapsed().as_millis()
+            );
             articles.clear();
-            articles_per_file = get_article_cnt_for_file(&mut rng, cnt_articles_per_file_avg);
+            articles_per_file = get_article_cnt_for_file(rng, cnt_articles_per_file_avg);
             file_cnt += 1;
             current_cnt_articles_per_file = 0;
         }
     }
 
-    info!("finished writing all files  at {:?}.     took  {}ms   or {}secs",& Instant::now(), start.elapsed().as_millis(), start.elapsed().as_secs());
+    info!(
+        "finished writing all files      took  {}ms   or {}secs",
+        start.elapsed().as_millis(),
+        start.elapsed().as_secs()
+    );
 }
 
-fn get_article_cnt_for_file(rng: &mut  ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
+fn get_article_cnt_for_file(rng: &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
     let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 15;
     let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 15;
     rng.gen_range(min..max)
 }
 
-fn convert_to_string(a: &Article) -> String {
+fn convert_to_string(article: &Article) -> String {
     let precision = 4;
-    let p = format!("{:0>20.1$}", a.price, precision);
+    let p = format!("{:0>20.1$}", article.price, precision);
 
-    format!("{0:0>20}{1: <100}{2: <1700}{3: <200}{4: <200}{5: <30}{6}{7:0>25}{8:0>25}\n",
-            a.code,
-            a.title,
-            a.description,
-            a.attributes,
-            a.categories,
-            a.pos,
-            p,
-            a.start_date,
-            a.end_date,
+    format!(
+        "{0:0>20}{1: <100}{2: <1700}{3: <200}{4: <200}{5: <30}{6}{7:0>25}{8:0>25}\n",
+        article.code,
+        article.title,
+        article.description,
+        article.attributes,
+        article.categories,
+        article.pos,
+        p,
+        article.start_date,
+        article.end_date,
     )
 }
 
@@ -237,7 +265,6 @@ fn tshirt(code: usize, rng: &mut ThreadRng) -> Article {
     let length_description = rng.gen_range(100..desc.len());
     let description = desc[0..length_description].to_string();
 
-
     let idx_color: usize = rng.gen_range(0..attributes_color.len());
     let color = attributes_color[idx_color].clone();
 
@@ -256,10 +283,9 @@ fn tshirt(code: usize, rng: &mut ThreadRng) -> Article {
     let categories = format!("{}//{}//{}", cat.lvl0, cat.lvl1, cat.lvl2);
 
     let attributes = vec![color, size, fit];
-    let attributes: Vec<String> = attributes.iter()
-        .map(|a| {
-            format!("{}: {}", a.name, a.value)
-        })
+    let attributes: Vec<String> = attributes
+        .iter()
+        .map(|a| format!("{}: {}", a.name, a.value))
         .collect();
     let attributes = attributes.join("//");
 
@@ -275,7 +301,6 @@ fn tshirt(code: usize, rng: &mut ThreadRng) -> Article {
         pos: "".to_string(),
     }
 }
-
 
 fn notebook(code: usize, rng: &mut ThreadRng) -> Article {
     let attributes_ram = vec![
@@ -323,17 +348,15 @@ fn notebook(code: usize, rng: &mut ThreadRng) -> Article {
         },
     ];
 
-    let category =
-        Category {
-            lvl0: "Notebook".to_string(),
-            lvl1: "Notebook > Apple".to_string(),
-            lvl2: "".to_string(),
-        };
+    let category = Category {
+        lvl0: "Notebook".to_string(),
+        lvl1: "Notebook > Apple".to_string(),
+        lvl2: "".to_string(),
+    };
 
     let desc = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.";
     let length_description = rng.gen_range(100..desc.len());
     let description = desc[0..length_description].to_string();
-
 
     let idx_cpu: usize = rng.gen_range(0..attributes_cpu.len());
     let color = attributes_cpu[idx_cpu].clone();
