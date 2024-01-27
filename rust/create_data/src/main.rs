@@ -15,8 +15,8 @@ async fn main() -> Result<(), Error> {
 
     let mut rng = thread_rng();
 
-    // prod_data(&mut rng);
-    dev_data(&mut rng);
+    prod_data(&mut rng);
+    // dev_data(&mut rng);
 
     Ok(())
 }
@@ -135,7 +135,7 @@ fn write_files(
 
     let start_file = Instant::now();
 
-    let filename = format!("{}/../../data/articles_{:0>6}.txt", path, file_cnt);
+    let filename = format!("{}/articles_{:0>6}.txt", path, file_cnt);
     let mut f = File::create(&filename).expect("creating file should work");
     info!("write file start {} ", filename);
 
@@ -166,9 +166,15 @@ fn write_files(
 }
 
 fn get_article_cnt_for_file(rng: &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
-    let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 33;
-    let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 33;
-    rng.gen_range(min..max)
+    if rng.gen_range (0.0 .. 1.0) > 0.5 {
+        let min = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 33;
+        let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 20;
+        rng.gen_range(min..max)
+    } else { 
+        let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 20;
+        let max = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 33;
+        rng.gen_range(min..max)
+    }
 }
 
 fn convert_to_string(article: &Article) -> String {
