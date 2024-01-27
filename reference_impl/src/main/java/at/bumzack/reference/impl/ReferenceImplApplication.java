@@ -9,5 +9,4 @@ public class ReferenceImplApplication {
     public static void main(String[] args) {
         SpringApplication.run(ReferenceImplApplication.class, args);
     }
-
 }

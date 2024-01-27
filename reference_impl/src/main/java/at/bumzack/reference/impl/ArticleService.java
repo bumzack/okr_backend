@@ -23,137 +23,6 @@ import java.util.*;
 
 @Component
 public class ArticleService {
-
-    public static final String PROPERTY_CODE = "code";
-    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
-    private final ArticleRepository articleRepository;
-
-
-    @Value("${sourcefilesFolder}")
-    private String sourceFilesFolder;
-
-
-    public ArticleService(final ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-
-    }
-
-
-    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
-        final var p = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
-        return convert(articleRepository.findAll(p).toList());
-    }
-
-    private List<Article> convert(final List<ArticleModel> source) {
-        return source.stream()
-                .map(a -> {
-                    final var target = new Article();
-                    target.setAttributes(a.getAttributes());
-                    target.setCategories(a.getCategories());
-                    target.setCode(a.getCode());
-                    target.setDescription(a.getDescription());
-                    target.setId(a.getId());
-                    target.setPos(a.getPos());
-                    target.setTitle(a.getTitle());
-                    target.setStartDate(a.getStartDate().toString());
-                    target.setEndDate(a.getEndDate().toString());
-
-                    return target;
-                }).toList();
-    }
-
-    public ImportResult importArticles() {
-        final File currentDirFile = new File(".");
-        final String helper = currentDirFile.getAbsolutePath();
-
-        LOG.info("currentDirFile {}", currentDirFile.getName());
-        LOG.info("helper {}", helper);
-        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
-        final var absPath = helper + "/" + sourceFilesFolder;
-        LOG.info("absPath {}", absPath);
-
-        final File folder = new File(absPath);
-
-        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
-            if (fileEntry.isDirectory()) {
-                LOG.info("directory {}", fileEntry.getName());
-            } else {
-                LOG.info("file {}", fileEntry.getName());
-            }
-        }
-
-        final var fileNames = Arrays.stream(Objects.requireNonNull(folder.listFiles()))
-                .filter(file -> file.getName().contains(".txt"))
-                .toList();
-
-        LOG.info("===================================================================   ");
-        LOG.info("filenames   ");
-        fileNames
-                .forEach(LOG::info);
-        LOG.info("===================================================================   ");
-
-        return fileNames.stream()
-                .sorted(Comparator.comparing(File::getName))
-                .map(this::tryProcessFile)
-                .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
-    }
-
-    private ImportResult tryProcessFile(final File f) {
-        try {
-            final var res = processFile(f);
-            LOG.info("filename {}  ,  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
-            return res;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private ImportResult processFile(final File f) throws IOException {
-        final BufferedReader reader = new BufferedReader(new FileReader(f));
-
-        String line = reader.readLine();
-        final var tmp = new ArrayList<ArticleModel>();
-        final var articles = new ArrayList<ArticleModel>();
-        long linesProcessed = 0;
-        long dbRowsWritten = 0;
-        while (line != null) {
-            final var article = processLine(line);
-            if (!tmp.isEmpty()) {
-                final var last = tmp.getLast();
-                // group by code and pos
-                if (last.getCode().equals(article.getCode()) && (last.getPos().equals(article.getPos()))) {
-                    tmp.add(article);
-                } else {
-                    final var c = tmp.stream()
-                            .sorted(Comparator.comparing(ArticleModel::getPrice))
-                            .limit(1)
-                            .toList();
-                    articles.add(c.getFirst());
-                    tmp.clear();
-                }
-            } else {
-                tmp.add(article);
-            }
-            linesProcessed++;
-
-            if (articles.size() > 50) {
-                // articles.forEach(LOG::info);
-                // articleRepository.saveAll(articles);
-                dbRowsWritten += articles.size();
-                //  LOG.info("filename {}  ,  {} articles  written", f.getName(), articles.size());
-                articles.clear();
-            }
-
-            line = reader.readLine();
-        }
-
-        final var importResult = new ImportResult();
-        importResult.setDbRowsWritten(dbRowsWritten);
-        importResult.setLinesProcessed(linesProcessed);
-
-        return importResult;
-    }
-
     private static final int LEN_CODE = 20;
     private static final int LEN_TITLE = 100;
     private static final int LEN_DESC = 1700;
@@ -168,7 +37,125 @@ public class ArticleService {
     // private static final int LEN_END = 25;
 
 
-    private ArticleModel processLine(final String line) {
+    public static final String PROPERTY_CODE = "code";
+    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
+    private final ArticleRepository articleRepository;
+
+
+    @Value("${sourcefilesFolder}")
+    private String sourceFilesFolder;
+
+
+    public ArticleService(final ArticleRepository articleRepository) {
+        this.articleRepository = articleRepository;
+    }
+
+//    public ArticleService() {
+//    }
+
+
+    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
+        final var page = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
+        return convert(articleRepository.findAll(page).toList());
+    }
+
+    private List<Article> convert(final List<ArticleModel> source) {
+        return source.stream()
+                .map(this::toArticle)
+                .toList();
+    }
+
+
+    public ImportResult importArticles() {
+        final File currentDirFile = new File(".");
+        final String helper = currentDirFile.getAbsolutePath();
+        final var absPath = helper + "/" + sourceFilesFolder;
+        LOG.info("absPath {}", absPath);
+
+        final File folder = new File(absPath);
+
+        return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
+                .filter(file -> file.getName().contains(".txt"))
+                .sorted(Comparator.comparing(File::getName))
+                .map(this::tryProcessFile)
+                .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
+    }
+
+    public ImportResult importArticles2() {
+        final File currentDirFile = new File(".");
+        final String helper = currentDirFile.getAbsolutePath();
+        final var absPath = helper + "/" + sourceFilesFolder;
+
+        final File folder = new File(absPath);
+
+        return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
+                .filter(file -> file.getName().contains(".txt"))
+                .sorted(Comparator.comparing(File::getName))
+                .toList()
+                .parallelStream()
+                .map(this::tryProcessFile)
+                .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
+    }
+
+    private ImportResult tryProcessFile(final File f) {
+        try {
+            final var res = processFile(f);
+            LOG.info("filename {},  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
+            return res;
+        } catch (final IOException e) {
+            LOG.error("error processing file ", e);
+        }
+        return null;
+    }
+
+    private ImportResult processFile(final File f) throws IOException {
+        final var reader = new BufferedReader(new FileReader(f));
+
+        String line = reader.readLine();
+        final var article_grouped_by_code_and_pos = new ArrayList<ArticleModel>();
+        final var articles_ready_to_write_to_db = new ArrayList<ArticleModel>();
+
+        long linesProcessed = 0;
+        long dbRowsWritten = 0;
+
+        while (line != null) {
+            final var article = line2article(line);
+            if (!article_grouped_by_code_and_pos.isEmpty()) {
+                final var last = article_grouped_by_code_and_pos.getLast();
+                // group by code and pos
+                if (last.getCode().equals(article.getCode()) && (last.getPos().equals(article.getPos()))) {
+                    article_grouped_by_code_and_pos.add(article);
+                } else {
+                    final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                            .sorted(Comparator.comparing(ArticleModel::getPrice))
+                            .limit(1)
+                            .toList();
+                    articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+                    article_grouped_by_code_and_pos.clear();
+                }
+            } else {
+                article_grouped_by_code_and_pos.add(article);
+            }
+            linesProcessed++;
+
+            if (articles_ready_to_write_to_db.size() > 50) {
+                // articleRepository.saveAll(articles);
+                dbRowsWritten += articles_ready_to_write_to_db.size();
+                articles_ready_to_write_to_db.clear();
+            }
+
+            line = reader.readLine();
+        }
+
+        final var importResult = new ImportResult();
+        importResult.setDbRowsWritten(dbRowsWritten);
+        importResult.setLinesProcessed(linesProcessed);
+
+        return importResult;
+    }
+
+
+    private ArticleModel line2article(final String line) {
         final var article = new ArticleModel();
         int beginDesc = LEN_CODE + LEN_TITLE;
         int beginAttr = LEN_CODE + LEN_TITLE + LEN_DESC;
@@ -198,5 +185,20 @@ public class ArticleService {
             i++;
         }
         return s.substring(i);
+    }
+
+    private Article toArticle(final ArticleModel article) {
+        final var target = new Article();
+        target.setAttributes(article.getAttributes());
+        target.setCategories(article.getCategories());
+        target.setCode(article.getCode());
+        target.setDescription(article.getDescription());
+        target.setId(article.getId());
+        target.setPos(article.getPos());
+        target.setTitle(article.getTitle());
+        target.setStartDate(article.getStartDate().toString());
+        target.setEndDate(article.getEndDate().toString());
+
+        return target;
     }
 }

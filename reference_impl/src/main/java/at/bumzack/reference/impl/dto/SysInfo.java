@@ -11,6 +11,8 @@ public class SysInfo {
 
     private String comment;
 
+    private String version;
+
     public SysInfo() {
     }
 
@@ -52,5 +54,13 @@ public class SysInfo {
 
     public void setComment(final String comment) {
         this.comment = comment;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(final String version) {
+        this.version = version;
     }
 }
