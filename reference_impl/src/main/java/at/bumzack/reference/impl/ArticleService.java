@@ -18,13 +18,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -33,16 +29,12 @@ public class ArticleService {
     private static final int LEN_CODE = 20;
     private static final int LEN_TITLE = 100;
     private static final int LEN_DESC = 1700;
-
     private static final int LEN_ATTRIBUTES = 200;
-
     private static final int LEN_CATEGORIES = 200;
-
     private static final int LEN_POS = 30;
     private static final int LEN_PRICE = 20;
     private static final int LEN_START = 25;
     // private static final int LEN_END = 25;
-
 
     public static final String PROPERTY_CODE = "code";
     private static final Logger LOG = LogManager.getLogger(ArticleService.class);
@@ -63,21 +55,20 @@ public class ArticleService {
 
     private List<Article> convert(final List<ArticleModel> source) {
         return source.stream()
-                .map(this::toArticle)
+                .map(this::fromArticleModel)
                 .toList();
     }
 
-    public ImportResult importArticles() {
+    public ImportResult importArticles(boolean returnItems) {
         final var folder = new File(sourceFilesFolder);
-
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
                 .sorted(Comparator.comparing(File::getName))
-                .map(this::tryProcessFile)
+                .map(f -> tryProcessFile(f, returnItems))
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
 
-    public ImportResult importArticles2() {
+    public ImportResult importArticles2(boolean returnItems) {
         final var folder = new File(sourceFilesFolder);
 
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
@@ -85,13 +76,13 @@ public class ArticleService {
                 .sorted(Comparator.comparing(File::getName))
                 .toList()
                 .parallelStream()
-                .map(this::tryProcessFile)
+                .map(f -> tryProcessFile(f, returnItems))
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
 
-    private ImportResult tryProcessFile(final File f) {
+    private ImportResult tryProcessFile(final File f, boolean returnItems) {
         try {
-            final var res = processFile(f);
+            final var res = processFile(f, returnItems);
             LOG.info("filename {},  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
             return res;
         } catch (final IOException e) {
@@ -100,7 +91,7 @@ public class ArticleService {
         return null;
     }
 
-    private ImportResult processFile(final File f) throws IOException {
+    private ImportResult processFile(final File f, boolean returnItems) throws IOException {
         final var reader = new BufferedReader(new FileReader(f));
         long linesProcessed = 0;
         long dbRowsWritten = 0;
@@ -108,63 +99,74 @@ public class ArticleService {
         String line = reader.readLine();
         linesProcessed++;
 
-        final var article_grouped_by_code_and_pos = new ArrayList<ArticleModel>();
-        final var articles_ready_to_write_to_db = new ArrayList<ArticleModel>();
+        final var article_grouped_by_code_and_pos = new ArrayList<Article>();
+        final var articles_ready_to_write_to_db = new ArrayList<Article>();
 
         if (nonNull(line)) {
-            var article = line2article(line);
-            while (line != null) {
-                LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed,article.getCode(), article.getPos(), article.getPrice());
-                final var firstInGroup = article;
+            Article article;
+            Article prevArticle = null;
+            while (true) {
+                article = line2article(line);
+                LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
 
-                // read until code && pos change
-                while (nonNull(line) && article.getCode().equals(firstInGroup.getCode()) && article.getPos().equals(firstInGroup.getPos())) {
+                if (isNull(prevArticle)) {
+                    // new grouping start - because first article ever
                     article_grouped_by_code_and_pos.add(article);
-                    line = reader.readLine();
-                    linesProcessed++;
-                    if (nonNull(line)) {
-                        article = line2article(line);
-                        LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed,article.getCode(), article.getPos(), article.getPrice());
+                } else {
+                    // is article part of current group?
+                    if (article.getCode().equals(prevArticle.getCode()) && article.getPos().equals(prevArticle.getPos())) {
+                        article_grouped_by_code_and_pos.add(article);
+                    } else {
+                        // article is not part of current group -> find cheapeast
+                        final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                                .sorted(Comparator.comparing(Article::getPrice))
+                                .limit(1)
+                                .toList();
+                        if (returnItems) {
+                            articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+                        }
+                        dbRowsWritten++;
+
+                        // clear group and add article
+                        article_grouped_by_code_and_pos.clear();
+                        article_grouped_by_code_and_pos.add(article);
                     }
                 }
 
-                LOG.info("article finished grouping in line {},      code {}, pos {}, cnt_articles  {}",linesProcessed,firstInGroup.getCode(), firstInGroup.getPos(), article_grouped_by_code_and_pos.size());
-
-                // find cheapest article
-                final var cheapestArticle = article_grouped_by_code_and_pos.stream()
-                        .sorted(Comparator.comparing(ArticleModel::getPrice))
-                        .limit(1)
-                        .toList();
-                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
-
-                // reset array and add the first article that wa
-                article_grouped_by_code_and_pos.clear();
-                if (line != null) {
-                    article_grouped_by_code_and_pos.add(article);
-                }
-
-                if (articles_ready_to_write_to_db.size() > 0) {
-                    // articleRepository.saveAll(articles);
-                    dbRowsWritten += articles_ready_to_write_to_db.size();
-                    articles_ready_to_write_to_db.forEach(a -> {
-                        LOG.info("article ready to write to DB   code {}, pos {}", a.getCode(), a.getPos());
-                    });
-                    articles_ready_to_write_to_db.clear();
-                }
-
                 line = reader.readLine();
+                if (isNull(line)) {
+                    break;
+                }
+                linesProcessed++;
+                prevArticle = article;
             }
+
+            // write last article in file
+            final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                    .sorted(Comparator.comparing(Article::getPrice))
+                    .limit(1)
+                    .toList();
+            if (returnItems) {
+                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+            }
+            dbRowsWritten++;
+
+            LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
+
+            articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
         }
 
         final var importResult = new ImportResult();
         importResult.setDbRowsWritten(dbRowsWritten);
         importResult.setLinesProcessed(linesProcessed);
+        importResult.setArticles(articles_ready_to_write_to_db);
+
         return importResult;
     }
 
 
-    private ArticleModel line2article(final String line) {
-        final var article = new ArticleModel();
+    private Article line2article(final String line) {
+        final var article = new Article();
         int beginDesc = LEN_CODE + LEN_TITLE;
         int beginAttr = LEN_CODE + LEN_TITLE + LEN_DESC;
         int beginCat = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES;
@@ -180,10 +182,14 @@ public class ArticleService {
         article.setCategories(line.substring(beginCat, beginPos).trim());
         article.setPos(trimLeadingZeroes(line.substring(beginPos, beginPrice).trim()));
         article.setPrice(BigDecimal.valueOf(Double.parseDouble(line.substring(beginPrice, beginStartDate))));
-        article.setStartDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginStartDate, beginEndDate))),
-                TimeZone.getDefault().toZoneId())));
-        article.setEndDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginEndDate))),
-                TimeZone.getDefault().toZoneId())));
+        final String startDateStr = line.substring(beginStartDate, beginEndDate);
+        final String endDateStr = line.substring(beginEndDate);
+        final LocalDateTime start = LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(startDateStr)),
+                TimeZone.getDefault().toZoneId());
+        final LocalDateTime end = LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(endDateStr)),
+                TimeZone.getDefault().toZoneId());
+        article.setStartDate(LocalDateTime.from(start).toString());
+        article.setEndDate(LocalDateTime.from(end).toString());
         return article;
     }
 
@@ -195,13 +201,12 @@ public class ArticleService {
         return s.substring(i);
     }
 
-    private Article toArticle(final ArticleModel article) {
+    private Article fromArticleModel(final ArticleModel article) {
         final var target = new Article();
         target.setAttributes(article.getAttributes());
         target.setCategories(article.getCategories());
         target.setCode(article.getCode());
         target.setDescription(article.getDescription());
-        target.setId(article.getId());
         target.setPos(article.getPos());
         target.setTitle(article.getTitle());
         target.setStartDate(article.getStartDate().toString());
@@ -209,4 +214,5 @@ public class ArticleService {
 
         return target;
     }
+
 }

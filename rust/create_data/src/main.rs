@@ -6,8 +6,13 @@ use std::time::Instant;
 use chrono::Duration;
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
+use rand::{Rng, thread_rng};
 use rand::prelude::ThreadRng;
-use rand::{thread_rng, Rng};
+
+
+
+//  cnt_articles 933,  cnt_pos 5,   cnt_articles* cnt_pos 4665,  lines_written 21013
+
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -22,10 +27,10 @@ async fn main() -> Result<(), Error> {
 }
 
 fn dev_data(rng: &mut ThreadRng) {
-    let cnt_articles_per_file_avg = 2;
-    let cnt_articles_min = 5;
-    let cnt_articles_max = 6;
-    let cnt_pos = 2;
+    let cnt_articles_per_file_avg = 200;
+    let cnt_articles_min = 900;
+    let cnt_articles_max = 1200;
+    let cnt_pos = 5;
 
     write_files(
         rng,
@@ -36,14 +41,14 @@ fn dev_data(rng: &mut ThreadRng) {
     );
 }
 
-fn prod_data(mut rng: &mut ThreadRng) {
+fn prod_data(rng: &mut ThreadRng) {
     let cnt_articles_per_file_avg = 100_000;
     let cnt_articles_min = 1_000_000;
     let cnt_articles_max = 1_500_000;
     let cnt_pos = 10;
 
     write_files(
-        &mut rng,
+        rng,
         cnt_articles_per_file_avg,
         cnt_articles_min,
         cnt_articles_max,
