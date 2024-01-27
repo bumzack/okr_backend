@@ -1,20 +1,47 @@
 #!/bin/bash
 
-IMPORT_URL=(    "http://localhost:2323/api/v1/articles/import"  "http://localhost:2323/api/v2/articles/import" )
-SYSINFO_URL=(   "http://localhost:2323/api/v1/sysinfo"          "http://localhost:2323/api/v2/sysinfo"         )
+IMPORT_URL=(    "http://localhost:2323/api/v1/articles/import/false"  "http://localhost:2323/api/v2/articles/import/false" )
+SYSINFO_URL=(   "http://localhost:2323/api/v1/sysinfo"                "http://localhost:2323/api/v2/sysinfo"         )
 
 ITERATIONS=10
 
+WARMUPS=3
+
 FILENAME=results.txt
+
+if [ ! -f "$FILENAME" ]; then
+  echo " author ;  language; framework ; version ; multi threaded ; comment ; slowest run ; fastest run ;  measurements excl slowest and fastest " >> $FILENAME
+fi
+
 
 LEN=${#IMPORT_URL[@]}
 
-echo "LEN ${LEN}"
+echo "==================================================================================================="
+echo "===============    ${WARMUPS} warmup run    ======================================================="
+echo "==================================================================================================="
+
+for (( i=0; i<$LEN; i++ ))
+do
+    URL=${IMPORT_URL[i]}
+    for (( iter=1; iter<=$WARMUPS; iter++ ))
+    do
+        DURATION=$(curl -w "@curl-format.txt" -s -o /dev/null -X POST  ${URL} )
+        echo "warmup  #${iter} / ${WARMUPS} took ${DURATION} secs     ${URL}  "
+    done
+done
+echo "==================================================================================================="
+echo "===============     warmup done             ======================================================="
+echo "==================================================================================================="
+
+
+
+
+LEN=${#IMPORT_URL[@]}
+
 
 for (( i=0; i<$LEN; i++ ))
 do
     URL=${SYSINFO_URL[i]}
-    echo "sysinfo   url ${URL}"
     SYSINFO=$(curl  -s  ${URL} | jq )
     # do whatever on "$i" here
 
@@ -25,60 +52,61 @@ do
     COMMENT=$(echo "$SYSINFO" | jq '.comment' | sed 's/\"//g' )
     VERSION=$(echo "$SYSINFO" | jq '.version' | sed 's/\"//g' )
 
-    # echo $SYSINFO
-
-    echo "author            ${AUTHOR}"
-    echo "language          ${LANGUAGE}"
-    echo "framework          ${FRAMEWORK}"
-    echo "multithreaded     ${MULTI}"
-    echo "comment           ${FRAMEWORK}"
-
     URL=${IMPORT_URL[i]}
+
+    echo "==================================================================================================="
+    echo "===============  ${ITERATIONS} test runs    ======================================================="
+    echo "==================================================================================================="
+
 
     durations=()
     for (( iter=1; iter<=$ITERATIONS; iter++ ))
     do
         DURATION=$(curl -w "@curl-format.txt" -s -o /dev/null -X POST  ${URL} )
-        echo "run #${iter} took ${DURATION}secs"
+        echo "run #${iter} / ${ITERATIONS} took ${DURATION} secs           ${URL} "
         durations+=( ${DURATION} )
     done
 
     IFS=$'\n' 
     sorted=($(sort -n <<<"${durations[*]}"))
 
-    # echo "============================================ "
-    # echo "durations in array "
-    # for dur in "${sorted[@]}"
-    # do
-    #     echo "duration ${dur}"
-    # done
-    # echo "============================================ "
-
-    middle8=( )
+    middle=( )
 
     MAX=$(($ITERATIONS - 1))
-    echo "MAX   $MAX "
     for (( idx=1; idx<$MAX; idx++ ))
     do
-          middle8+=( ${sorted[idx]} )
+          middle+=( ${sorted[idx]} )
     done
-    echo "============================================ "
-    
-    # echo "middle8   ${middle8[*]}"
-
-    # echo "============================================ "
-    # echo "durations in middle8 "
-    # for dur in "${middle8[@]}"
-    # do
-    #     echo "duration middle8 ${dur}"
-    # done
-    # echo "============================================ "
 
     FASTEST=${sorted[0]}
     SLOWEST=${sorted[idx]}
-    measurements=$(IFS=';' ; echo "${middle8[*]}")
+    measurements=$(IFS=';' ; echo "${middle[*]}")
 
     # echo "SLOWEST ${SLOWEST}     FASTEST ${FASTEST}   measurements   ${measurements}"
 
+
+
+    echo "==================================================================================================="
+    echo "===============   test runs done   ================================================================"
+    echo "==================================================================================================="
+
+
+    echo ""
+    echo ""
+    echo "=============== finished  =========================================================================="
+    echo " author     ${AUTHOR} "
+    echo " language   ${LANGUAGE} "
+    echo " framework  ${FRAMEWORK} "
+    echo " multi      ${MULTI} "
+    echo " comment    ${COMMENT} "
+    echo " slowest    ${SLOWEST} "
+    echo " fastest    ${FASTEST} "
+    echo "==================================================================================================="
+
     echo " ${AUTHOR} ;  ${LANGUAGE}; ${FRAMEWORK} ; ${VERSION} ; ${MULTI} ; ${COMMENT} ; ${SLOWEST} ; ${FASTEST} ;  ${measurements} " >> $FILENAME
+
+    echo ""
+    echo ""
+    echo ""
+    echo ""
 done

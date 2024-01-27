@@ -75,7 +75,7 @@ public class ArticleController {
         final var sysInfo = new SysInfo();
         sysInfo.setAuthor("gsc");
         sysInfo.setFramework("Spring Boot 3.2.2");
-        sysInfo.setComment("naive & dumb");
+        sysInfo.setComment("multithreading via parallelStream");
         sysInfo.setLanguage("Java 21");
         sysInfo.setMultithreaded(true);
         sysInfo.setVersion("v2");
