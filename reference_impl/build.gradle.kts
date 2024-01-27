@@ -11,6 +11,10 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
 }
 
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
 repositories {
     mavenCentral()
 }

@@ -22,10 +22,10 @@ async fn main() -> Result<(), Error> {
 }
 
 fn dev_data(rng: &mut ThreadRng) {
-    let cnt_articles_per_file_avg = 900;
-    let cnt_articles_min = 3000;
-    let cnt_articles_max = 4000;
-    let cnt_pos = 5;
+    let cnt_articles_per_file_avg = 2;
+    let cnt_articles_min = 5;
+    let cnt_articles_max = 6;
+    let cnt_pos = 2;
 
     write_files(
         rng,
@@ -62,8 +62,9 @@ fn write_files(
 
     let start = Instant::now();
     let cnt_articles: usize = rng.gen_range(cnt_articles_min..cnt_articles_max);
-    let mut articles_per_file = get_article_cnt_for_file(&mut rng, cnt_articles_per_file_avg);
+    let mut articles_per_file = get_article_cnt_for_file(rng, cnt_articles_per_file_avg);
     let mut current_cnt_articles_per_file = 0;
+    let mut lines_written = 0;
 
     let mut articles = vec![];
     let mut file_cnt = 1;
@@ -105,12 +106,13 @@ fn write_files(
 
             let start_file = Instant::now();
 
-            let filename = format!("{}/../articles_{:0>6}.txt", path, file_cnt);
+            let filename = format!("{}/../../data/articles_{:0>6}.txt", path, file_cnt);
             let mut f = File::create(&filename).expect("creating file should work");
             info!("write file start {} ", filename);
 
             articles.iter().for_each(|a| {
                 let _ = f.write(a.as_bytes()).expect("should write an article");
+                lines_written += 1;
             });
 
             info!(
@@ -125,16 +127,49 @@ fn write_files(
         }
     }
 
+    // flushing last data
     info!(
-        "finished writing all files      took  {}ms   or {}secs",
+        "current_cnt_articles_per_file {},   articles_per_file {}",
+        current_cnt_articles_per_file, articles_per_file
+    );
+
+    let start_file = Instant::now();
+
+    let filename = format!("{}/../../data/articles_{:0>6}.txt", path, file_cnt);
+    let mut f = File::create(&filename).expect("creating file should work");
+    info!("write file start {} ", filename);
+
+    articles.iter().for_each(|a| {
+        let _ = f.write(a.as_bytes()).expect("should write an article");
+        lines_written += 1;
+    });
+
+    info!(
+        "finished writing file {}.  took  {}ms",
+        filename,
+        start_file.elapsed().as_millis()
+    );
+    articles.clear();
+    articles_per_file = get_article_cnt_for_file(rng, cnt_articles_per_file_avg);
+    file_cnt += 1;
+    current_cnt_articles_per_file = 0;
+
+    info!(
+        "finished writing all files      took  {}ms   or {}secs.   cnt_articles {},  cnt_pos {},   cnt_articles* cnt_pos {},  lines_written {}",
         start.elapsed().as_millis(),
-        start.elapsed().as_secs()
+        start.elapsed().as_secs(),
+        cnt_articles,
+        cnt_pos,
+        cnt_articles*cnt_pos,
+        lines_written,
     );
 }
 
 fn get_article_cnt_for_file(rng: &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
-    let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 15;
-    let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 15;
+    let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 33;
+    let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 33;
+    let min = 1;
+    let max = 2;
     rng.gen_range(min..max)
 }
 

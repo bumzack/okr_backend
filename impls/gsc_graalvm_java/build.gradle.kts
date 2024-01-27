@@ -12,15 +12,20 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
 }
 
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
+
 graalvmNative {
     binaries {
         named("main") {
             imageName.set("graal-ref-impl-app")
-            mainClass.set("at.bumzack.reference.impl.ReferenceImplApplication")
+            // mainClass.set("at.bumzack.reference.impl.ReferenceImplApplication")
             buildArgs.add("-O4")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
-                vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
+               //  vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
             })
         }
 
@@ -43,7 +48,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.0.6")
     implementation("org.springframework.boot:spring-boot-starter-web:3.1.0")
     runtimeOnly("org.postgresql:postgresql:42.5.4")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.0")
 }
 
 tasks.withType<Test> {

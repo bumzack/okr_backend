@@ -1,1 +1,1 @@
-rootProject.name = "Reference-Impl"
+rootProject.name = "graalvm-java-21"

@@ -18,7 +18,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
+
+import static java.util.Objects.nonNull;
 
 
 @Component
@@ -44,7 +51,7 @@ public class ArticleService {
 
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
-    
+
     public ArticleService(final ArticleRepository articleRepository) {
         this.articleRepository = articleRepository;
     }
@@ -95,47 +102,63 @@ public class ArticleService {
 
     private ImportResult processFile(final File f) throws IOException {
         final var reader = new BufferedReader(new FileReader(f));
-
-        String line = reader.readLine();
-        final var article_grouped_by_code_and_pos = new ArrayList<ArticleModel>();
-        final var articles_ready_to_write_to_db = new ArrayList<ArticleModel>();
-
         long linesProcessed = 0;
         long dbRowsWritten = 0;
 
-        while (line != null) {
-            final var article = line2article(line);
-            if (!article_grouped_by_code_and_pos.isEmpty()) {
-                final var last = article_grouped_by_code_and_pos.getLast();
-                // group by code and pos
-                if (last.getCode().equals(article.getCode()) && (last.getPos().equals(article.getPos()))) {
+        String line = reader.readLine();
+        linesProcessed++;
+
+        final var article_grouped_by_code_and_pos = new ArrayList<ArticleModel>();
+        final var articles_ready_to_write_to_db = new ArrayList<ArticleModel>();
+
+        if (nonNull(line)) {
+            var article = line2article(line);
+            while (line != null) {
+                LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed,article.getCode(), article.getPos(), article.getPrice());
+                final var firstInGroup = article;
+
+                // read until code && pos change
+                while (nonNull(line) && article.getCode().equals(firstInGroup.getCode()) && article.getPos().equals(firstInGroup.getPos())) {
                     article_grouped_by_code_and_pos.add(article);
-                } else {
-                    final var cheapestArticle = article_grouped_by_code_and_pos.stream()
-                            .sorted(Comparator.comparing(ArticleModel::getPrice))
-                            .limit(1)
-                            .toList();
-                    articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
-                    article_grouped_by_code_and_pos.clear();
+                    line = reader.readLine();
+                    linesProcessed++;
+                    if (nonNull(line)) {
+                        article = line2article(line);
+                        LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed,article.getCode(), article.getPos(), article.getPrice());
+                    }
                 }
-            } else {
-                article_grouped_by_code_and_pos.add(article);
-            }
-            linesProcessed++;
 
-            if (articles_ready_to_write_to_db.size() > 50) {
-                // articleRepository.saveAll(articles);
-                dbRowsWritten += articles_ready_to_write_to_db.size();
-                articles_ready_to_write_to_db.clear();
-            }
+                LOG.info("article finished grouping in line {},      code {}, pos {}, cnt_articles  {}",linesProcessed,firstInGroup.getCode(), firstInGroup.getPos(), article_grouped_by_code_and_pos.size());
 
-            line = reader.readLine();
+                // find cheapest article
+                final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                        .sorted(Comparator.comparing(ArticleModel::getPrice))
+                        .limit(1)
+                        .toList();
+                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+
+                // reset array and add the first article that wa
+                article_grouped_by_code_and_pos.clear();
+                if (line != null) {
+                    article_grouped_by_code_and_pos.add(article);
+                }
+
+                if (articles_ready_to_write_to_db.size() > 0) {
+                    // articleRepository.saveAll(articles);
+                    dbRowsWritten += articles_ready_to_write_to_db.size();
+                    articles_ready_to_write_to_db.forEach(a -> {
+                        LOG.info("article ready to write to DB   code {}, pos {}", a.getCode(), a.getPos());
+                    });
+                    articles_ready_to_write_to_db.clear();
+                }
+
+                line = reader.readLine();
+            }
         }
 
         final var importResult = new ImportResult();
         importResult.setDbRowsWritten(dbRowsWritten);
         importResult.setLinesProcessed(linesProcessed);
-
         return importResult;
     }
 

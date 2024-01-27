@@ -1,1 +1,1 @@
-rootProject.name = "Reference-Impl"
+rootProject.name = "java21-reference-impl"
