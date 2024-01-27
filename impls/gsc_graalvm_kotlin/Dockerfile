@@ -14,7 +14,7 @@ COPY settings.gradle.kts /usr/share/okr/settings.gradle.kts
 WORKDIR /usr/share/okr
 
 RUN ["./gradlew", "assemble"]
-RUN ["/bin/bash", "-c", "cp /usr/share/okr/build/libs/graalvm-java-21-0.0.1-SNAPSHOT.jar /usr/share/okr/graalvm-java-21.jar"]
+RUN ["/bin/bash", "-c", "cp /usr/share/okr/build/libs/graalvm-kotlin-21-0.0.1-SNAPSHOT.jar /usr/share/okr/graalvm-kotlin-21.jar"]
 
 FROM ghcr.io/graalvm/jdk-community:21
 
@@ -22,4 +22,4 @@ EXPOSE 2323
 
 WORKDIR /usr/share/okr
 
-COPY  --from=build /usr/share/okr/graalvm-java-21.jar /usr/share/okr/graalvm-java-21.jar
+COPY  --from=build /usr/share/okr/graalvm-kotlin-21.jar /usr/share/okr/graalvm-kotlin-21.jar

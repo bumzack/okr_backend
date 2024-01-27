@@ -1,4 +1,4 @@
-rootProject.name = "Graal"
+rootProject.name = "graalvm-kotlin-21"
 
 pluginManagement {
     repositories {

@@ -10,5 +10,5 @@ services:
       # debug ports for local development
       - "5005:5005"
     command: [
-      "/graal-java-app"
+      "/graal-kotlin-app"
     ]

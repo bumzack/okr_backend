@@ -1,49 +1,27 @@
-# FROM ghcr.io/graalvm/jdk-community:21 as build
+FROM ubuntu:23.10 as build
 
-# RUN mkdir -p /usr/share/okr
-# # RUN apt-get update && apt-get upgrade -y && apt-get install -y curl
-# RUN microdnf install findutils
+RUN yes | apt-get update
+RUN yes | apt-get install gcc zlib1g-dev build-essential wget
 
-# COPY src /usr/share/okr/src
-# COPY gradlew /usr/share/okr/gradlew
-# COPY gradle /usr/share/okr/gradle
-# COPY build.gradle.kts /usr/share/okr/build.gradle.kts
-# COPY settings.gradle.kts /usr/share/okr/settings.gradle.kts
+ADD . /build
 
-# # build
-# WORKDIR /usr/share/okr
-
-# RUN ["./gradlew", "nativeCompile"]
-# RUN ls ./build/native/nativeCompile
-# RUN ["/bin/bash", "-c", "cp build/native/nativeCompile/graal-ref-impl-app /usr/share/okr/graal-ref-impl-app"]
-
-# FROM ghcr.io/graalvm/jdk-community:21
-
-# EXPOSE 2323
-
-# WORKDIR /usr/share/okr
-
-# COPY  --from=build /usr/share/okr/graal-ref-impl-app /usr/share/okr/graal-ref-impl-app
-
-
-FROM container-registry.oracle.com/graalvm/native-image:21-ol8 AS builder
-RUN microdnf install findutils
-
-# Set the working directory to /home/app
 WORKDIR /build
 
-# Copy the source code into the image for building
-COPY . /build
+RUN wget https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+RUN tar xf graalvm-jdk-21_linux-x64_bin.tar.gz
+RUN echo "export PATH=/build/graalvm-jdk-21.0.2+13.1/bin:${PATH}" >> /root/.bashrc
 
-# Build
+ENV JAVA_HOME /build/graalvm-jdk-21.0.2+13.1/
+RUN export JAVA_HOME
+
 RUN ["./gradlew", "nativeCompile"]
 
-# The deployment Image
-FROM container-registry.oracle.com/os/oraclelinux:8-slim
+
+FROM ubuntu:23.10
+
+RUN yes | apt-get update
+RUN yes | apt-get install gcc zlib1g-dev build-essential wget
 
 EXPOSE 2323
 
-# Copy the native executable into the containers
-COPY --from=builder /build/target/graal-ref-impl-app  app
-
-ENTRYPOINT ["/build/target/graal-ref-impl-app"]
+COPY --from=build build/build/native/nativeCompile/graal-java-app  /graal-java-app

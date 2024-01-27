@@ -32,9 +32,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 
 	// https://github.com/spring-projects/spring-data-commons/issues/3025
@@ -52,14 +50,6 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
-
-//hibernate {
-//	enhancement {
-//		enableAssociationManagement.set(true)
-//	}
-//}
-//
-
 
 graalvmNative {
 	binaries {

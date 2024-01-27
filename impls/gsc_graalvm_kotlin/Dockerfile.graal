@@ -1,4 +1,4 @@
-FROM ubuntu:23.10
+FROM ubuntu:23.10 as build
 
 RUN yes | apt-get update
 RUN yes | apt-get install gcc zlib1g-dev build-essential wget
@@ -8,12 +8,20 @@ ADD . /build
 WORKDIR /build
 
 RUN wget https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
-
 RUN tar xf graalvm-jdk-21_linux-x64_bin.tar.gz
-
-RUN echo $(ls -1 /tmp/dir)
 RUN echo "export PATH=/build/graalvm-jdk-21.0.2+13.1/bin:${PATH}" >> /root/.bashrc
+
 ENV JAVA_HOME /build/graalvm-jdk-21.0.2+13.1/
 RUN export JAVA_HOME
 
 RUN ["./gradlew", "nativeCompile"]
+
+
+FROM ubuntu:23.10
+
+RUN yes | apt-get update
+RUN yes | apt-get install gcc zlib1g-dev build-essential wget
+
+EXPOSE 2323
+
+COPY --from=build build/build/native/nativeCompile/graal-kotlin-app  /graal-kotlin-app
