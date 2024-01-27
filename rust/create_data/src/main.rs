@@ -106,7 +106,7 @@ fn write_files(
 
             let start_file = Instant::now();
 
-            let filename = format!("{}/../../data/articles_{:0>6}.txt", path, file_cnt);
+            let filename = format!("{}/articles_{:0>6}.txt", path, file_cnt);
             let mut f = File::create(&filename).expect("creating file should work");
             info!("write file start {} ", filename);
 
