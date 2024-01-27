@@ -14,3 +14,11 @@ export interface ImportResult {
     lines_processed: number;
     db_rows_written: number;
 }
+
+export interface SysInfo {
+    author: string;
+    language: string;
+    framework: string;
+    multithreaded: boolean;
+    comment: string;
+}

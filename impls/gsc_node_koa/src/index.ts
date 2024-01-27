@@ -7,6 +7,7 @@ import logger from 'koa-logger';
 import * as db from './db';
 import * as dotenv from "dotenv";
 import {getArticles, importArticles} from "./articleservice";
+import {SysInfo} from "./models";
 
 const router = new Router();
 const app = new Koa();
@@ -49,6 +50,18 @@ router.post('/api/v1/articles/import', async (ctx: Koa.Context, next: Koa.Next) 
     } finally {
         client.release()
     }
+    await next;
+});
+
+router.get('/api/v1/sysinfo', async (ctx: Koa.Context, next: Koa.Next) => {
+    const sysinfo :SysInfo={
+        author: "gsc",
+        comment: "TypeScript ",
+        framework: "koajs",
+        language: "node / TypeScript",
+        multithreaded: false
+    }
+    ctx.body = JSON.stringify(sysinfo)
     await next;
 });
 
