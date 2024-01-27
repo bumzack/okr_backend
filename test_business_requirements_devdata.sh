@@ -1,0 +1,27 @@
+#!/bin/bash
+
+IMPORT_URL=(  "http://localhost:2323/api/v1/articles/import/false"  "http://localhost:2323/api/v2/articles/import/false" )
+
+LEN=${#IMPORT_URL[@]}
+
+for (( i=0; i<$LEN; i++ ))
+do
+    URL=${IMPORT_URL[i]}
+    echo "URL   ${URL}"
+    curl -s  -X POST  ${URL}  -s | jq > test_business_requirements_devdata_actual.json
+    DIFF=$(diff -Naur test_business_requirements_devdata_actual.json test_business_requirements_devdata_expected.json  )
+    DIFF_LEN=${#DIFF}
+
+    if [ "$DIFF_LEN" -gt "0" ]; then
+        echo "===============  ACTUAL RESPONSE != EXPECTED RESPONSE =========================================="
+        echo "===============  ${URL} "
+        echo ""
+        echo "diff between actual and expected"
+        echo "$DIFF"
+        echo "==============================================================================================="
+    else
+      echo "===============  OK    ${URL} "
+    fi
+done
+
+echo "===============    finished                ======================================================="

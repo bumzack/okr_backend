@@ -22,9 +22,9 @@ async fn main() -> Result<(), Error> {
 }
 
 fn dev_data(rng: &mut ThreadRng) {
-    let cnt_articles_per_file_avg = 200;
-    let cnt_articles_min = 900;
-    let cnt_articles_max = 1200;
+    let cnt_articles_per_file_avg = 900;
+    let cnt_articles_min = 9_000;
+    let cnt_articles_max = 12_000;
     let cnt_pos = 5;
 
     write_files(
@@ -168,8 +168,6 @@ fn write_files(
 fn get_article_cnt_for_file(rng: &mut ThreadRng, cnt_articles_per_file_avg: usize) -> usize {
     let min = cnt_articles_per_file_avg - cnt_articles_per_file_avg / 33;
     let max = cnt_articles_per_file_avg + cnt_articles_per_file_avg / 33;
-    let min = 1;
-    let max = 2;
     rng.gen_range(min..max)
 }
 

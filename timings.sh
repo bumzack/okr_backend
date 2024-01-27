@@ -62,7 +62,7 @@ do
     durations=()
     for (( iter=1; iter<=$ITERATIONS; iter++ ))
     do
-        DURATION=$(curl -w "@curl-format.txt" -s -o /dev/null -X POST  ${URL} )
+        DURATION=$(curl -w "@curl-format.txt" -s -o  /dev/null -X POST  ${URL} )
         echo "run #${iter} / ${ITERATIONS} took ${DURATION} secs           ${URL} "
         durations+=( ${DURATION} )
     done
@@ -99,6 +99,7 @@ do
     echo " framework  ${FRAMEWORK} "
     echo " multi      ${MULTI} "
     echo " comment    ${COMMENT} "
+    echo " version    ${VERSION} "
     echo " slowest    ${SLOWEST} "
     echo " fastest    ${FASTEST} "
     echo "==================================================================================================="
