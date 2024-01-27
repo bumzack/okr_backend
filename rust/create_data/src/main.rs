@@ -6,13 +6,8 @@ use std::time::Instant;
 use chrono::Duration;
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
-use rand::{Rng, thread_rng};
 use rand::prelude::ThreadRng;
-
-
-
-//  cnt_articles 933,  cnt_pos 5,   cnt_articles* cnt_pos 4665,  lines_written 21013
-
+use rand::{thread_rng, Rng};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

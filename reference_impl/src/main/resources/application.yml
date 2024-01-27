@@ -8,4 +8,4 @@ spring:
     password: shop
 
 
-sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/testdata/"
+sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"

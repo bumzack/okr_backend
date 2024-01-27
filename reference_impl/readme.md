@@ -28,3 +28,13 @@ ALTER DATABASE dummy REFRESH COLLATION VERSION;
 
 
 ## Anforderungen
+
+
+
+
+
+## DEV daten
+cnt_articles 974
+cnt_pos 5
+cnt_articles * cnt_pos 4870  
+lines_written 21869

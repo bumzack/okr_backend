@@ -60,6 +60,7 @@ public class ArticleService {
     }
 
     public ImportResult importArticles(boolean returnItems) {
+        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
         final var folder = new File(sourceFilesFolder);
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
