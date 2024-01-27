@@ -44,15 +44,10 @@ public class ArticleService {
 
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
-
-
+    
     public ArticleService(final ArticleRepository articleRepository) {
         this.articleRepository = articleRepository;
     }
-
-//    public ArticleService() {
-//    }
-
 
     public List<Article> findPaginated(final int pageNumber, final int pageSize) {
         final var page = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
@@ -65,14 +60,8 @@ public class ArticleService {
                 .toList();
     }
 
-
     public ImportResult importArticles() {
-        final File currentDirFile = new File(".");
-        final String helper = currentDirFile.getAbsolutePath();
-        final var absPath = helper + "/" + sourceFilesFolder;
-        LOG.info("absPath {}", absPath);
-
-        final File folder = new File(absPath);
+        final var folder = new File(sourceFilesFolder);
 
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
@@ -82,11 +71,7 @@ public class ArticleService {
     }
 
     public ImportResult importArticles2() {
-        final File currentDirFile = new File(".");
-        final String helper = currentDirFile.getAbsolutePath();
-        final var absPath = helper + "/" + sourceFilesFolder;
-
-        final File folder = new File(absPath);
+        final var folder = new File(sourceFilesFolder);
 
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
