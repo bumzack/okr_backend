@@ -7,7 +7,13 @@ plugins {
 	id("org.graalvm.buildtools.native") version "0.9.28"
 	kotlin("jvm") version "1.9.22"
 	kotlin("plugin.spring") version "1.9.22"
-	//kotlin("plugin.jpa") version "1.9.22"
+	kotlin("plugin.jpa") version "1.9.22"
+}
+
+repositories {
+	mavenCentral()
+	maven { url = uri("https://repo.spring.io/milestone") }
+	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
 group = "at.bumzack"
@@ -22,13 +28,18 @@ repositories {
 }
 
 dependencies {
-	// implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	// runtimeOnly("org.postgresql:postgresql")
+	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+
+	// https://github.com/spring-projects/spring-data-commons/issues/3025
+	// sooner or later this can be removed
+	implementation("org.springframework.data:spring-data-commons:3.2.x-3025-SNAPSHOT")
 }
 
 tasks.withType<KotlinCompile> {
@@ -59,7 +70,7 @@ graalvmNative {
 			buildArgs.add("-march=native")
 			javaLauncher.set(javaToolchains.launcherFor {
 				languageVersion.set(JavaLanguageVersion.of(21))
-				vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
+				// vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
 			})
 		}
 
