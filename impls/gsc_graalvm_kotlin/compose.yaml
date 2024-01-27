@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "2323:2323"
+      - "9876:9876"
       # debug ports for local development
       - "5005:5005"
     command: [

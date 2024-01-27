@@ -40,11 +40,10 @@ public class ArticleController {
     public ResponseEntity<SysInfo> sysinfoV1() {
         final var sysInfo = new SysInfo();
         sysInfo.setAuthor("gsc");
-        sysInfo.setFramework("Spring Boot 3.2.1");
+        sysInfo.setFramework("Spring Boot 3.2.2");
         sysInfo.setComment("naive & dumb");
-        sysInfo.setLanguage("Java 21");
+        sysInfo.setLanguage( "Graal VM & Kotlin 1.9.0");
         sysInfo.setMultithreaded(false);
-
         LOG.info("sysInfo {}", sysInfo);
 
         return ResponseEntity.ok(sysInfo);
