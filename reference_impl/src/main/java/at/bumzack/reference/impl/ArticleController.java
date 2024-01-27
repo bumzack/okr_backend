@@ -48,8 +48,8 @@ public class ArticleController {
     public ImportResult importArticles2(@PathVariable final boolean returnItems) {
         final ImportResult importResult = articleService.importArticles2(returnItems);
         final var sorted = importResult.getArticles().stream()
+                .sorted(Comparator.comparing(Article::getPos))
                 .sorted(Comparator.comparing(Article::getCode))
-                .sorted(Comparator.comparing(Article::getPrice))
                 .toList();
         importResult.setArticles(sorted);
         return importResult;

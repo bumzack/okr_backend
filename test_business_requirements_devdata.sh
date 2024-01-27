@@ -7,7 +7,6 @@ LEN=${#IMPORT_URL[@]}
 for (( i=0; i<$LEN; i++ ))
 do
     URL=${IMPORT_URL[i]}
-    echo "URL   ${URL}"
     curl -s  -X POST  ${URL}  -s | jq > test_business_requirements_devdata_actual.json
     DIFF=$(diff -Naur test_business_requirements_devdata_actual.json test_business_requirements_devdata_expected.json  )
     DIFF_LEN=${#DIFF}

@@ -8,5 +8,5 @@ spring:
     password: shop
 
 
-# sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/devdata/"
-sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"
+sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/devdata/"
+# sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"
