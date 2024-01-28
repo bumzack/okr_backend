@@ -23,13 +23,13 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
-    @ResponseBody
-    public List<Article> findPaginated(@PathVariable final int pageNumber,
-                                       @PathVariable final int pageSize) {
-        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
-        return articleService.findPaginated(pageNumber, pageSize);
-    }
+//    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
+//    @ResponseBody
+//    public List<Article> findPaginated(@PathVariable final int pageNumber,
+//                                       @PathVariable final int pageSize) {
+//        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
+//        return articleService.findPaginated(pageNumber, pageSize);
+//    }
 
     @PostMapping("/v1/articles/import/{returnItems}")
     @ResponseBody

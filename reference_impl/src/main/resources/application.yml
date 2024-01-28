@@ -7,9 +7,8 @@ spring:
     username: shop
     password: shop
 
-
 # sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/fulldata/"
 # sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"
+# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/fulldata/"
 
-sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/fulldata/"
-
+sourcefilesFolder:  "/usr/share/okr/fulldata"

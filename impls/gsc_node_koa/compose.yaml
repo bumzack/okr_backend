@@ -10,3 +10,12 @@ services:
     command: [
       "node", "build/index.js"
     ]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+

@@ -13,3 +13,12 @@ services:
       "java",
       "-jar", "/usr/share/okr/graalvm-kotlin-21.jar"
     ]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+

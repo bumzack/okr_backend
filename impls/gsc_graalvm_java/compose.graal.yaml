@@ -12,3 +12,12 @@ services:
     command: [
       "/graal-java-app"
     ]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+

@@ -17,3 +17,12 @@ services:
       - db
     environment:
       CONFIG_PROFILE: local-docker
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+

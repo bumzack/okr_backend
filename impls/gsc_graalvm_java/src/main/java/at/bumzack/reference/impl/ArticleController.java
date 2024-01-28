@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -22,30 +23,57 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
-    public ResponseEntity<List<Article>> findPaginatedV1(@PathVariable final int pageNumber,
-                                                         @PathVariable final int pageSize) {
-        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize);
-        final var fullArticles = articleService.findPaginated(pageNumber, pageSize);
-        return ResponseEntity.ok(fullArticles);
+    @PostMapping("/v1/articles/import/{returnItems}")
+    @ResponseBody
+    public ImportResult importArticles(@PathVariable final boolean returnItems) {
+        final ImportResult importResult = articleService.importArticles(returnItems);
+        final var sorted = importResult.getArticles().stream()
+                .sorted(Comparator.comparing(Article::getPos))
+                .sorted(Comparator.comparing(Article::getCode))
+                .toList();
+        importResult.setArticles(sorted);
+        return importResult;
     }
 
-    @PostMapping("/v1/articles/import")
-    public ResponseEntity<ImportResult> importArticles() {
-        final var res = articleService.importArticles();
-        return ResponseEntity.ok(res);
+    @PostMapping("/v2/articles/import/{returnItems}")
+    @ResponseBody
+    public ImportResult importArticles2(@PathVariable final boolean returnItems) {
+        final ImportResult importResult = articleService.importArticles2(returnItems);
+        final var sorted = importResult.getArticles().stream()
+                .sorted(Comparator.comparing(Article::getPos))
+                .sorted(Comparator.comparing(Article::getCode))
+                .toList();
+        importResult.setArticles(sorted);
+        return importResult;
     }
 
     @GetMapping("/v1/sysinfo")
-    public ResponseEntity<SysInfo> sysinfoV1() {
+    @ResponseBody
+    public SysInfo sysinfo() {
         final var sysInfo = new SysInfo();
         sysInfo.setAuthor("gsc");
         sysInfo.setFramework("Spring Boot 3.2.2");
         sysInfo.setComment("naive & dumb");
-        sysInfo.setLanguage( "Graal VM & Kotlin 1.9.0");
+        sysInfo.setLanguage("Graal VM & Java 21");
         sysInfo.setMultithreaded(false);
-        LOG.info("sysInfo {}", sysInfo);
+        sysInfo.setVersion("v1");
 
-        return ResponseEntity.ok(sysInfo);
+        return sysInfo;
     }
+
+    @GetMapping("/v2/sysinfo")
+    @ResponseBody
+    public SysInfo sysinfo2() {
+        final var sysInfo = new SysInfo();
+        sysInfo.setAuthor("gsc");
+        sysInfo.setFramework("Spring Boot 3.2.2");
+        sysInfo.setComment("multithreading via parallelStream");
+        sysInfo.setLanguage("Graal VM & Java 21");
+        sysInfo.setMultithreaded(true);
+        sysInfo.setVersion("v2");
+
+        return sysInfo;
+    }
+
+
 }
