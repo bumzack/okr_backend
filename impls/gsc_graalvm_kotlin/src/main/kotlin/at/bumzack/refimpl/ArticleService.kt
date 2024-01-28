@@ -4,14 +4,15 @@ import at.bumzack.refimpl.dto.Article
 import at.bumzack.refimpl.dto.ImportResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileReader
 import java.io.IOException
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 
@@ -26,173 +27,231 @@ private const val LEN_POS = 30
 private const val LEN_PRICE = 20
 private const val LEN_START = 25
 
-private const val PROPERTY_CODE = "code"
-
-
 @Service
-class ArticleService(
-        val articleRepository: ArticleRepository
-) {
-
+class ArticleService {
     @Value("\${sourcefilesFolder}")
     private val sourceFilesFolder: String = ""
+    fun importArticles(returnItems: Boolean): ImportResult {
+        LOG.info("sourceFilesFolder {}", sourceFilesFolder)
+        val folder = File(sourceFilesFolder)
 
-    fun findPaginated(pageNumber: Int, pageSize: Int): List<Article> {
-        val p: PageRequest = PageRequest.of(pageNumber, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, PROPERTY_CODE))
-        val findAll: Page<ArticleModel> = articleRepository.findAll(p)
-        val findAll2: MutableList<ArticleModel> =findAll.toList()
-        return convert(findAll2)
-    }
-
-    private fun convert(source: MutableList<ArticleModel>): List<Article> {
-        return source.stream()
-                .map { a: ArticleModel ->
-                    val target = Article (
-                            attributes = a.attributes,
-                            categories = a.categories,
-                            code = a.code,
-                            description = a.description,
-                            pos = a.pos,
-                            title = a.title,
-                            // TODO fix
-                            startDate = LocalDateTime.now(),
-                            endDate = LocalDateTime.now(),
-                            price = a.price
-                    )
-                    target
-                }.toList()
-    }
-
-    fun importArticles(): ImportResult {
-//        final File currentDirFile = new File(".");
-//        final String helper = currentDirFile.getAbsolutePath();
-//
-//        LOG.info("currentDirFile {}", currentDirFile.getName());
-//        LOG.info("helper {}", helper);
-//        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
-        val absPath = sourceFilesFolder
-        LOG.info("absPath {}", absPath)
-
-        val folder = File(absPath)
-
-        for (fileEntry in Objects.requireNonNull<Array<File>>(folder.listFiles())) {
-            if (fileEntry.isDirectory()) {
-                LOG.info("directory {}", fileEntry.getName())
-            } else {
-                LOG.info("file {}", fileEntry.getName())
+        val res = Arrays.stream(Objects.requireNonNull<Array<File>>(folder.listFiles()))
+            .filter { file: File -> file.name.contains(".txt") }
+            .sorted(Comparator.comparing<File, String> { obj: File -> obj.name })
+            .map<ImportResult?> { f: File ->
+                tryProcessFile(
+                    f,
+                    returnItems
+                )
             }
-        }
+            .toList();
 
-        val fileNames: List<File> = Arrays.stream(Objects.requireNonNull<Array<File>>(folder.listFiles()))
-                .filter { file: File -> file.getName().contains(".txt") }
-                .toList()
-
-        LOG.info("===================================================================   ")
-        LOG.info("filenames   ")
-        fileNames
-                .forEach(java.util.function.Consumer { f: File? -> LOG.info("filename {}", f) })
-        LOG.info("===================================================================   ")
-
-        val res = fileNames.stream()
-                .sorted(Comparator.comparing { obj: File ->
-                    obj.getName()
-                })
-                .map { f: File -> this.tryProcessFile(f) }
-//                .reduce<ImportResult>(
-//                        ImportResult(linesProcessed = 0, dbRowsWritten = 0),
-//                        BiFunction<ImportResult, ImportResult, ImportResult> { r1: ImportResult?, r2: ImportResult? -> ImportResult.sum(r1, r2) }, BinaryOperator<ImportResult> { r1: ImportResult?, r2: ImportResult? -> ImportResult.sum(r1, r2) })
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
 
-        res.forEach { r ->
-            linesProcessed += r.linesProcessed
-            dbRowsWritten += r.dbRowsWritten
-        }
 
-        return ImportResult(
+        if (returnItems) {
+            val articles = mutableListOf<Article>()
+            res.forEach { r ->
+                linesProcessed += r.linesProcessed
+                dbRowsWritten += r.dbRowsWritten
+                articles.addAll(r.articles)
+            }
+
+            return ImportResult(
                 linesProcessed = linesProcessed,
                 dbRowsWritten = dbRowsWritten,
-        )
-    }
+                articles = articles,
+            )
+        } else {
+            res.forEach { r ->
+                linesProcessed += r.linesProcessed
+                dbRowsWritten += r.dbRowsWritten
+            }
 
-    private fun tryProcessFile(f: File): ImportResult {
-        try {
-            val res: ImportResult = processFile(f)
-            LOG.info("filename {}  ,  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.linesProcessed, res.dbRowsWritten)
-            return res
-        } catch (e: IOException) {
-            throw java.lang.RuntimeException(e)
+            return ImportResult(
+                linesProcessed = linesProcessed,
+                dbRowsWritten = dbRowsWritten,
+                articles = emptyList()
+            )
         }
     }
 
-    private fun processFile(f: File): ImportResult {
-        val reader = BufferedReader(java.io.FileReader(f))
+    fun importArticles2(returnItems: Boolean): ImportResult {
+        LOG.info("sourceFilesFolder {}", sourceFilesFolder)
+        val folder = File(sourceFilesFolder)
 
-        var line: String? = reader.readLine()
-        val tmp: ArrayList<ArticleModel> = ArrayList<ArticleModel>()
-        val articles: ArrayList<ArticleModel> = ArrayList<ArticleModel>()
+        val res = Arrays.stream(Objects.requireNonNull<Array<File>>(folder.listFiles()))
+            .filter { file: File -> file.name.contains(".txt") }
+            .sorted(Comparator.comparing { obj: File -> obj.name })
+            .toList()
+            .parallelStream()
+            .map<ImportResult?> { f: File ->
+                tryProcessFile(f, returnItems)
+            }
+            .toList();
+
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
-        while (line != null) {
-            val article = processLine(line)
-            if (tmp.isNotEmpty()) {
-                val last: ArticleModel = tmp.last()
-                // group by code and pos
-                if (last.code == article.code && (last.pos == article.pos)) {
-                    tmp.add(article)
+
+        if (returnItems) {
+            val articles = mutableListOf<Article>()
+            res.forEach { r ->
+                linesProcessed += r.linesProcessed
+                dbRowsWritten += r.dbRowsWritten
+                articles.addAll(r.articles)
+            }
+            return ImportResult(
+                linesProcessed = linesProcessed,
+                dbRowsWritten = dbRowsWritten,
+                articles = articles,
+            )
+        } else {
+            res.forEach { r ->
+                linesProcessed += r.linesProcessed
+                dbRowsWritten += r.dbRowsWritten
+            }
+
+            return ImportResult(
+                linesProcessed = linesProcessed,
+                dbRowsWritten = dbRowsWritten,
+                articles = emptyList()
+            )
+        }
+    }
+
+    private fun tryProcessFile(f: File, returnItems: Boolean): ImportResult? {
+        try {
+            val res: ImportResult = processFile(f, returnItems)
+            LOG.info(
+                "filename {},  linesProcessed  {},   dbRowsWritten  {} ",
+                f.name,
+                res.linesProcessed,
+                res.dbRowsWritten
+            )
+            return res
+        } catch (e: IOException) {
+            LOG.error("error processing file ", e)
+        }
+        return null
+    }
+
+    @Throws(IOException::class)
+    private fun processFile(f: File, returnItems: Boolean): ImportResult {
+        val reader = BufferedReader(FileReader(f))
+        var linesProcessed: Long = 0
+        var dbRowsWritten: Long = 0
+
+        var line = reader.readLine()
+        linesProcessed++
+
+        val article_grouped_by_code_and_pos: ArrayList<Article> =
+            ArrayList<Article>()
+        val articles_ready_to_write_to_db: ArrayList<Article> =
+            ArrayList<Article>()
+
+        if (Objects.nonNull(line)) {
+            var article: Article
+            var prevArticle: Article? = null
+            while (true) {
+                article = line2article(line)
+
+                // LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
+                if (Objects.isNull(prevArticle)) {
+                    // new grouping start - because first article ever
+                    article_grouped_by_code_and_pos.add(article)
                 } else {
-                    val c: List<ArticleModel> = tmp.stream()
-                            .sorted(Comparator.comparing { obj: ArticleModel -> obj.price })
-                            .limit(1)
-                            .toList()
-                    articles.add(c.first())
-                    tmp.clear()
+                    // is article part of current group?
+                    if (article.code == prevArticle!!.code && article.pos == prevArticle.pos) {
+                        article_grouped_by_code_and_pos.add(article)
+                    } else {
+                        // article is not part of current group -> find cheapeast
+                        val cheapestArticle: List<Article> =
+                            article_grouped_by_code_and_pos.stream()
+                                .sorted(Comparator.comparing({ obj: Article -> obj.price }))
+                                .limit(1)
+                                .toList()
+                        if (returnItems) {
+                            articles_ready_to_write_to_db.add(cheapestArticle.first())
+                        }
+                        dbRowsWritten++
+
+                        // clear group and add article
+                        article_grouped_by_code_and_pos.clear()
+                        article_grouped_by_code_and_pos.add(article)
+                    }
                 }
-            } else {
-                tmp.add(article)
-            }
-            linesProcessed++
 
-            if (articles.size > 50) {
-                // articles.forEach(LOG::info);
-                articleRepository.saveAll(articles);
-                dbRowsWritten += articles.size.toLong()
-                //  LOG.info("filename {}  ,  {} articles  written", f.getName(), articles.size());
-                articles.clear()
+                line = reader.readLine()
+                if (Objects.isNull(line)) {
+                    break
+                }
+                linesProcessed++
+                prevArticle = article
             }
 
-            line = reader.readLine()
+            // write last article in file
+            val cheapestArticle: List<Article> = article_grouped_by_code_and_pos.stream()
+                .sorted(Comparator.comparing { obj: Article -> obj.price })
+                .limit(1)
+                .toList()
+            if (returnItems) {
+                articles_ready_to_write_to_db.add(cheapestArticle.first())
+            }
+            dbRowsWritten++
+
+            // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
+
+            // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
         }
 
-        val importResult = ImportResult(
-                linesProcessed = linesProcessed,
-                dbRowsWritten = dbRowsWritten
-        )
+        val importResult = ImportResult()
+        importResult.dbRowsWritten = dbRowsWritten
+        importResult.linesProcessed = linesProcessed
+        importResult.articles = articles_ready_to_write_to_db
+
         return importResult
     }
 
-    // private static final int LEN_END = 25;
-    private fun processLine(line: String): ArticleModel {
-        val beginDesc = LEN_CODE + LEN_TITLE
-        val beginAttr = LEN_CODE + LEN_TITLE + LEN_DESC
-        val beginCat = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES
-        val beginPos = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES
-        val beginPrice = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS
-        val beginStartDate = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE
-        val beginEndDate = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE + LEN_START
-        val article = ArticleModel(
-                code = trimLeadingZeroes(line.substring(0, LEN_CODE)),
-                title = line.substring(LEN_CODE, beginDesc).trim { it <= ' ' },
-                description = line.substring(beginDesc, beginAttr).trim { it <= ' ' },
-                attributes = line.substring(beginAttr, beginCat).trim { it <= ' ' },
-                categories = line.substring(beginCat, beginPos).trim { it <= ' ' },
-                pos = trimLeadingZeroes(line.substring(beginPos, beginPrice).trim { it <= ' ' }),
-                price = BigDecimal.valueOf(line.substring(beginPrice, beginStartDate).toDouble()),
-                startDate = LocalDateTime.from(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(line.substring(beginStartDate, beginEndDate).toLong()), TimeZone.getDefault().toZoneId())),
-                endDate = LocalDateTime.from(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(line.substring(beginEndDate).toLong()), TimeZone.getDefault().toZoneId())),
-                id = null,
+
+    private fun line2article(line: String): Article {
+        val beginDesc: Int =
+            LEN_CODE + LEN_TITLE
+        val beginAttr: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC
+        val beginCat: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES
+        val beginPos: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES
+        val beginPrice: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS
+        val beginStartDate: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE
+        val beginEndDate: Int =
+            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE + LEN_START
+
+        val startDateStr = line.substring(beginStartDate, beginEndDate)
+        val endDateStr = line.substring(beginEndDate)
+        val start = LocalDateTime.ofInstant(
+            Instant.ofEpochSecond(startDateStr.toLong()),
+            ZoneId.of("UTC")
+        )
+        val end = LocalDateTime.ofInstant(
+            Instant.ofEpochSecond(endDateStr.toLong()),
+            ZoneId.of("UTC")
         )
 
+        val article = Article(
+            code = trimLeadingZeroes(line.substring(0, LEN_CODE)),
+            title = line.substring(LEN_CODE, beginDesc).trim { it <= ' ' },
+            description = line.substring(beginDesc, beginAttr).trim { it <= ' ' },
+            attributes = line.substring(beginAttr, beginCat).trim { it <= ' ' },
+            categories = line.substring(beginCat, beginPos).trim { it <= ' ' },
+            pos = trimLeadingZeroes(line.substring(beginPos, beginPrice).trim { it <= ' ' }),
+            price = BigDecimal.valueOf(line.substring(beginPrice, beginStartDate).toDouble()),
+            startDate = LocalDateTime.from(start).toString(),
+            endDate = LocalDateTime.from(end).toString(),
+        )
         return article
     }
 

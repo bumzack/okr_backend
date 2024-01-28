@@ -1,45 +1,63 @@
 package at.bumzack.refimpl
 
-import at.bumzack.refimpl.dto.Article
+import at.bumzack.refimpl.dto.ImportRequest
 import at.bumzack.refimpl.dto.ImportResult
 import at.bumzack.refimpl.dto.SysInfo
-import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 
-private val LOG = LoggerFactory.getLogger(ArticleController::class.java)
 
 @RestController
 @RequestMapping("/api")
 class ArticleController(
-        val articleService: ArticleService
+    val articleService: ArticleService
 ) {
-
-    @GetMapping("/v1/articles/{pageNumber}/{pageSize}")
+    @PostMapping(
+        value = ["/v1/articles/import"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     @ResponseBody
-    fun findPaginatedV1(@PathVariable pageNumber: Int,
-                        @PathVariable pageSize: Int): List<Article> {
-        LOG.info("findPaginated   pageNumber {}, pageSize {}", pageNumber, pageSize)
-        val fullArticles: List<Article> = articleService.findPaginated(pageNumber, pageSize)
-        return fullArticles
+    fun importArticles(@RequestBody request: ImportRequest): ImportResult {
+        return articleService.importArticles(request.returnItems)
     }
 
-    @PostMapping("/v1/articles/import")
+    @PostMapping(
+        value = ["/v2/articles/import"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     @ResponseBody
-    fun importArticles(): ImportResult {
-        return articleService.importArticles()
+    fun importArticles2(@RequestBody request: ImportRequest): ImportResult {
+        return articleService.importArticles2(request.returnItems)
     }
+
 
     @GetMapping("/v1/sysinfo")
     @ResponseBody
     fun sysinfo(): SysInfo {
         val sysInfo = SysInfo(
-                author = "gsc",
-                framework = "Spring Boot 3.2.2",
-                comment = "naive & dumb",
-                language = "Graal VM & Kotlin 1.9.0",
-                multithreaded = false,
+            author = "gsc",
+            framework = "Spring Boot 3.2.2",
+            comment = "naive & dumb",
+            language = "Graal VM & Kotlin 1.9.0",
+            multithreaded = false,
+            version = "v1",
         )
-        LOG.info("sysinfo {}", sysInfo)
+        return sysInfo
+    }
+
+    @GetMapping("/v2/sysinfo")
+    @ResponseBody
+    fun sysinfo2(): SysInfo {
+        val sysInfo = SysInfo(
+            author = "gsc",
+            framework = "Spring Boot 3.2.2",
+            comment = "parallel streams & dumb",
+            language = "Graal VM & Kotlin 1.9.0",
+            multithreaded = true,
+            version = "v2",
+        )
         return sysInfo
     }
 }

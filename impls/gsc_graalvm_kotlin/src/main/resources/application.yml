@@ -1,9 +1,14 @@
 server:
   port: 2325
 
-sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/rust/"
 
 spring:
   threads:
     virtual:
       enabled: true
+
+# local
+# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data/"
+
+# docker
+sourcefilesFolder: "/data"

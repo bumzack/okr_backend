@@ -8,11 +8,6 @@ plugins {
 	kotlin("plugin.spring") version "1.9.22"
 }
 
-tasks.getByName<Jar>("jar") {
-    enabled = false
-}
-
-
 repositories {
 	mavenCentral()
 	maven { url = uri("https://repo.spring.io/milestone") }
