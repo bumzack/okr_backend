@@ -8,7 +8,7 @@ LEN=${#IMPORT_URL[@]}
 for (( i=0; i<$LEN; i++ ))
 do
     URL=${IMPORT_URL[i]}
-    curl -s  -X POST  ${URL} -d '{ "returnItems":true  }'  -H "Content-Type: application/json" | jq > testdata_actual.json
+    curl -s  -X POST  ${URL} -d '{ "returnItems": true  }'  -H "Content-Type: application/json" | jq > testdata_actual.json
     DIFF=$(diff -Naur testdata_actual.json testdata_expected.json)
     DIFF_LEN=${#DIFF}
 

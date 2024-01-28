@@ -7,8 +7,8 @@ server:
 # sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data/"
 
 
-sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data"
+# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data"
 
 
-# odkcer
-#sourcefilesFolder:  "/data"
+# docker
+sourcefilesFolder:  "/data"
