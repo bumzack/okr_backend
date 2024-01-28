@@ -4,28 +4,23 @@ import at.bumzack.reference.impl.dto.Article;
 import at.bumzack.reference.impl.dto.ImportRequest;
 import at.bumzack.reference.impl.dto.ImportResult;
 import at.bumzack.reference.impl.dto.SysInfo;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
-import java.util.List;
 
 
 @RestController
 @RequestMapping("/api")
 public class ArticleController {
-    private static final Logger LOG = LogManager.getLogger(ArticleController.class);
-
     private final ArticleService articleService;
-
 
     public ArticleController(final ArticleService articleService) {
         this.articleService = articleService;
     }
 
 
-    @PostMapping("/v1/articles/import/{returnItems}")
+    @PostMapping(value = "/v1/articles/import", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ImportResult importArticles(@RequestBody final ImportRequest request) {
         final ImportResult importResult = articleService.importArticles(request.isReturnItems());
@@ -37,7 +32,7 @@ public class ArticleController {
         return importResult;
     }
 
-    @PostMapping("/v2/articles/import/{returnItems}")
+    @PostMapping(value = "/v2/articles/import", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ImportResult importArticles2(@RequestBody final ImportRequest request) {
         final ImportResult importResult = articleService.importArticles2(request.isReturnItems());

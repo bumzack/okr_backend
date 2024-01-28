@@ -47,6 +47,7 @@ public class ArticleService {
     public ImportResult importArticles(boolean returnItems) {
         LOG.info("sourceFilesFolder {}", sourceFilesFolder);
         final var folder = new File(sourceFilesFolder);
+
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
                 .sorted(Comparator.comparing(File::getName))
@@ -187,18 +188,5 @@ public class ArticleService {
         return s.substring(i);
     }
 
-//    private Article fromArticleModel(final ArticleModel article) {
-//        final var target = new Article();
-//        target.setAttributes(article.getAttributes());
-//        target.setCategories(article.getCategories());
-//        target.setCode(article.getCode());
-//        target.setDescription(article.getDescription());
-//        target.setPos(article.getPos());
-//        target.setTitle(article.getTitle());
-//        target.setStartDate(article.getStartDate().toString());
-//        target.setEndDate(article.getEndDate().toString());
-//
-//        return target;
-//    }
 
 }
