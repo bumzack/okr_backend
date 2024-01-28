@@ -1,6 +1,7 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
+import at.bumzack.reference.impl.dto.ImportRequest;
 import at.bumzack.reference.impl.dto.ImportResult;
 import at.bumzack.reference.impl.dto.SysInfo;
 import org.apache.logging.log4j.LogManager;
@@ -33,8 +34,8 @@ public class ArticleController {
 
     @PostMapping("/v1/articles/import/{returnItems}")
     @ResponseBody
-    public ImportResult importArticles(@PathVariable final boolean returnItems) {
-        final ImportResult importResult = articleService.importArticles(returnItems);
+    public ImportResult importArticles(@RequestBody final ImportRequest request) {
+        final ImportResult importResult = articleService.importArticles(request.isReturnItems());
         final var sorted = importResult.getArticles().stream()
                 .sorted(Comparator.comparing(Article::getPos))
                 .sorted(Comparator.comparing(Article::getCode))
@@ -45,8 +46,8 @@ public class ArticleController {
 
     @PostMapping("/v2/articles/import/{returnItems}")
     @ResponseBody
-    public ImportResult importArticles2(@PathVariable final boolean returnItems) {
-        final ImportResult importResult = articleService.importArticles2(returnItems);
+    public ImportResult importArticles2(@RequestBody final ImportRequest request) {
+        final ImportResult importResult = articleService.importArticles2(request.isReturnItems());
         final var sorted = importResult.getArticles().stream()
                 .sorted(Comparator.comparing(Article::getPos))
                 .sorted(Comparator.comparing(Article::getCode))
