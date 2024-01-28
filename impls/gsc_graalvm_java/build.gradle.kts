@@ -1,7 +1,8 @@
 plugins {
+    java
     id("org.springframework.boot") version "3.2.2"
     id("io.spring.dependency-management") version "1.1.4"
-    id ("org.graalvm.buildtools.native")  version "0.9.24"
+    id ("org.graalvm.buildtools.native")  version "0.9.28"
 }
 
 group = "at.bumzack"
@@ -10,6 +11,10 @@ version = "0.0.1-SNAPSHOT"
 java {
     sourceCompatibility = JavaVersion.VERSION_21
 }
+
+//tasks.getByName<Jar>("jar") {
+//    enabled = false
+//}
 
 repositories {
     mavenCentral()
@@ -21,7 +26,7 @@ graalvmNative {
     binaries {
         named("main") {
             imageName.set("graal-java-app")
-            mainClass.set("at.bumzack.reference.impl.ReferenceImplApplication")
+            mainClass.set("at.bumzack.reference.impl.GraalVmJavaApplication")
             buildArgs.add("-O4")
             buildArgs.add("-march=native")
             javaLauncher.set(javaToolchains.launcherFor {
@@ -45,9 +50,9 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.2.2")
-    implementation("org.springframework.boot:spring-boot-starter-web:3.1.0")
-    runtimeOnly("org.postgresql:postgresql:42.5.4")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.2.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // https://github.com/spring-projects/spring-data-commons/issues/3025
     // sooner or later this can be removed
@@ -57,3 +62,11 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+
+//tasks.withType<KotlinCompile> {
+//    kotlinOptions {
+//        freeCompilerArgs += "-Xjsr305=strict"
+//        jvmTarget = "21"
+//    }
+//}

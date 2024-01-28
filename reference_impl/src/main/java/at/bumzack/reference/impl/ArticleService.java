@@ -1,14 +1,10 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
-import at.bumzack.reference.impl.dto.ArticleModel;
 import at.bumzack.reference.impl.dto.ImportResult;
-import at.bumzack.reference.impl.repository.ArticleRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -18,7 +14,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.TimeZone;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -38,25 +38,28 @@ public class ArticleService {
 
     public static final String PROPERTY_CODE = "code";
     private static final Logger LOG = LogManager.getLogger(ArticleService.class);
-    private final ArticleRepository articleRepository;
+    // private final ArticleRepository articleRepository;
 
 
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
 
-    public ArticleService(final ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
+//    public ArticleService(final ArticleRepository articleRepository) {
+//        this.articleRepository = articleRepository;
+//    }
+//
+//    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
+//        final var page = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
+//        return convert(articleRepository.findAll(page).toList());
+//    }
+//
+//    private List<Article> convert(final List<ArticleModel> source) {
+//        return source.stream()
+//                .map(this::fromArticleModel)
+//                .toList();
+//    }
 
-    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
-        final var page = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
-        return convert(articleRepository.findAll(page).toList());
-    }
-
-    private List<Article> convert(final List<ArticleModel> source) {
-        return source.stream()
-                .map(this::fromArticleModel)
-                .toList();
+    public ArticleService() {
     }
 
     public ImportResult importArticles(boolean returnItems) {
@@ -202,18 +205,18 @@ public class ArticleService {
         return s.substring(i);
     }
 
-    private Article fromArticleModel(final ArticleModel article) {
-        final var target = new Article();
-        target.setAttributes(article.getAttributes());
-        target.setCategories(article.getCategories());
-        target.setCode(article.getCode());
-        target.setDescription(article.getDescription());
-        target.setPos(article.getPos());
-        target.setTitle(article.getTitle());
-        target.setStartDate(article.getStartDate().toString());
-        target.setEndDate(article.getEndDate().toString());
-
-        return target;
-    }
+//    private Article fromArticleModel(final ArticleModel article) {
+//        final var target = new Article();
+//        target.setAttributes(article.getAttributes());
+//        target.setCategories(article.getCategories());
+//        target.setCode(article.getCode());
+//        target.setDescription(article.getDescription());
+//        target.setPos(article.getPos());
+//        target.setTitle(article.getTitle());
+//        target.setStartDate(article.getStartDate().toString());
+//        target.setEndDate(article.getEndDate().toString());
+//
+//        return target;
+//    }
 
 }

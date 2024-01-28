@@ -1,15 +1,11 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
-import at.bumzack.reference.impl.dto.ArticleModel;
 import at.bumzack.reference.impl.dto.ImportResult;
-import at.bumzack.reference.impl.repository.ArticleRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,14 +14,18 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.TimeZone;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 
-@Component
+@Service
 public class ArticleService {
-
-    public static final String PROPERTY_CODE = "code";
-    private static final Logger LOG = LoggerFactory.getLogger(ArticleService.class);
     private static final int LEN_CODE = 20;
     private static final int LEN_TITLE = 100;
     private static final int LEN_DESC = 1700;
@@ -34,131 +34,125 @@ public class ArticleService {
     private static final int LEN_POS = 30;
     private static final int LEN_PRICE = 20;
     private static final int LEN_START = 25;
-    private final ArticleRepository articleRepository;
+    // private static final int LEN_END = 25;
+
+    public static final String PROPERTY_CODE = "code";
+    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
+
+
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
-    public ArticleService(final ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
+    
 
-    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
-        final var p = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
-        return convert(articleRepository.findAll(p).toList());
-    }
-
-    private List<Article> convert(final List<ArticleModel> source) {
-        return source.stream()
-                .map(a -> {
-                    final var target = new Article();
-                    target.setAttributes(a.getAttributes());
-                    target.setCategories(a.getCategories());
-                    target.setCode(a.getCode());
-                    target.setDescription(a.getDescription());
-                    target.setId(a.getId());
-                    target.setPos(a.getPos());
-                    target.setTitle(a.getTitle());
-                    target.setStartDate(a.getStartDate() != null ? a.getStartDate().toString() : "v");
-                    target.setEndDate(a.getEndDate() != null ? a.getEndDate().toString() : "v");
-
-                    return target;
-                }).toList();
-    }
-
-    public ImportResult importArticles() {
-//        final File currentDirFile = new File(".");
-//        final String helper = currentDirFile.getAbsolutePath();
-//
-//        LOG.info("currentDirFile {}", currentDirFile.getName());
-//        LOG.info("helper {}", helper);
-//        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
-        final var absPath =  sourceFilesFolder;
-        LOG.info("absPath {}", absPath);
-
-        final File folder = new File(absPath);
-
-        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
-            if (fileEntry.isDirectory()) {
-                LOG.info("directory {}", fileEntry.getName());
-            } else {
-                LOG.info("file {}", fileEntry.getName());
-            }
-        }
-
-        final var fileNames = Arrays.stream(Objects.requireNonNull(folder.listFiles()))
+    public ImportResult importArticles(boolean returnItems) {
+        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
+        final var folder = new File(sourceFilesFolder);
+        return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
-                .toList();
-
-        LOG.info("===================================================================   ");
-        LOG.info("filenames   ");
-        fileNames
-                .forEach(f -> LOG.info("filename {}", f));
-        LOG.info("===================================================================   ");
-
-        return fileNames.stream()
                 .sorted(Comparator.comparing(File::getName))
-                .map(this::tryProcessFile)
+                .map(f -> tryProcessFile(f, returnItems))
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
 
-    private ImportResult tryProcessFile(final File f) {
-        try {
-            final var res = processFile(f);
-            LOG.info("filename {}  ,  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
-            return res;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public ImportResult importArticles2(boolean returnItems) {
+        final var folder = new File(sourceFilesFolder);
+
+        return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
+                .filter(file -> file.getName().contains(".txt"))
+                .sorted(Comparator.comparing(File::getName))
+                .toList()
+                .parallelStream()
+                .map(f -> tryProcessFile(f, returnItems))
+                .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
 
-    private ImportResult processFile(final File f) throws IOException {
-        final BufferedReader reader = new BufferedReader(new FileReader(f));
+    private ImportResult tryProcessFile(final File f, boolean returnItems) {
+        try {
+            final var res = processFile(f, returnItems);
+            LOG.info("filename {},  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
+            return res;
+        } catch (final IOException e) {
+            LOG.error("error processing file ", e);
+        }
+        return null;
+    }
 
-        String line = reader.readLine();
-        final var tmp = new ArrayList<ArticleModel>();
-        final var articles = new ArrayList<ArticleModel>();
+    private ImportResult processFile(final File f, boolean returnItems) throws IOException {
+        final var reader = new BufferedReader(new FileReader(f));
         long linesProcessed = 0;
         long dbRowsWritten = 0;
-        while (line != null) {
-            final var article = processLine(line);
-            if (!tmp.isEmpty()) {
-                final var last = tmp.getLast();
-                // group by code and pos
-                if (last.getCode().equals(article.getCode()) && (last.getPos().equals(article.getPos()))) {
-                    tmp.add(article);
+
+        String line = reader.readLine();
+        linesProcessed++;
+
+        final var article_grouped_by_code_and_pos = new ArrayList<Article>();
+        final var articles_ready_to_write_to_db = new ArrayList<Article>();
+
+        if (nonNull(line)) {
+            Article article;
+            Article prevArticle = null;
+            while (true) {
+                article = line2article(line);
+                // LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
+
+                if (isNull(prevArticle)) {
+                    // new grouping start - because first article ever
+                    article_grouped_by_code_and_pos.add(article);
                 } else {
-                    final var c = tmp.stream()
-                            .sorted(Comparator.comparing(ArticleModel::getPrice))
-                            .limit(1)
-                            .toList();
-                    articles.add(c.getFirst());
-                    tmp.clear();
+                    // is article part of current group?
+                    if (article.getCode().equals(prevArticle.getCode()) && article.getPos().equals(prevArticle.getPos())) {
+                        article_grouped_by_code_and_pos.add(article);
+                    } else {
+                        // article is not part of current group -> find cheapeast
+                        final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                                .sorted(Comparator.comparing(Article::getPrice))
+                                .limit(1)
+                                .toList();
+                        if (returnItems) {
+                            articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+                        }
+                        dbRowsWritten++;
+
+                        // clear group and add article
+                        article_grouped_by_code_and_pos.clear();
+                        article_grouped_by_code_and_pos.add(article);
+                    }
                 }
-            } else {
-                tmp.add(article);
-            }
-            linesProcessed++;
 
-            if (articles.size() > 50) {
-                // articles.forEach(LOG::info);
-                // articleRepository.saveAll(articles);
-                dbRowsWritten += articles.size();
-                //  LOG.info("filename {}  ,  {} articles  written", f.getName(), articles.size());
-                articles.clear();
+                line = reader.readLine();
+                if (isNull(line)) {
+                    break;
+                }
+                linesProcessed++;
+                prevArticle = article;
             }
 
-            line = reader.readLine();
+            // write last article in file
+            final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                    .sorted(Comparator.comparing(Article::getPrice))
+                    .limit(1)
+                    .toList();
+            if (returnItems) {
+                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+            }
+            dbRowsWritten++;
+
+            // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
+
+            // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
         }
 
         final var importResult = new ImportResult();
         importResult.setDbRowsWritten(dbRowsWritten);
         importResult.setLinesProcessed(linesProcessed);
+        importResult.setArticles(articles_ready_to_write_to_db);
 
         return importResult;
     }
-    // private static final int LEN_END = 25;
 
-    private ArticleModel processLine(final String line) {
-        final var article = new ArticleModel();
+
+    private Article line2article(final String line) {
+        final var article = new Article();
         int beginDesc = LEN_CODE + LEN_TITLE;
         int beginAttr = LEN_CODE + LEN_TITLE + LEN_DESC;
         int beginCat = LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES;
@@ -174,10 +168,14 @@ public class ArticleService {
         article.setCategories(line.substring(beginCat, beginPos).trim());
         article.setPos(trimLeadingZeroes(line.substring(beginPos, beginPrice).trim()));
         article.setPrice(BigDecimal.valueOf(Double.parseDouble(line.substring(beginPrice, beginStartDate))));
-        article.setStartDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginStartDate, beginEndDate))),
-                TimeZone.getDefault().toZoneId())));
-        article.setEndDate(LocalDateTime.from(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(line.substring(beginEndDate))),
-                TimeZone.getDefault().toZoneId())));
+        final String startDateStr = line.substring(beginStartDate, beginEndDate);
+        final String endDateStr = line.substring(beginEndDate);
+        final LocalDateTime start = LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(startDateStr)),
+                TimeZone.getDefault().toZoneId());
+        final LocalDateTime end = LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(endDateStr)),
+                TimeZone.getDefault().toZoneId());
+        article.setStartDate(LocalDateTime.from(start).toString());
+        article.setEndDate(LocalDateTime.from(end).toString());
         return article;
     }
 

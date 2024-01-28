@@ -1,5 +1,6 @@
 package at.bumzack.reference.impl.dto;
 
+
 public class SysInfo {
     private String author;
 
@@ -10,6 +11,8 @@ public class SysInfo {
     private boolean multithreaded;
 
     private String comment;
+
+    private String version;
 
     public SysInfo() {
     }
@@ -54,14 +57,12 @@ public class SysInfo {
         this.comment = comment;
     }
 
-    @Override
-    public String toString() {
-        return "SysInfo{" +
-                "author='" + author + '\'' +
-                ", language='" + language + '\'' +
-                ", framework='" + framework + '\'' +
-                ", multithreaded=" + multithreaded +
-                ", comment='" + comment + '\'' +
-                '}';
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(final String version) {
+        this.version = version;
     }
 }
+

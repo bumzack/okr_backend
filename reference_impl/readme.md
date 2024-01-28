@@ -52,5 +52,17 @@ lines_written 247352
 
 grossgrisu
 
-[2024-01-27T22:56:39Z INFO  create_data] finished writing all files      took  576808ms   or 576secs.   cnt_articles 1384267,  cnt_pos 10,   cnt_articles* cnt_pos 13842670,  lines_written 62296370
+cnt_articles 1384267,  
+cnt_pos 10,   
+cnt_articles * cnt_pos 13842670,  
+lines_written 62296370
+
+
+
+hackn fulldata
+
+cnt_articles 121473, 
+cnt_pos 5,   
+cnt_articles * cnt_pos 607365,  
+lines_written 2733023
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMPORT_URL=(    "http://localhost:2323/api/v1/articles/import/false"  "http://localhost:2323/api/v2/articles/import/false" )
-SYSINFO_URL=(   "http://localhost:2323/api/v1/sysinfo"                "http://localhost:2323/api/v2/sysinfo"         )
+IMPORT_URL=(    "http://localhost:2324/api/v1/articles/import/false"  "http://localhost:2324/api/v2/articles/import/false" )
+SYSINFO_URL=(   "http://localhost:2324/api/v1/sysinfo"                "http://localhost:2324/api/v2/sysinfo"         )
 
 ITERATIONS=10
 
@@ -17,7 +17,7 @@ fi
 LEN=${#IMPORT_URL[@]}
 
 echo "==================================================================================================="
-echo "===============    ${WARMUPS} warmup run    ======================================================="
+echo "===============    ${WARMUPS} warmup runs    ======================================================="
 echo "==================================================================================================="
 
 for (( i=0; i<$LEN; i++ ))
@@ -34,10 +34,7 @@ echo "===============     warmup done             ==============================
 echo "==================================================================================================="
 
 
-
-
 LEN=${#IMPORT_URL[@]}
-
 
 for (( i=0; i<$LEN; i++ ))
 do
@@ -82,10 +79,6 @@ do
     SLOWEST=${sorted[idx]}
     measurements=$(IFS=';' ; echo "${middle[*]}")
 
-    # echo "SLOWEST ${SLOWEST}     FASTEST ${FASTEST}   measurements   ${measurements}"
-
-
-
     echo "==================================================================================================="
     echo "===============   test runs done   ================================================================"
     echo "==================================================================================================="
@@ -94,14 +87,14 @@ do
     echo ""
     echo ""
     echo "=============== finished  =========================================================================="
-    echo " author     ${AUTHOR} "
-    echo " language   ${LANGUAGE} "
-    echo " framework  ${FRAMEWORK} "
-    echo " multi      ${MULTI} "
-    echo " comment    ${COMMENT} "
-    echo " version    ${VERSION} "
-    echo " slowest    ${SLOWEST} "
-    echo " fastest    ${FASTEST} "
+    echo " author               ${AUTHOR} "
+    echo " language             ${LANGUAGE} "
+    echo " framework            ${FRAMEWORK} "
+    echo " multithreaded        ${MULTI} "
+    echo " comment              ${COMMENT} "
+    echo " version              ${VERSION} "
+    echo " slowest              ${SLOWEST} "
+    echo " fastest              ${FASTEST} "
     echo "==================================================================================================="
 
     echo " ${AUTHOR} ;  ${LANGUAGE}; ${FRAMEWORK} ; ${VERSION} ; ${MULTI} ; ${COMMENT} ; ${SLOWEST} ; ${FASTEST} ;  ${measurements} " >> $FILENAME
