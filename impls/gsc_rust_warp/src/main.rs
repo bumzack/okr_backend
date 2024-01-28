@@ -1,3 +1,5 @@
+mod models;
+
 use std::{env, fs, io};
 use std::ffi::OsString;
 use std::fs::File;
@@ -8,8 +10,8 @@ use deadpool_postgres::Pool;
 use dotenvy::dotenv;
 use log::{info, LevelFilter};
 use pretty_env_logger::env_logger::Builder;
+use crate::models::{Article, ImportResult};
 
-use crate::db::{create_pool, ImportResult, NewArticleModel};
 
 const LEN_CODE: usize = 20;
 const LEN_TITLE: usize = 100;
@@ -23,11 +25,29 @@ const LEN_END_DATE: usize = 25;
 
 
 
+pub fn routes(
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    let server = warp::path!("api" / "v1" / "meili" / "searchindex" / "search");
+    let search_meili = server
+        .and(warp::post())
+        .and(search_index_request())
+        .and(headers_cloned())
+        .and_then(|req, headers: HeaderMap| {
+            info!("POST /api/v1/meili/searchindex/search matched");
+            search_index(req, Engine::Meili, headers)
+        });
 
-mod db;
+    let server = warp::path!("api" / "v1" / "solr" / "searchindex" / "search");
+    let search_solr = server
+        .and(warp::post())
+        .and(search_index_request())
+        .and(headers_cloned())
+        .and_then(|req, headers: HeaderMap| {
+            info!("POST /api/v1/solr/searchindex/search matched");
+            search_index(req, Engine::Solr, headers)
+        });
 
-lazy_static::lazy_static! {
-    static ref POOL: Pool = create_pool( );
+    search_meili.or(search_solr)
 }
 
 #[tokio::main]
@@ -42,14 +62,6 @@ async fn main() -> Result<(), Error> {
         println!("{key}: {value}");
     }
 
-    let c = POOL.get().await.expect("should get client");
-    let row = c.query("SELECT COUNT(*) FROM articles", &[]).await.expect("select count");
-
-    row.iter()
-        .for_each(|r| {
-            info!("row {:?}", r);
-            info!("row {:?}", r.get::<&str, i64>("count"));
-        });
 
     let import_result = import_articles().await.expect("import should succeed");
 
@@ -109,8 +121,8 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let f = File::open(f).expect(&exp_msg);
     let lines = io::BufReader::new(f).lines();
 
-    let mut articles: Vec<NewArticleModel> = vec![];
-    let mut current_article: Vec<NewArticleModel> = vec![];
+    let mut articles: Vec<Article> = vec![];
+    let mut current_article: Vec<Article> = vec![];
 
     let mut db_rows_written = 0;
     let mut lines_processed = 0;
@@ -147,10 +159,11 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     ImportResult {
         lines_processed,
         db_rows_written,
+        items: vec![],
     }
 }
 
-fn convert_to_new_article_model(line: String) -> NewArticleModel {
+fn convert_to_new_article_model(line: String) -> Article {
     let start_title = LEN_CODE;
     let start_desc = start_title + LEN_TITLE;
     let start_attr = start_desc + LEN_DESC;
@@ -171,51 +184,20 @@ fn convert_to_new_article_model(line: String) -> NewArticleModel {
     let price = l[start_price..start_start_date].parse::<f64>().expect("parsing price");
     let start_date = l[start_start_date..start_end_date].parse::<i64>().expect("parsing start date");
     let end_date = l[start_end_date..end_end_date].parse::<i64>().expect("parsing end date");
-    NewArticleModel {
+    let start_time = DateTime::<Utc>::from_timestamp(start_date, 0).expect("invalid timestamp starte date");
+    let end_time = DateTime::<Utc>::from_timestamp(end_date, 0).expect("invalid timestamp end date");
+   let start_time =start_time.to_rfc3339();
+    let end_time = end_time.to_rfc3339();
+
+    Article {
         code: code.to_string().trim_start_matches("0").to_string(),
         title: title.to_string().trim().to_string(),
         description: desc.to_string().trim().to_string(),
         categories: cat.to_string().trim().to_string(),
         attributes: attr.to_string().trim().to_string(),
         price,
-        start_date: DateTime::<Utc>::from_timestamp(start_date, 0).expect("invalid timestamp starte date"),
-        end_date: DateTime::<Utc>::from_timestamp(end_date, 0).expect("invalid timestamp end date"),
+        start_date: start_time,
+        end_date: end_time,
         pos: pos.to_string().trim().trim_start_matches("0").to_string(),
     }
 }
-
-//
-// fn convert_to_new_article_model_refs_only<'a>(line: String) -> NewArticleModelRefsOnly <'a>{
-//     let start_title = LEN_CODE;
-//     let start_desc = start_title + LEN_TITLE;
-//     let start_attr = start_desc + LEN_DESC;
-//     let start_cat = start_attr + LEN_ATTRIBUTES;
-//     let start_pos = start_cat + LEN_CATEGORIES;
-//     let start_price = start_pos + LEN_POS;
-//     let start_start_date = start_price + LEN_PRICE;
-//     let start_end_date = start_start_date + LEN_START_DATE;
-//     let end_end_date = start_end_date + LEN_END_DATE;
-//
-//     let l = line.as_str();
-//     let code = &l[0..LEN_CODE];
-//     let title = &l[start_title..start_desc - 1];
-//     let desc = &l[start_desc..start_attr - 1];
-//     let attr = &l[start_attr..start_cat - 1];
-//     let cat = &l[start_cat..start_pos - 1];
-//     let pos = &l[start_pos..start_price - 1];
-//     let price = l[start_price..start_start_date].parse::<f64>().expect("parsing price");
-//     let start_date = l[start_start_date..start_end_date].parse::<i64>().expect("parsing start date");
-//     let end_date = l[start_end_date..end_end_date].parse::<i64>().expect("parsing end date");
-//     NewArticleModelRefsOnly {
-//         code: code.to_string().trim_start_matches("0"),
-//         title: title.to_string().trim(),
-//         description: desc.to_string().trim(),
-//         categories: cat.to_string().trim(),
-//         attributes: attr.to_string().trim(),
-//         price,
-//         start_date: DateTime::<Utc>::from_timestamp(start_date, 0).expect("invalid timestamp starte date"),
-//         end_date: DateTime::<Utc>::from_timestamp(end_date, 0).expect("invalid timestamp end date"),
-//         pos: pos.clone().to_string().trim().trim_start_matches("0"),
-//     }
-// }
-//
