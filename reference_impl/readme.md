@@ -55,7 +55,7 @@ grossgrisu
 cnt_articles 1384267,  
 cnt_pos 10,   
 cnt_articles * cnt_pos 13842670,  
-lines_written 62296370
+lines_written 62 296 370
 
 
 
@@ -64,5 +64,5 @@ hackn fulldata
 cnt_articles 121473, 
 cnt_pos 5,   
 cnt_articles * cnt_pos 607365,  
-lines_written 2733023
+lines_written 2 733 023
 

@@ -16,6 +16,7 @@ public class Article {
     public Article() {
     }
 
+
     public String getCode() {
         return code;
     }
@@ -103,4 +104,3 @@ public class Article {
                 '}';
     }
 }
-

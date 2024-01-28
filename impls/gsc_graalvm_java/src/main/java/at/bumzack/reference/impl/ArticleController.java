@@ -1,21 +1,20 @@
 package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
+import at.bumzack.reference.impl.dto.ImportRequest;
 import at.bumzack.reference.impl.dto.ImportResult;
 import at.bumzack.reference.impl.dto.SysInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
-import java.util.List;
+
+import static java.util.Objects.nonNull;
 
 
 @RestController
 @RequestMapping("/api")
 public class ArticleController {
-    private static final Logger LOG = LoggerFactory.getLogger(ArticleController.class);
 
     private final ArticleService articleService;
 
@@ -23,27 +22,31 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @PostMapping("/v1/articles/import/{returnItems}")
+    @PostMapping(value = "/v1/articles/import", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ImportResult importArticles(@PathVariable final boolean returnItems) {
-        final ImportResult importResult = articleService.importArticles(returnItems);
-        final var sorted = importResult.getArticles().stream()
-                .sorted(Comparator.comparing(Article::getPos))
-                .sorted(Comparator.comparing(Article::getCode))
-                .toList();
-        importResult.setArticles(sorted);
+    public ImportResult importArticles(@RequestBody final ImportRequest request) {
+        final ImportResult importResult = articleService.importArticles(request.isReturnItems());
+        if (nonNull(importResult.getArticles())) {
+            final var sorted = importResult.getArticles().stream()
+                    .sorted(Comparator.comparing(Article::getPos))
+                    .sorted(Comparator.comparing(Article::getCode))
+                    .toList();
+            importResult.setArticles(sorted);
+        }
         return importResult;
     }
 
-    @PostMapping("/v2/articles/import/{returnItems}")
+    @PostMapping(value = "/v2/articles/import", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ImportResult importArticles2(@PathVariable final boolean returnItems) {
-        final ImportResult importResult = articleService.importArticles2(returnItems);
-        final var sorted = importResult.getArticles().stream()
-                .sorted(Comparator.comparing(Article::getPos))
-                .sorted(Comparator.comparing(Article::getCode))
-                .toList();
-        importResult.setArticles(sorted);
+    public ImportResult importArticles2(@RequestBody final ImportRequest request) {
+        final ImportResult importResult = articleService.importArticles2(request.isReturnItems());
+        if (nonNull(importResult.getArticles())) {
+            final var sorted = importResult.getArticles().stream()
+                    .sorted(Comparator.comparing(Article::getPos))
+                    .sorted(Comparator.comparing(Article::getCode))
+                    .toList();
+            importResult.setArticles(sorted);
+        }
         return importResult;
     }
 
@@ -74,6 +77,4 @@ public class ArticleController {
 
         return sysInfo;
     }
-
-
 }

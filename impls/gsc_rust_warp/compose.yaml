@@ -19,3 +19,5 @@ services:
           cpus: '4'
           memory: 4G
 
+    volumes:
+      - ../../data:/data

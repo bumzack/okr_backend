@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 
+import static java.util.Objects.nonNull;
+
 
 @RestController
 @RequestMapping("/api")
@@ -24,11 +26,13 @@ public class ArticleController {
     @ResponseBody
     public ImportResult importArticles(@RequestBody final ImportRequest request) {
         final ImportResult importResult = articleService.importArticles(request.isReturnItems());
-        final var sorted = importResult.getArticles().stream()
-                .sorted(Comparator.comparing(Article::getPos))
-                .sorted(Comparator.comparing(Article::getCode))
-                .toList();
-        importResult.setArticles(sorted);
+        if (nonNull(importResult.getArticles())) {
+            final var sorted = importResult.getArticles().stream()
+                    .sorted(Comparator.comparing(Article::getPos))
+                    .sorted(Comparator.comparing(Article::getCode))
+                    .toList();
+            importResult.setArticles(sorted);
+        }
         return importResult;
     }
 
@@ -36,11 +40,13 @@ public class ArticleController {
     @ResponseBody
     public ImportResult importArticles2(@RequestBody final ImportRequest request) {
         final ImportResult importResult = articleService.importArticles2(request.isReturnItems());
-        final var sorted = importResult.getArticles().stream()
-                .sorted(Comparator.comparing(Article::getPos))
-                .sorted(Comparator.comparing(Article::getCode))
-                .toList();
-        importResult.setArticles(sorted);
+        if (nonNull(importResult.getArticles())) {
+            final var sorted = importResult.getArticles().stream()
+                    .sorted(Comparator.comparing(Article::getPos))
+                    .sorted(Comparator.comparing(Article::getCode))
+                    .toList();
+            importResult.setArticles(sorted);
+        }
         return importResult;
     }
 

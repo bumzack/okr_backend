@@ -6,9 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "9876:9876"
-      # debug ports for local development
-      - "5005:5005"
+      - "2325:2325"
     command: [
       "java",
       "-jar", "/usr/share/okr/graalvm-kotlin-21.jar"
@@ -22,3 +20,5 @@ services:
           cpus: '4'
           memory: 4G
 
+    volumes:
+      - ../../data:/data

@@ -1,7 +1,6 @@
 package at.bumzack.refimpl
 
 import at.bumzack.refimpl.dto.Article
-import at.bumzack.refimpl.dto.ArticleModel
 import at.bumzack.refimpl.dto.ImportResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

@@ -6,9 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.graal
     ports:
-      - "2323:2323"
-      # debug ports for local development
-      - "5005:5005"
+      - "2324:2324"
     command: [
       "/graal-java-app"
     ]
@@ -21,3 +19,5 @@ services:
           cpus: '4'
           memory: 4G
 
+    volumes:
+      - ../../data:/data

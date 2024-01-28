@@ -1,8 +1,15 @@
 server:
   port: 2324
 
-sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/fulldata/"
-# sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"
-# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/fulldata/"
+spring:
+  threads:
+    virtual:
+      enabled: true
 
-# sourcefilesFolder:  "/usr/share/okr/fulldata"
+
+# local
+# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data"
+
+
+# docker
+sourcefilesFolder:  "/data"

@@ -1,6 +1,5 @@
 package at.bumzack.reference.impl.dto;
 
-
 public class SysInfo {
     private String author;
 
@@ -65,4 +64,3 @@ public class SysInfo {
         this.version = version;
     }
 }
-

@@ -1,0 +1,5 @@
+ author ;  language; framework ; version ; multi threaded ; comment ; slowest run ; fastest run ;  measurements excl slowest and fastest 
+ gsc ;  Java 21; Spring Boot 3.2.2 ; v1 ; false ; naive & dumb ; 170.412807 ; 169.352015 ;  169.645788;169.765595;170.024335;170.147445;170.178241;170.248487;170.256464;170.278365 
+ gsc ;  Java 21; Spring Boot 3.2.2 ; v2 ; true ; multithreading via parallelStream ; 65.421745 ; 56.533534 ;  58.434724;58.488121;60.557411;60.927695;61.754202;62.041767;62.929318;63.263878 
+ gsc ;  Graal VM & Java 21; Spring Boot 3.2.2 ; v1 ; false ; naive & dumb ; 240.768107 ; 232.049573 ;  234.524218;236.680470;236.957368;237.612500;238.423396;238.711053;239.365959;239.465640 
+ gsc ;  Graal VM & Java 21; Spring Boot 3.2.2 ; v2 ; true ; multithreading via parallelStream ; 80.331044 ; 73.755293 ;  74.319795;74.426724;74.583504;75.197205;76.120604;76.293064;76.377488;77.550805 

@@ -22,6 +22,6 @@ FROM ubuntu:23.10
 RUN yes | apt-get update
 RUN yes | apt-get install gcc zlib1g-dev build-essential wget
 
-EXPOSE 9876
+EXPOSE 2323
 
 COPY --from=build build/build/native/nativeCompile/graal-kotlin-app  /graal-kotlin-app

@@ -2,10 +2,10 @@ package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
 import at.bumzack.reference.impl.dto.ImportResult;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,17 +14,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
-@Service
+@Component
 public class ArticleService {
     private static final int LEN_CODE = 20;
     private static final int LEN_TITLE = 100;
@@ -35,18 +31,19 @@ public class ArticleService {
     private static final int LEN_PRICE = 20;
     private static final int LEN_START = 25;
     // private static final int LEN_END = 25;
-
-    public static final String PROPERTY_CODE = "code";
-    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ArticleService.class);
 
 
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
-    
+
+    public ArticleService() {
+    }
 
     public ImportResult importArticles(boolean returnItems) {
         LOG.info("sourceFilesFolder {}", sourceFilesFolder);
         final var folder = new File(sourceFilesFolder);
+
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
                 .sorted(Comparator.comparing(File::getName))

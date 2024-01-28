@@ -3,11 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id("org.springframework.boot") version "3.2.2"
 	id("io.spring.dependency-management") version "1.1.4"
-	//id("org.hibernate.orm") version "6.4.1.Final"
 	id("org.graalvm.buildtools.native") version "0.9.28"
 	kotlin("jvm") version "1.9.22"
 	kotlin("plugin.spring") version "1.9.22"
-	kotlin("plugin.jpa") version "1.9.22"
 }
 
 tasks.getByName<Jar>("jar") {
@@ -33,11 +31,9 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.2.2")
 	implementation("org.springframework.boot:spring-boot-starter-web:3.2.2")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	runtimeOnly("org.postgresql:postgresql")
 
 	// https://github.com/spring-projects/spring-data-commons/issues/3025
 	// sooner or later this can be removed

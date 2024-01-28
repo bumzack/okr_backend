@@ -18,7 +18,7 @@ RUN ["/bin/bash", "-c", "cp /usr/share/okr/build/libs/graalvm-kotlin-21-0.0.1-SN
 
 FROM ghcr.io/graalvm/jdk-community:21
 
-EXPOSE 9876
+EXPOSE 2325
 
 WORKDIR /usr/share/okr
 
