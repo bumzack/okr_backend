@@ -108,7 +108,7 @@ public class ArticleService {
             Article prevArticle = null;
             while (true) {
                 article = line2article(line);
-                LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
+                // LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
 
                 if (isNull(prevArticle)) {
                     // new grouping start - because first article ever
@@ -152,9 +152,9 @@ public class ArticleService {
             }
             dbRowsWritten++;
 
-            LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
+            // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
 
-            articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
+            // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
         }
 
         final var importResult = new ImportResult();
