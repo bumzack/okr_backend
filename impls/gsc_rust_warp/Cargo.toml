@@ -9,10 +9,14 @@ edition = "2021"
 tokio = { version = "1.35.1", features = ["full"] }
 pretty_env_logger = "0.5.0"
 log = "0.4.20"
-serde = "1.0.194"
-chrono = { version = "0.4.31", features = ["serde"] }
-serde_json = { version = "1.0.108" }
-serde_derive = "1.0.193"
+serde = "1.0.196"
+chrono = { version = "0.4.33", features = ["serde"] }
+serde_json = { version = "1.0.112" }
+serde_derive = "1.0.196"
 lazy_static = { version = "1.4.0", features = [] }
 dotenvy = "0.15.7"
 warp = "0.3.6"
+
+[dev-dependencies]
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
+futures = "0.3.30"
