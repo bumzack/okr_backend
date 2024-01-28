@@ -4,16 +4,12 @@ import java.math.BigDecimal;
 
 public class Article {
     private String code;
-
     private String description;
-
     private String title;
-
     private String categories;
     private String attributes;
     private BigDecimal price;
     private String pos;
-
     private String startDate;
     private String endDate;
 

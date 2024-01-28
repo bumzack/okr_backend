@@ -35,29 +35,11 @@ public class ArticleService {
     private static final int LEN_PRICE = 20;
     private static final int LEN_START = 25;
     // private static final int LEN_END = 25;
-
-    public static final String PROPERTY_CODE = "code";
     private static final Logger LOG = LogManager.getLogger(ArticleService.class);
-    // private final ArticleRepository articleRepository;
 
 
     @Value("${sourcefilesFolder}")
     private String sourceFilesFolder;
-
-//    public ArticleService(final ArticleRepository articleRepository) {
-//        this.articleRepository = articleRepository;
-//    }
-//
-//    public List<Article> findPaginated(final int pageNumber, final int pageSize) {
-//        final var page = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, PROPERTY_CODE));
-//        return convert(articleRepository.findAll(page).toList());
-//    }
-//
-//    private List<Article> convert(final List<ArticleModel> source) {
-//        return source.stream()
-//                .map(this::fromArticleModel)
-//                .toList();
-//    }
 
     public ArticleService() {
     }

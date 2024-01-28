@@ -1,11 +1,6 @@
 server:
   port: 2323
 
-spring:
-  datasource:
-    url: jdbc:postgresql://192.168.0.115:5432/shop
-    username: shop
-    password: shop
 
 # sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/fulldata/"
 # sourcefilesFolder: "/Users/gsc/stoff/rust/okr_backend/testdata/"

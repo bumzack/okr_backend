@@ -22,6 +22,5 @@ services:
           cpus: '4'
           memory: 4G
 
-
     volumes:
-      - ../fulldata:/usr/share/okr/fulldata
+      - ../data:/data
