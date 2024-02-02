@@ -11,6 +11,10 @@
 
 #include <iostream>
 
+#include <fstream>
+#include <string>
+
+
 void run(const oatpp::base::CommandLineArguments &args) {
 
     AppComponent appComponent(args);
@@ -41,11 +45,22 @@ void run(const oatpp::base::CommandLineArguments &args) {
 
 int main(int argc, const char *argv[]) {
 
-    oatpp::base::Environment::init();
+//    oatpp::base::Environment::init();
+//
+//    run(oatpp::base::CommandLineArguments(argc, argv));
+//
+//    oatpp::base::Environment::destroy();
 
-    run(oatpp::base::CommandLineArguments(argc, argv));
 
-    oatpp::base::Environment::destroy();
+
+
+    std::ifstream file("Read.txt");
+    std::string str;
+    while (std::getline(file, str))
+    {
+        // Process str
+    }
+
 
     return 0;
 }

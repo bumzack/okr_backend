@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.28)
 
 set(project_name my-project) ## rename your project here
 
@@ -10,12 +10,10 @@ add_library(${project_name}-lib
         src/AppComponent.hpp
         src/controller/SysinfoController.cpp
         src/controller/SysinfoController.hpp
-        src/dto/DTOs.hpp
         src/dto/ArticleDTO.hpp
         src/dto/ImportRequestDTO.hpp
         src/dto/ImportResultDto.hpp
         src/dto/SysinfoDTO.hpp
-
 )
 
 ## link libs
@@ -36,6 +34,8 @@ add_executable(${project_name}-exe
         test/app/MyApiTestClient.hpp
         src/controller/ArticleController.hpp
         src/controller/SysinfoController.hpp
+        src/service/ArticleService.cpp
+        src/dto/Article.hpp
 )
 target_link_libraries(${project_name}-exe ${project_name}-lib)
 add_dependencies(${project_name}-exe ${project_name}-lib)

@@ -1,7 +1,6 @@
 #ifndef MyController_hpp
 #define MyController_hpp
 
-#include "dto/DTOs.hpp"
 
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"

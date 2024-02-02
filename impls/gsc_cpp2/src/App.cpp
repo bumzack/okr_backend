@@ -42,13 +42,6 @@ void run() {
 int main(int argc, const char *argv[]) {
 
 
-//    std::ifstream file("/home/bumzack/stoff/okr_backend/data/articles_000001.txt");
-//    std::string str;
-//    while (std::getline(file, str)) {
-//        std::cout << "line: " << str << std::endl;
-//    }
-
-
 
     oatpp::base::Environment::init();
 

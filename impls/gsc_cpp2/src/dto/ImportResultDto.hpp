@@ -3,6 +3,7 @@
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
+#include "dto/Article.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -18,6 +19,7 @@ class ImportResultDto : public oatpp::DTO {
 
     DTO_FIELD(Int64, dbRowsWritten);
 
+    DTO_FIELD(List < Article >, items);
 };
 
 #include OATPP_CODEGEN_END(DTO)

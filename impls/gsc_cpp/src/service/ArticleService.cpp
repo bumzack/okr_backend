@@ -21,6 +21,7 @@ ArticleService::getAllArticles(const oatpp::UInt32 &offset, const oatpp::UInt32 
         countToFetch = 10;
     }
 
+
     auto dbResult = m_database->getAllArticles(offset, countToFetch);
     OATPP_ASSERT_HTTP(dbResult->isSuccess(), Status::CODE_500, dbResult->getErrorMessage());
 
