@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMPORT_URL=(  "http://localhost:2325/api/v1/articles/import"  "http://localhost:2325/api/v2/articles/import" )
+IMPORT_URL=(  "http://localhost:12120/api/v1/articles/import"   )
 
 LEN=${#IMPORT_URL[@]}
 
