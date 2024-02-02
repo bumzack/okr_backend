@@ -1,116 +1,116 @@
 {
-  "linesProcessed": 47,
   "dbRowsWritten": 10,
+  "linesProcessed": 47,
   "articles": [
     {
+      "attributes": "color: blue//size: L//fit: slim",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
       "code": "1",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse mol",
-      "title": "Article with code 00000001",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
-      "attributes": "color: blue//size: L//fit: slim",
-      "price": 375.8816,
+      "endDate": "2024-11-12T21:01:28",
       "pos": "1",
+      "price": 375.8816,
       "startDate": "2022-12-27T21:01:28",
-      "endDate": "2024-11-12T21:01:28"
+      "title": "Article with code 00000001"
     },
     {
+      "attributes": "color: red//size: XL//fit: regular",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
       "code": "1",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam er",
-      "title": "Article with code 00000001",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
-      "attributes": "color: red//size: XL//fit: regular",
-      "price": 736.6301,
+      "endDate": "2024-08-24T22:01:28",
       "pos": "2",
+      "price": 736.6301,
       "startDate": "2023-04-03T22:01:28",
-      "endDate": "2024-08-24T22:01:28"
+      "title": "Article with code 00000001"
     },
     {
+      "attributes": "color: red//size: L//fit: slim",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
       "code": "2",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat",
-      "title": "Article with code 00000002",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
-      "attributes": "color: red//size: L//fit: slim",
-      "price": 1599.5248,
+      "endDate": "2024-12-04T21:01:28",
       "pos": "1",
+      "price": 1599.5248,
       "startDate": "2023-10-03T22:01:28",
-      "endDate": "2024-12-04T21:01:28"
+      "title": "Article with code 00000002"
     },
     {
+      "attributes": "color: blue//size: XS//fit: athletic",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
       "code": "2",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud",
-      "title": "Article with code 00000002",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
-      "attributes": "color: blue//size: XS//fit: athletic",
-      "price": 285.5171,
+      "endDate": "2024-11-28T21:01:28",
       "pos": "2",
+      "price": 285.5171,
       "startDate": "2023-07-18T22:01:28",
-      "endDate": "2024-11-28T21:01:28"
+      "title": "Article with code 00000002"
     },
     {
+      "attributes": "color: red//size: XS//fit: regular",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
       "code": "3",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis a",
-      "title": "Article with code 00000003",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
-      "attributes": "color: red//size: XS//fit: regular",
-      "price": 132.5265,
+      "endDate": "2025-01-14T21:01:28",
       "pos": "1",
+      "price": 132.5265,
       "startDate": "2023-01-29T21:01:28",
-      "endDate": "2025-01-14T21:01:28"
+      "title": "Article with code 00000003"
     },
     {
+      "attributes": "color: yellow//size: S//fit: athletic",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
       "code": "3",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad min",
-      "title": "Article with code 00000003",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
-      "attributes": "color: yellow//size: S//fit: athletic",
-      "price": 330.8407,
+      "endDate": "2024-11-09T21:01:28",
       "pos": "2",
+      "price": 330.8407,
       "startDate": "2023-11-01T21:01:28",
-      "endDate": "2024-11-09T21:01:28"
+      "title": "Article with code 00000003"
     },
     {
+      "attributes": "color: blue//size: XL//fit: regular",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
       "code": "4",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd",
-      "title": "Article with code 00000004",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > vintage",
-      "attributes": "color: blue//size: XL//fit: regular",
-      "price": 448.3837,
+      "endDate": "2024-08-05T22:01:28",
       "pos": "1",
+      "price": 448.3837,
       "startDate": "2023-10-01T22:01:28",
-      "endDate": "2024-08-05T22:01:28"
+      "title": "Article with code 00000004"
     },
     {
+      "attributes": "color: yellow//size: XXL//fit: slim",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
       "code": "4",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ul",
-      "title": "Article with code 00000004",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > designer",
-      "attributes": "color: yellow//size: XXL//fit: slim",
-      "price": 640.5721,
+      "endDate": "2025-01-24T21:01:28",
       "pos": "2",
+      "price": 640.5721,
       "startDate": "2023-07-12T22:01:28",
-      "endDate": "2025-01-24T21:01:28"
+      "title": "Article with code 00000004"
     },
     {
+      "attributes": "color: yellow//size: L//fit: athletic",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
       "code": "5",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr,",
-      "title": "Article with code 00000005",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
-      "attributes": "color: yellow//size: L//fit: athletic",
-      "price": 115.4022,
+      "endDate": "2025-02-15T21:01:28",
       "pos": "1",
+      "price": 115.4022,
       "startDate": "2023-04-03T22:01:28",
-      "endDate": "2025-02-15T21:01:28"
+      "title": "Article with code 00000005"
     },
     {
+      "attributes": "color: green//size: XXL//fit: slim",
+      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
       "code": "5",
       "description": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliqui",
-      "title": "Article with code 00000005",
-      "categories": "cloth//cloth > thsirt//cloth > tshirt > sportswar",
-      "attributes": "color: green//size: XXL//fit: slim",
-      "price": 33.3884,
+      "endDate": "2025-02-10T21:01:28",
       "pos": "2",
+      "price": 33.3884,
       "startDate": "2023-08-16T22:01:28",
-      "endDate": "2025-02-10T21:01:28"
+      "title": "Article with code 00000005"
     }
   ]
 }

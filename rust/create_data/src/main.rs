@@ -38,8 +38,8 @@ fn dev_data(rng: &mut ThreadRng) {
 
 fn prod_data(rng: &mut ThreadRng) {
     let cnt_articles_per_file_avg = 100_00;
-    let cnt_articles_min = 1_000_00;
-    let cnt_articles_max = 1_500_00;
+    let cnt_articles_min = 100_000;
+    let cnt_articles_max = 150_000;
     let cnt_pos = 5;
 
     write_files(

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMPORT_URL=(    "http://localhost:2325/api/v1/articles/import"  "http://localhost:2325/api/v2/articles/import" )
-SYSINFO_URL=(   "http://localhost:2325/api/v1/sysinfo"                "http://localhost:2325/api/v2/sysinfo"         )
+IMPORT_URL=(    "http://localhost:12120/api/v1/articles/import"    )
+SYSINFO_URL=(   "http://localhost:12120/api/v1/sysinfo"             )
 
 ITERATIONS=10
 

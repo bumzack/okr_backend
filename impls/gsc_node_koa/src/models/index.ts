@@ -1,18 +1,19 @@
 export interface ArticleModel {
     code: string;
-    title: string;
     description: string;
-    attributes: string;
+    title: string;
     categories: string;
-    pos: string;
+    attributes: string;
     price: number;
-    start_date: Date;
-    end_date: Date;
+    pos: string;
+    startDate: string;
+    endDate: string;
 }
 
 export interface ImportResult {
-    lines_processed: number;
-    db_rows_written: number;
+    linesProcessed: number;
+    dbRowsWritten: number;
+    articles: Array<ArticleModel>;
 }
 
 export interface SysInfo {
@@ -21,4 +22,9 @@ export interface SysInfo {
     framework: string;
     multithreaded: boolean;
     comment: string;
+    version: string;
+}
+
+export interface ImportRequest {
+    returnItems: boolean;
 }

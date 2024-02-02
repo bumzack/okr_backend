@@ -31,7 +31,7 @@ graalvmNative {
             buildArgs.add("-march=native")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
-                vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
+       //         vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
             })
         }
 

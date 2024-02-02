@@ -1,5 +1,5 @@
 {
-  "name": "koajs_customer_service",
+  "name": "gsc_node_koa",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -13,9 +13,8 @@
     "koa-body": "^6.0.1",
     "koa-logger": "^3.2.1",
     "koa-router": "^12.0.1",
-    "n-readlines": "^1.0.1",
-    "pg": "^8.11.3",
-    "pg-pool": "^3.6.1"
+    "moment": "^2.30.1",
+    "n-readlines": "^1.0.1"
   },
   "devDependencies": {
     "@types/koa": "^2.14.0",
@@ -23,7 +22,6 @@
     "@types/koa-router": "^7.4.8",
     "@types/node": "^20.11.0",
     "ts-node-dev": "^2.0.0",
-    "tsc": "^2.0.4",
     "typescript": "^5.3.3"
   }
 }

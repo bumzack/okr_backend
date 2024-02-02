@@ -1,90 +1,85 @@
-import * as db from './db';
 import {ArticleModel, ImportResult} from "./models";
 import * as fs from "fs";
+import moment from "moment";
 
 const nReadlines = require('n-readlines');
 
-export const getArticles = async (offset: number, limit: number): Promise<ArticleModel[]> => {
-    const client = await db.pool.connect()
-    const result = await client.query(`SELECT *
-                                       FROM articles
-                                       ORDER BY code ASC
-                                       LIMIT ${limit} OFFSET ${offset} `)
-    return result.rows as Array<ArticleModel>
-}
-
-
-export const insertArticle = async (article: ArticleModel, client: any): Promise<void> => {
-    //  console.log(`article ${JSON.stringify(article,null,4)}`)
-    // const result = await client.query(`INSERT INTO articles (code, title, description, attributes, categories, pos,
-    //                                                          price, start_date, end_date)
-    //                                    VALUES ('${article.code}', '${article.title}', '${article.description}',
-    //                                            '${article.attributes}', '${article.categories}', '${article.pos}',
-    //                                            ${article.price}, '${article.start_date}', '${article.end_date}' ) `)
-
-    let s = `INSERT INTO articles (code, title, description, attributes, categories, pos,
-                                   price, start_date, end_date)
-             VALUES ('${article.code}', '${article.title}', '${article.description}',
-                     '${article.attributes}', '${article.categories}', '${article.pos}',
-                     ${article.price}, now(), now()) `;
-    //  console.log(`query  ${s} `)
-    const result = await client.query(s)
-
-    // console.log(`result from insert ${result}`)
-    return;
-}
-
-export const importArticles = async (): Promise<ImportResult> => {
-    const fileList = fs.readdirSync("/home/bumzack/stoff/rust/okr_backend/rust/");
+export const importArticles = async (returnItems: boolean): Promise<ImportResult> => {
+    const data = process.env.DATA as string
+    console.log(`data  ${data}    returnItems  ${returnItems}`)
+    const fileList = fs.readdirSync(data);
     const files = fileList.filter(f => {
         return f.toLowerCase().endsWith(".txt")
     })
 
     let db_rows_written = 0
     let lines_processed = 0
-    const client = await db.pool.connect()
+
+    let article_grouped_by_code_and_pos: Array<ArticleModel> = [];
+    let articles_ready_to_write_to_db: Array<ArticleModel> = [];
 
     for (const f of files) {
-        const s = `/home/bumzack/stoff/rust/okr_backend/rust/${f}`;
+        const s = `${data}/${f}`;
         console.log(`open file ${s}`)
         const broadbandLines = new nReadlines(s);
-        let line;
-        let articles: Array<ArticleModel> = [];
-        let current_article_pos: Array<ArticleModel> = [];
+        let line: string | boolean = await broadbandLines.next();
+        lines_processed++;
 
-        while (line = await broadbandLines.next()) {
-            const article = await convert_to_article(line);
-            let last = current_article_pos[current_article_pos.length - 1]
+        let previousArticle: ArticleModel | undefined = undefined;
+        // let article = await convert_to_article(line as string);
 
-            if (current_article_pos.length > 0) {
-                if (last.code === article.code && last.pos === article.pos) {
-                    current_article_pos.push(article)
-                } else {
-                    current_article_pos.sort((a, b) => {
-                        return a.price - b.price
-                    })
-                    articles.push(current_article_pos[0])
-                    current_article_pos = []
-                }
+        while (true) {
+            const article: ArticleModel = await convert_to_article(line as string);
+
+            if (previousArticle === undefined) {
+                // new grouping start - because first article ever
+                article_grouped_by_code_and_pos.push(article)
             } else {
-                current_article_pos.push(article)
-            }
+                // is article part of current group?
+                if (article.code === previousArticle.code && article.pos === previousArticle.pos) {
+                    article_grouped_by_code_and_pos.push(article)
 
-            if (articles.length > 50) {
-                // articles.forEach(a => {
-                //     insertArticle(a, client)
-                // })
-                db_rows_written += articles.length;
-                articles = []
+                } else {
+                    const cheapestArticle: ArticleModel = article_grouped_by_code_and_pos
+                        .sort((a, b) => {
+                            return a.price - b.price
+                        })
+                        .at(0) as ArticleModel
+                    if (returnItems) {
+                        articles_ready_to_write_to_db.push(cheapestArticle);
+                    }
+                    db_rows_written++;
+
+                    // clear group and add article
+                    article_grouped_by_code_and_pos = [];
+                    article_grouped_by_code_and_pos.push(article);
+                }
             }
-            lines_processed++
+            line = await broadbandLines.next();
+            // console.log(`line  ${line}`)
+            if (line === false) {
+                break;
+            }
+            lines_processed++;
+            previousArticle = article;
         }
-        console.log('end of file.');
+        // write last article in file
+        const cheapestArticle: ArticleModel = article_grouped_by_code_and_pos
+            .sort((a, b) => {
+                return a.price - b.price
+            })
+            .at(0) as ArticleModel
+        if (returnItems) {
+            articles_ready_to_write_to_db.push(cheapestArticle);
+        }
+        db_rows_written++;
+        console.log(`end of file. ${s}`);
     }
 
     return {
-        db_rows_written: db_rows_written,
-        lines_processed: lines_processed,
+        dbRowsWritten: db_rows_written,
+        linesProcessed: lines_processed,
+        articles: articles_ready_to_write_to_db,
     }
 }
 
@@ -113,24 +108,29 @@ const convert_to_article = async (line: string): Promise<ArticleModel> => {
 
     // console.log(`LINE  ${line}`)
     const code: string = trim0(String(line).substring(0, start_title).trim())
-    const title: string = String(line).substring(start_title, start_desc - 1).trim()
-    const desc: string = String(line).substring(start_desc, start_attr - 1).trim()
-    const attr: string = String(line).substring(start_attr, start_cat - 1).trim()
-    const cat: string = String(line).substring(start_cat, start_pos - 1).trim()
-    const pos: string = trim0(String(line).substring(start_pos, start_price - 1).trim())
-    const price: number = parseFloat(String(line).substring(start_price, start_start_date - 1).trim())
-    const startDate: Date = new Date(parseInt(String(line).substring(start_start_date, start_end_date - 1).trim()) * 1000)
-    const endDate: Date = new Date(parseInt(String(line).substring(start_end_date).trim()) * 1000)
+    const title: string = String(line).substring(start_title, start_desc).trim()
+    const desc: string = String(line).substring(start_desc, start_attr).trim()
+    const attr: string = String(line).substring(start_attr, start_cat).trim()
+    const cat: string = String(line).substring(start_cat, start_pos).trim()
+    const pos: string = trim0(String(line).substring(start_pos, start_price).trim())
+    const s = String(line).substring(start_price, start_start_date);
+    //  console.log(`price string  ${s}`)
+    const price: number = parseFloat(s.trim())
+    const startDate1: Date = new Date(parseInt(String(line).substring(start_start_date, start_end_date).trim()) * 1000)
+    const endDate1: Date = new Date(parseInt(String(line).substring(start_end_date).trim()) * 1000)
+
+    const startDate = (moment(startDate1)).format('YYYY-MM-DDTHH:mm:ss')
+    const endDate = (moment(endDate1)).format('YYYY-MM-DDTHH:mm:ss')
 
     return {
         attributes: attr,
         categories: cat,
         code: code,
         description: desc,
-        end_date: endDate,
+        endDate,
         pos: pos,
         price: price,
-        start_date: startDate,
+        startDate,
         title: title
     };
 }

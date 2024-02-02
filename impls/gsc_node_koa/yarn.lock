@@ -206,9 +206,6 @@ braces@~3.0.2:
 buffer-from@^1.0.0:
   version "1.1.2"
 
-buffer-writer@2.0.0:
-  version "2.0.0"
-
 bytes@^3.1.0, bytes@3.1.2:
   version "3.1.2"
 
@@ -570,6 +567,11 @@ minimist@^1.2.6:
 mkdirp@^1.0.4:
   version "1.0.4"
 
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.npmjs.org/moment/-/moment-2.30.1.tgz"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+
 ms@2.1.2:
   version "2.1.2"
 
@@ -600,9 +602,6 @@ once@^1.3.0, once@^1.4.0:
 only@~0.0.2:
   version "0.0.2"
 
-packet-reader@1.0.0:
-  version "1.0.0"
-
 parseurl@^1.3.2:
   version "1.3.3"
 
@@ -618,64 +617,8 @@ path-parse@^1.0.7:
 path-to-regexp@^6.2.1:
   version "6.2.1"
 
-pg-cloudflare@^1.1.1:
-  version "1.1.1"
-
-pg-connection-string@^2.6.2:
-  version "2.6.2"
-
-pg-int8@1.0.1:
-  version "1.0.1"
-
-pg-pool@^3.6.1:
-  version "3.6.1"
-
-pg-protocol@^1.6.0:
-  version "1.6.0"
-
-pg-types@^2.1.0:
-  version "2.2.0"
-  dependencies:
-    pg-int8 "1.0.1"
-    postgres-array "~2.0.0"
-    postgres-bytea "~1.0.0"
-    postgres-date "~1.0.4"
-    postgres-interval "^1.1.0"
-
-pg@^8.11.3, pg@>=8.0:
-  version "8.11.3"
-  dependencies:
-    buffer-writer "2.0.0"
-    packet-reader "1.0.0"
-    pg-connection-string "^2.6.2"
-    pg-pool "^3.6.1"
-    pg-protocol "^1.6.0"
-    pg-types "^2.1.0"
-    pgpass "1.x"
-  optionalDependencies:
-    pg-cloudflare "^1.1.1"
-
-pgpass@1.x:
-  version "1.0.5"
-  dependencies:
-    split2 "^4.1.0"
-
 picomatch@^2.0.4, picomatch@^2.2.1:
   version "2.3.1"
-
-postgres-array@~2.0.0:
-  version "2.0.0"
-
-postgres-bytea@~1.0.0:
-  version "1.0.0"
-
-postgres-date@~1.0.4:
-  version "1.0.7"
-
-postgres-interval@^1.1.0:
-  version "1.2.0"
-  dependencies:
-    xtend "^4.0.0"
 
 qs@^6.11.0, qs@^6.5.2:
   version "6.11.2"
@@ -740,9 +683,6 @@ source-map-support@^0.5.12:
 source-map@^0.6.0:
   version "0.6.1"
 
-split2@^4.1.0:
-  version "4.2.0"
-
 statuses@^1.5.0, "statuses@>= 1.5.0 < 2":
   version "1.5.0"
 
@@ -804,11 +744,6 @@ ts-node@^10.4.0:
     make-error "^1.1.1"
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
-
-tsc@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.npmjs.org/tsc/-/tsc-2.0.4.tgz"
-  integrity sha512-fzoSieZI5KKJVBYGvwbVZs/J5za84f2lSTLPYf6AGiIf43tZ3GNrI1QzTLcjtyDDP4aLxd46RTZq1nQxe7+k5Q==
 
 tsconfig@^7.0.0:
   version "7.0.0"

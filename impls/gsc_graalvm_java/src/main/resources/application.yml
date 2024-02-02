@@ -8,8 +8,8 @@ spring:
 
 
 # local
-# sourcefilesFolder: "/home/bumzack/stoff/rust/okr_backend/data"
+sourcefilesFolder: "/home/bumzack/stoff/okr_backend/data"
 
 
 # docker
-sourcefilesFolder:  "/data"
+# sourcefilesFolder:  "/data"
