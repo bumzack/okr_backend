@@ -15,8 +15,8 @@ async fn main() -> Result<(), Error> {
 
     let mut rng = thread_rng();
 
-    prod_data(&mut rng);
-    // dev_data(&mut rng);
+    // prod_data(&mut rng);
+     dev_data(&mut rng);
 
     Ok(())
 }

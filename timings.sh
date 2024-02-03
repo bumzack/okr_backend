@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMPORT_URL=(    "http://localhost:12120/api/v1/articles/import"    )
-SYSINFO_URL=(   "http://localhost:12120/api/v1/sysinfo"             )
+IMPORT_URL=(    "http://localhost:23000/api/v1/articles/import"      "http://localhost:23000/api/v2/articles/import"     "http://localhost:23000/api/v3/articles/import"       "http://localhost:2325/api/v2/articles/import"  )
+SYSINFO_URL=(   "http://localhost:23000/api/v1/sysinfo"              "http://localhost:23000/api/v2/sysinfo"             "http://localhost:23000/api/v3/sysinfo"               "http://localhost:2325/api/v2/sysinfo"           )
 
 ITERATIONS=10
 
@@ -25,7 +25,7 @@ do
     URL=${IMPORT_URL[i]}
     for (( iter=1; iter<=$WARMUPS; iter++ ))
     do
-        DURATION=$(curl -w "@curl-format.txt" -s -o /dev/null -X POST  ${URL}  -d '{ "returnItems": false  }'  -H "Content-Type: application/json" )
+        DURATION=$(curl -w "@curl-format.txt" -s  -X POST  ${URL}  -d '{ "returnItems": false  }'  -H "Content-Type: application/json" )
         echo "warmup  #${iter} / ${WARMUPS} took ${DURATION} secs     ${URL}  "
     done
 done
@@ -59,7 +59,7 @@ do
     durations=()
     for (( iter=1; iter<=$ITERATIONS; iter++ ))
     do
-        DURATION=$(curl -w "@curl-format.txt" -s -o  /dev/null -X POST  ${URL}  -d '{ "returnItems": false  }'  -H "Content-Type: application/json" )
+        DURATION=$(curl -w "@curl-format.txt" -s -o  timing_res_${i}_${iter}.json  -X POST  ${URL}  -d '{ "returnItems": false  }'  -H "Content-Type: application/json" )
         echo "run #${iter} / ${ITERATIONS} took ${DURATION} secs           ${URL} "
         durations+=( ${DURATION} )
     done

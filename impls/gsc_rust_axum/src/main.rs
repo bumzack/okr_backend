@@ -10,10 +10,14 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::v1::{import_articles_v1, sysinfo_v1};
+use crate::v2::{import_articles_v2, sysinfo_v2};
+use crate::v3::{import_articles_v3, sysinfo_v3};
 
 mod models;
 mod stuff;
 mod v1;
+mod v2;
+mod v3;
 
 #[tokio::main]
 async fn main() {
@@ -33,6 +37,10 @@ async fn main() {
     let app = Router::new()
         .route("/api/v1/sysinfo", get(sysinfo_v1))
         .route("/api/v1/articles/import", post(import_articles_v1))
+        .route("/api/v2/sysinfo", get(sysinfo_v2))
+        .route("/api/v2/articles/import", post(import_articles_v2))
+        .route("/api/v3/sysinfo", get(sysinfo_v3))
+        .route("/api/v3/articles/import", post(import_articles_v3))
         // Add middleware to all routes
         .layer(
             ServiceBuilder::new()

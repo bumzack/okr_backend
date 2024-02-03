@@ -180,7 +180,7 @@ impl From<String> for Article {
         let attr = &l[START_ATTR..START_CAT];
         let cat = &l[START_CAT..START_POS];
         let pos = &l[START_POS..START_PRICE];
-        println!("price {}", &l[START_PRICE..START_START_DATE]);
+        //println!("price {}", &l[START_PRICE..START_START_DATE]);
         let price = l[START_PRICE..START_START_DATE]
             .parse::<f64>()
             .expect("parsing price");

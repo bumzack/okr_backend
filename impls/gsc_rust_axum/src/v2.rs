@@ -1,8 +1,9 @@
 use std::ffi::OsString;
-use std::fs;
 use std::fs::File;
 use std::io::Error;
 use std::io::{BufRead, BufReader};
+use std::sync::{Arc, Mutex};
+use std::{fs, thread};
 
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -11,32 +12,83 @@ use axum::Json;
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
 use crate::stuff::{Code, Pos};
 
-pub async fn import_articles_v1(Json(input): Json<ImportRequest>) -> impl IntoResponse {
+pub async fn import_articles_v2(Json(input): Json<ImportRequest>) -> impl IntoResponse {
     println!("request  {:?}", input);
-    let mut res = ImportResult::default();
+    let res = ImportResult::default();
     let files = read_files().await.expect("should read files");
-    for f in &files {
-        println!("file  {:?}", f);
-        let mut res_file = process_file(f, input.return_items)
-            .await
-            .expect("should processs a file");
+    let files = Arc::new(Mutex::new(files));
+    let res = Arc::new(Mutex::new(res));
+    let cores = 16;
 
-        res.db_rows_written += res_file.db_rows_written;
-        res.lines_processed += res_file.lines_processed;
-        res.items.append(&mut res_file.items);
+    let mut worker_threads = vec![];
+    for _ in 0..cores {
+        let files = files.clone();
+        let res = res.clone();
+
+        let mut files_processed = 0;
+        let t = thread::spawn(move || {
+            let mut filename;
+            while files.lock().unwrap().len() > 0 {
+                {
+                    filename = files.lock().unwrap().pop();
+                    println!(
+                        "thread {:?}  processing file  {:?}",
+                        thread::current().id(),
+                        &filename
+                    );
+                }
+                if filename.is_some() {
+                    files_processed += 1;
+
+                    let res_file = process_file_v2(&filename.as_ref().unwrap(), input.return_items)
+                        .expect("should processs a file");
+                    println!(
+                        "res filename  {:?}   res  {:?}",
+                        &filename.as_ref(),
+                        res_file
+                    );
+                    {
+                        let mut res = res.lock().unwrap();
+                        res.lines_processed += res_file.lines_processed;
+                        res.db_rows_written += res_file.db_rows_written;
+                    }
+                }
+            }
+            (thread::current().id(), files_processed)
+        });
+        worker_threads.push(t);
     }
 
-    (StatusCode::OK, Json(res))
+    for t in worker_threads {
+        let th = t.join();
+        match th {
+            Ok((id, files_processed)) => {
+                println!("thread {:?} processed {} files", id, files_processed)
+            }
+            Err(e) => {
+                println!("thread crashed   {:?}", e);
+            }
+        }
+    }
+
+    let res1 = Arc::try_unwrap(res).unwrap();
+    let res1 = res1.into_inner().unwrap();
+
+    println!(
+        "res1   db_rows_written {},   lines_processed {} ",
+        res1.db_rows_written, res1.lines_processed
+    );
+    (StatusCode::OK, Json(res1))
 }
 
-pub async fn sysinfo_v1() -> impl IntoResponse {
+pub async fn sysinfo_v2() -> impl IntoResponse {
     let si = Sysinfo {
         author: "gsc".to_string(),
-        comment: "impl".to_string(),
+        comment: "work steal - 1 file per thread".to_string(),
         framework: "axum".to_string(),
         language: "rust".to_string(),
-        version: "v1".to_string(),
-        multithreaded: false,
+        version: "v2".to_string(),
+        multithreaded: true,
     };
     (StatusCode::OK, Json(si))
 }
@@ -58,7 +110,7 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
     Ok(files)
 }
 
-async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
+fn process_file_v2(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
     let filename = format!(
         "{}/{}",
         "/home/bumzack/stoff/okr_backend/data",

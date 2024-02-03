@@ -14,6 +14,16 @@ pub struct ImportResult {
     pub items: Vec<Article>,
 }
 
+impl Default for ImportResult {
+    fn default() -> Self {
+        ImportResult {
+            lines_processed: 0,
+            db_rows_written: 0,
+            items: vec![],
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Article {
