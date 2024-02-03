@@ -17,17 +17,49 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
     let files = read_files().expect("should read files");
 
     let (sender, receiver) = mpsc::channel::<Vec<String>>();
-
     let receiver = Arc::new(Mutex::new(receiver));
-
     let res = Arc::new(Mutex::new(res));
-
     let cores = 4;
-
     let mut worker_threads = vec![];
-
-    let lines_per_group = 100;
+    let lines_per_group = 1_000;
     let mut group_cnt = 0;
+
+    for _ in 0..cores {
+        let res = res.clone();
+        let receiver = receiver.clone();
+        let mut groups_processed = 0;
+        let t = thread::spawn(move || {
+            let mut lines;
+            loop {
+                lines = receiver.lock().unwrap().recv();
+                match lines {
+                    Ok(lines) => {
+                        groups_processed += 1;
+                        let cnt = lines.len();
+                        let res_file = process_file_v3(lines, input.return_items)
+                            .expect("should processs a Vec<String>");
+                        println!(
+                            "thread {:?}   lines cnt processed  {:?}   res  {:?}",
+                            thread::current().id(),
+                            cnt,
+                            res_file
+                        );
+                        {
+                            let mut res = res.lock().unwrap();
+                            res.lines_processed += res_file.lines_processed;
+                            res.db_rows_written += 1 //  res_file.db_rows_written;
+                        }
+                    }
+                    Err(e) => {
+                        println!("all work is done {:?} ", e);
+                        break;
+                    }
+                }
+            }
+            (thread::current().id(), groups_processed)
+        });
+        worker_threads.push(t);
+    }
 
     let producer_thread = thread::spawn(move || {
         for f in files {
@@ -69,46 +101,18 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
         group_cnt
     });
 
-    for _ in 0..cores {
-        let res = res.clone();
-        let receiver = receiver.clone();
-        let mut groups_processed = 0;
-        let t = thread::spawn(move || {
-            let mut lines;
-            while receiver
-                .lock()
-                .unwrap()
-                .recv()
-                .iter()
-                .peekable()
-                .peek()
-                .is_some()
-            {
-                println!("in while loop ");
-                {
-                    lines = receiver.lock().unwrap().recv();
-                    match lines {
-                        Ok(lines) => {
-                            groups_processed += 1;
-                            let cnt = lines.len();
-                            let res_file = process_file_v3(lines, input.return_items)
-                                .expect("should processs a Vec<String>");
-                            println!("lines cnt processed  {:?}   res  {:?}", cnt, res_file);
-                            {
-                                let mut res = res.lock().unwrap();
-                                res.lines_processed += res_file.lines_processed;
-                                res.db_rows_written += res_file.db_rows_written;
-                            }
-                        }
-                        Err(e) => {
-                            println!("all work is done {:?} ", e);
-                        }
-                    }
-                }
+    println!("joining worker threads");
+
+    for t in worker_threads {
+        let th = t.join();
+        match th {
+            Ok((id, groups_processed)) => {
+                println!("thread {:?} processed {} group", id, groups_processed)
             }
-            (thread::current().id(), groups_processed)
-        });
-        worker_threads.push(t);
+            Err(e) => {
+                println!("thread crashed   {:?}", e);
+            }
+        }
     }
 
     println!("join producer thread");
@@ -121,19 +125,6 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
             println!("producer thread crashed   {:?}", e);
         }
     }
-    println!("joining worker threads");
-
-    for t in worker_threads {
-        let th = t.join();
-        match th {
-            Ok((id, files_processed)) => {
-                println!("thread {:?} processed {} files", id, files_processed)
-            }
-            Err(e) => {
-                println!("thread crashed   {:?}", e);
-            }
-        }
-    }
 
     let res1 = Arc::try_unwrap(res).unwrap();
     let res1 = res1.into_inner().unwrap();
@@ -144,141 +135,6 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
     );
     (StatusCode::OK, Json(res1))
 }
-
-//
-// pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoResponse {
-//     println!("request  {:?}", input);
-//     let res = ImportResult::default();
-//     let files = read_files().expect("should read files");
-//
-//     let line_groups: Vec<VecDeque<String>> = vec![];
-//
-//     let line_groups = Arc::new(Mutex::new(line_groups));
-//     let res = Arc::new(Mutex::new(res));
-//     let finished = Arc::new(Mutex::new(false));
-//
-//     let cores = 4;
-//
-//     let mut worker_threads = vec![];
-//
-//     let lines_per_group = 100;
-//     let mut group_cnt = 0;
-//
-//     let line_groups_producer = line_groups.clone();
-//     let finished_producser = finished.clone();
-//     let producer_thread = thread::spawn(move || {
-//         for f in files {
-//             let filename = format!(
-//                 "{}/{}",
-//                 "/home/bumzack/stoff/okr_backend/data",
-//                 f.to_str().expect("should be a filename")
-//             );
-//             println!("file   {}", &filename);
-//             let file = File::open(filename).expect("file open");
-//             let reader = BufReader::new(file);
-//
-//             let mut iter = reader.lines();
-//
-//             let mut lines_read = 0;
-//             let mut line = iter.next();
-//             while line.is_some() {
-//                 let mut group: VecDeque<String> = VecDeque::new();
-//                 while line.is_some() && lines_read < lines_per_group {
-//                     let l = line.as_ref().unwrap().as_ref().unwrap().clone();
-//                     group.push_back(l);
-//                     lines_read += 1;
-//                     line = iter.next();
-//                 }
-//                 // println!(
-//                 //     "lines read  {}, group size {},   groups  {}",
-//                 //     lines_read,
-//                 //     group.len(),
-//                 //     group_cnt
-//                 // );
-//                 lines_read = 0;
-//                 {
-//                     group_cnt += 1;
-//                     line_groups_producer.lock().unwrap().push(group);
-//                 }
-//             }
-//         }
-//         {
-//             *finished_producser.lock().unwrap() = true;
-//         }
-//         println!("producer thread produced {} groups", group_cnt);
-//         group_cnt
-//     });
-//
-//     for _ in 0..cores {
-//         let res = res.clone();
-//         let line_groups = line_groups.clone();
-//         let finished = finished.clone();
-//
-//         let mut groups_processed = 0;
-//         let t = thread::spawn(move || {
-//             let mut lines;
-//             while !*finished.lock().unwrap() {
-//                 println!("in while loop ");
-//                 {
-//                     lines = line_groups.lock().unwrap().pop();
-//                     println!(
-//                         "thread {:?}  processing file  {:?}",
-//                         thread::current().id(),
-//                         &lines.as_ref().unwrap().len()
-//                     );
-//                 }
-//
-//                 if lines.is_some() {
-//                     groups_processed += 1;
-//
-//                     let res_file = process_file_v3(lines.as_mut().unwrap(), input.return_items)
-//                         .expect("should processs a file");
-//                     println!("res filename  {:?}   res  {:?}", &lines.as_ref(), res_file);
-//                     {
-//                         let mut res = res.lock().unwrap();
-//                         res.lines_processed += res_file.lines_processed;
-//                         res.db_rows_written += res_file.db_rows_written;
-//                     }
-//                 }
-//             }
-//             (thread::current().id(), groups_processed)
-//         });
-//         worker_threads.push(t);
-//     }
-//
-//     println!("join producer thread");
-//
-//     match producer_thread.join() {
-//         Ok(res) => {
-//             println!("producer thread produced  {:?} groups", res)
-//         }
-//         Err(e) => {
-//             println!("producer thread crashed   {:?}", e);
-//         }
-//     }
-//     println!("joining worker threads");
-//
-//     for t in worker_threads {
-//         let th = t.join();
-//         match th {
-//             Ok((id, files_processed)) => {
-//                 println!("thread {:?} processed {} files", id, files_processed)
-//             }
-//             Err(e) => {
-//                 println!("thread crashed   {:?}", e);
-//             }
-//         }
-//     }
-//
-//     let res1 = Arc::try_unwrap(res).unwrap();
-//     let res1 = res1.into_inner().unwrap();
-//
-//     println!(
-//         "res1   db_rows_written {},   lines_processed {} ",
-//         res1.db_rows_written, res1.lines_processed
-//     );
-//     (StatusCode::OK, Json(res1))
-// }
 
 pub async fn sysinfo_v3() -> impl IntoResponse {
     let si = Sysinfo {
