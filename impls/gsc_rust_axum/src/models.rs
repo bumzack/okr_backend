@@ -17,15 +17,15 @@ pub struct ImportResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Article {
-    pub code: String,
-    pub title: String,
-    pub description: String,
-    pub categories: String,
     pub attributes: String,
-    pub price: f64,
-    pub start_date: String,
+    pub categories: String,
+    pub code: String,
+    pub description: String,
     pub end_date: String,
     pub pos: String,
+    pub price: f64,
+    pub start_date: String,
+    pub title: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]

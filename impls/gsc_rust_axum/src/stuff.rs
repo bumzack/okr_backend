@@ -50,55 +50,58 @@ pub trait EndDate {
 
 impl Code for String {
     fn code(&self) -> String {
-        self[0..LEN_CODE].to_string()
+        self[0..LEN_CODE].trim_start_matches('0').to_string()
     }
 }
 
 impl Title for String {
     fn title(&self) -> String {
-        self[START_TITLE..START_DESC - 1].to_string()
+        self[START_TITLE..START_DESC].to_string()
     }
 }
 
 impl Description for String {
     fn description(&self) -> String {
-        self[START_DESC..START_ATTR - 1].to_string()
+        self[START_DESC..START_ATTR].to_string()
     }
 }
 
 impl Attributes for String {
     fn attributes(&self) -> String {
-        self[START_ATTR..START_CAT - 1].to_string()
+        self[START_ATTR..START_CAT].to_string()
     }
 }
 
 impl Categories for String {
     fn categories(&self) -> String {
-        self[START_CAT..START_POS - 1].to_string()
+        self[START_CAT..START_POS].to_string()
     }
 }
 
 impl Pos for String {
     fn pos(&self) -> String {
-        self[START_POS..START_PRICE - 1].to_string()
+        self[START_POS..START_PRICE]
+            .trim_start_matches('0')
+            .trim()
+            .to_string()
     }
 }
 
 impl Price for String {
     fn price(&self) -> String {
-        self[START_PRICE..START_START_DATE - 1].to_string()
+        self[START_PRICE..START_START_DATE].to_string()
     }
 }
 
 impl StartDate for String {
     fn start_date(&self) -> String {
-        self[START_START_DATE..START_END_DATE - 1].to_string()
+        self[START_START_DATE..START_END_DATE].to_string()
     }
 }
 
 impl EndDate for String {
     fn end_date(&self) -> String {
-        self[START_END_DATE..START_END_DATE + LEN_END_DATE - 1].to_string()
+        self[START_END_DATE..START_END_DATE + LEN_END_DATE].to_string()
     }
 }
 
@@ -172,15 +175,16 @@ impl From<String> for Article {
     fn from(value: String) -> Self {
         let l = value.as_str();
         let code = &l[0..LEN_CODE];
-        let title = &l[START_TITLE..START_DESC - 1];
-        let desc = &l[START_DESC..START_ATTR - 1];
-        let attr = &l[START_ATTR..START_CAT - 1];
-        let cat = &l[START_CAT..START_POS - 1];
-        let pos = &l[START_POS..START_PRICE - 1];
-        let price = l[START_PRICE..START_START_DATE - 1]
+        let title = &l[START_TITLE..START_DESC];
+        let desc = &l[START_DESC..START_ATTR];
+        let attr = &l[START_ATTR..START_CAT];
+        let cat = &l[START_CAT..START_POS];
+        let pos = &l[START_POS..START_PRICE];
+        println!("price {}", &l[START_PRICE..START_START_DATE]);
+        let price = l[START_PRICE..START_START_DATE]
             .parse::<f64>()
             .expect("parsing price");
-        let start_date = l[START_START_DATE..START_END_DATE - 1]
+        let start_date = l[START_START_DATE..START_END_DATE]
             .parse::<i64>()
             .expect("parsing start date");
         let end_date = l[START_END_DATE..START_END_DATE + LEN_END_DATE]
@@ -190,8 +194,9 @@ impl From<String> for Article {
             DateTime::<Utc>::from_timestamp(start_date, 0).expect("invalid timestamp starte date");
         let end_time =
             DateTime::<Utc>::from_timestamp(end_date, 0).expect("invalid timestamp end date");
-        let start_date = start_time.to_rfc3339();
-        let end_date = end_time.to_rfc3339();
+
+        let start_date = start_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let end_date = end_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
         Article {
             code: code.trim_start_matches('0').to_string(),
@@ -202,7 +207,7 @@ impl From<String> for Article {
             price,
             start_date,
             end_date,
-            pos: pos.trim_start_matches('0').to_string(),
+            pos: pos.trim_start_matches('0').trim().to_string(),
         }
     }
 }

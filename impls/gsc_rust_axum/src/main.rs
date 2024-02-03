@@ -9,7 +9,6 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-use crate::stuff::{Categories, Code, Description, EndDate, Pos, Price, StartDate, Title};
 use crate::v1::{import_articles_v1, sysinfo_v1};
 
 mod models;

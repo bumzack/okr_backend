@@ -1,17 +1,15 @@
 use std::ffi::OsString;
 use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::io::Error;
+use std::io::{BufRead, BufReader};
 
 use axum::http::StatusCode;
-use axum::Json;
 use axum::response::IntoResponse;
+use axum::Json;
 
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
-use crate::stuff::{
-    Attributes, Categories, Code, Description, EndDate, Pos, Price, StartDate, Title,
-};
+use crate::stuff::{Code, Pos};
 
 pub async fn import_articles_v1(Json(input): Json<ImportRequest>) -> impl IntoResponse {
     println!("request  {:?}", input);
@@ -63,74 +61,6 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
     files.sort_by(|a: &OsString, b: &OsString| a.to_str().partial_cmp(&b.to_str()).unwrap());
     Ok(files)
 }
-//
-// async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
-//     let filename = format!(
-//         "{}/{}",
-//         "/home/bumzack/stoff/okr_backend/data",
-//         f.to_str().expect("should be a filename")
-//     );
-//     println!("filename  {}   return_items {}", &filename, return_items);
-//
-//     let mut lines_processed = 0;
-//     let mut db_rows_written = 0;
-//
-//     let file = File::open(filename)?;
-//     let reader = BufReader::new(file);
-//
-//     let mut iter = reader.lines();
-//     let mut line: Option<String> = iter.next();
-//     let mut previous: Option<Result<String, Error>> = None;
-//     lines_processed += 1;
-//
-//     let mut article_grouped_by_code_and_pos = vec![];
-//     let mut articles_ready_to_write_to_db = vec![];
-//
-//     loop {
-//         if previous.is_none() {
-//             // new grouping start - because first article ever
-//             let tmp = line.expect("should work").expect("should work 2");
-//             let prev = Article::from(tmp);
-//             article_grouped_by_code_and_pos.push(prev);
-//         } else {
-//             // is article part of current group?
-//             let prev = previous
-//                 .expect("prev should work")
-//                 .expect("prev should work 2");
-//             let act = line.expect("line should work").expect("line should work 2");
-//             if prev.code() == act.code() && prev.pos() == act.pos() {
-//                 let act = Article::from(act);
-//                 article_grouped_by_code_and_pos.push(act);
-//             } else {
-//                 // article is not part of current group -> find cheapeast
-//                 article_grouped_by_code_and_pos.sort_by(|a, b| a.price.total_cmp(&&b.price));
-//                 let cheapest = article_grouped_by_code_and_pos[0].clone();
-//                 if return_items {
-//                     articles_ready_to_write_to_db.push(cheapest);
-//                 }
-//                 db_rows_written += 1;
-//
-//                 article_grouped_by_code_and_pos.clear();
-//                 article_grouped_by_code_and_pos.push(Article::from(act));
-//             }
-//         }
-//
-//         line = iter.next();
-//         if line.is_none() {
-//             break;
-//         }
-//         lines_processed += 1;
-//
-//         previous = line;
-//     }
-//
-//     let ir = ImportResult {
-//         lines_processed,
-//         db_rows_written,
-//         items: vec![],
-//     };
-//     Ok(ir)
-// }
 
 async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
     let filename = format!(
@@ -159,17 +89,32 @@ async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, 
             let tmp = line.expect("should work").expect("should work 2");
             let prev = Article::from(tmp);
             article_grouped_by_code_and_pos.push(prev);
+            println!("new group");
         } else {
             // is article part of current group?
             let previous_article = article_grouped_by_code_and_pos.last().unwrap();
             let current_line = line.expect("line should work").expect("line should work 2");
+
+            println!(
+                "previous_article  code '{}'  pos '{}'",
+                previous_article.code(),
+                previous_article.pos()
+            );
+            println!(
+                "current_line      code '{}'  pos '{}'",
+                current_line.code(),
+                current_line.pos()
+            );
+
             if previous_article.code() == current_line.code()
                 && previous_article.pos() == current_line.pos()
             {
                 let article = Article::from(current_line);
                 article_grouped_by_code_and_pos.push(article);
+                println!("article add to current group");
             } else {
                 // article is not part of current group -> find cheapest
+                println!("find cheapest");
                 article_grouped_by_code_and_pos.sort_by(|a, b| a.price.total_cmp(&b.price));
                 let cheapest = article_grouped_by_code_and_pos[0].clone();
                 if return_items {
