@@ -75,78 +75,78 @@ public class ArticleService {
     }
 
     private ImportResult processFile(final File f, boolean returnItems) throws IOException {
-        final var reader = new BufferedReader(new FileReader(f));
-        long linesProcessed = 0;
-        long dbRowsWritten = 0;
+        try (final var reader = new BufferedReader(new FileReader(f))) {
+            long linesProcessed = 0;
+            long dbRowsWritten = 0;
 
-        String line = reader.readLine();
-        linesProcessed++;
+            String line = reader.readLine();
+            linesProcessed++;
 
-        final var article_grouped_by_code_and_pos = new ArrayList<Article>();
-        final var articles_ready_to_write_to_db = new ArrayList<Article>();
+            final var article_grouped_by_code_and_pos = new ArrayList<Article>();
+            final var articles_ready_to_write_to_db = new ArrayList<Article>();
 
-        if (nonNull(line)) {
-            Article article;
-            Article prevArticle = null;
-            while (true) {
-                article = line2article(line);
-                // LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
+            if (nonNull(line)) {
+                Article article;
+                Article prevArticle = null;
+                while (true) {
+                    article = line2article(line);
+                    // LOG.info("line {},    article    code {}, pos {}, price  {}", linesProcessed, article.getCode(), article.getPos(), article.getPrice());
 
-                if (isNull(prevArticle)) {
-                    // new grouping start - because first article ever
-                    article_grouped_by_code_and_pos.add(article);
-                } else {
-                    // is article part of current group?
-                    if (article.getCode().equals(prevArticle.getCode()) && article.getPos().equals(prevArticle.getPos())) {
+                    if (isNull(prevArticle)) {
+                        // new grouping start - because first article ever
                         article_grouped_by_code_and_pos.add(article);
                     } else {
-                        // article is not part of current group -> find cheapeast
-                        final var cheapestArticle = article_grouped_by_code_and_pos.stream()
-                                .sorted(Comparator.comparing(Article::getPrice))
-                                .limit(1)
-                                .toList();
-                        if (returnItems) {
-                            articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+                        // is article part of current group?
+                        if (article.getCode().equals(prevArticle.getCode()) && article.getPos().equals(prevArticle.getPos())) {
+                            article_grouped_by_code_and_pos.add(article);
+                        } else {
+                            // article is not part of current group -> find cheapeast
+                            final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                                    .sorted(Comparator.comparing(Article::getPrice))
+                                    .limit(1)
+                                    .toList();
+                            if (returnItems) {
+                                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
+                            }
+                            dbRowsWritten++;
+
+                            // clear group and add article
+                            article_grouped_by_code_and_pos.clear();
+                            article_grouped_by_code_and_pos.add(article);
                         }
-                        dbRowsWritten++;
-
-                        // clear group and add article
-                        article_grouped_by_code_and_pos.clear();
-                        article_grouped_by_code_and_pos.add(article);
                     }
+
+                    line = reader.readLine();
+                    if (isNull(line)) {
+                        break;
+                    }
+                    linesProcessed++;
+                    prevArticle = article;
                 }
 
-                line = reader.readLine();
-                if (isNull(line)) {
-                    break;
+                // write last article in file
+                final var cheapestArticle = article_grouped_by_code_and_pos.stream()
+                        .sorted(Comparator.comparing(Article::getPrice))
+                        .limit(1)
+                        .toList();
+                if (returnItems) {
+                    articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
                 }
-                linesProcessed++;
-                prevArticle = article;
+                dbRowsWritten++;
+
+                // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
+
+                // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
             }
 
-            // write last article in file
-            final var cheapestArticle = article_grouped_by_code_and_pos.stream()
-                    .sorted(Comparator.comparing(Article::getPrice))
-                    .limit(1)
-                    .toList();
-            if (returnItems) {
-                articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
-            }
-            dbRowsWritten++;
+            final var importResult = new ImportResult();
+            importResult.setDbRowsWritten(dbRowsWritten);
+            importResult.setLinesProcessed(linesProcessed);
+            importResult.setArticles(articles_ready_to_write_to_db);
 
-            // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
-
-            // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
+            return importResult;
         }
-
-        final var importResult = new ImportResult();
-        importResult.setDbRowsWritten(dbRowsWritten);
-        importResult.setLinesProcessed(linesProcessed);
-        importResult.setArticles(articles_ready_to_write_to_db);
-
-        return importResult;
     }
-
 
     private Article line2article(final String line) {
         final var article = new Article();
