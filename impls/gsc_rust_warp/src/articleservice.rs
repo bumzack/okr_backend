@@ -27,26 +27,20 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
             info!("file name {:?}", n);
         });
 
-    let mut res = vec![];
+    let mut lines_processed = 0;
+    let mut db_rows_written = 0;
+    let mut articles = vec![];
+
     for f in files {
         let n = f.as_ref().expect("is a file").file_name();
         info!("processing file name {:?}", n);
-        let ir = process_file(&n, &data_dir).await;
+        let mut ir = process_file(&n, &data_dir).await;
         info!("import result   for file {:?}",  &n);
-        res.push(ir);
-    }
-
-    let mut lines_processed = 0;
-    let mut db_rows_written = 0;
-
-
-    let mut articles = vec![];
-    res.iter_mut()
-        .for_each(|ir| {
             lines_processed += ir.lines_processed;
             db_rows_written += ir.db_rows_written;
             articles.append(&mut ir.items);
-        });
+    }
+
     let ir = ImportResult {
         lines_processed,
         db_rows_written,
