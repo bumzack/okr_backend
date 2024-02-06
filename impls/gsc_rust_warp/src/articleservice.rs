@@ -55,7 +55,7 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
     Ok(ir)
 }
 
-async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
+async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult{
     let exp_msg = format!("file open of file '{}' should work", file_name.to_str().expect("filename"));
     let f = format!("{}/{}", data_dir, file_name.to_str().expect("sould do it"));
     let f = File::open(f).expect(&exp_msg);
@@ -77,13 +77,14 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
                 } else {
                     current_article
                         .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
-                    articles.push(current_article.first().expect("at least 1 article should be in the file").clone());
+                    let art = current_article.first().expect("at least 1 article should be in the file");
+                    articles.push(art.clone());
                     db_rows_written += 1;
                     current_article.clear();
                 }
             }
             None => {
-                articles.push(article);
+                current_article.push(article);
                 db_rows_written += 1;
             }
         }
