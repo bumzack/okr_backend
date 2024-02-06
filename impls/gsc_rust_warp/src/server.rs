@@ -32,7 +32,7 @@ fn import_request() -> impl Filter<Extract=(ImportRequest, ), Error=warp::Reject
 }
 
 pub async fn import_articles_v1(return_items: bool) -> Result<impl warp::Reply, Infallible> {
-    let response = import_articles().await.expect("importing data should work");
+    let response = import_articles().expect("importing data should work");
     if return_items {
         let response = warp::reply::json(&response);
         Ok(response)

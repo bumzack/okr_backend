@@ -11,7 +11,7 @@ use crate::server::routes;
 mod models;
 mod articleservice;
 mod server;
-
+use log::{info};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -21,6 +21,8 @@ async fn main() -> Result<(), Error> {
 
     dotenv().expect(".env file not found");
     let port = env::var("PORT").expect("PORT").parse::<u16>().expect("port must be a number");
+    info!("port {}", port);
+
     let routes = routes().with(warp::log("rust_warp"));
     // Start up the server...
     warp::serve(routes).run(([127, 0, 0, 1], port)).await;
