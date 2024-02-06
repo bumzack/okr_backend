@@ -31,103 +31,80 @@ private const val LEN_START = 25
 class ArticleService {
     @Value("\${sourcefilesFolder}")
     private val sourceFilesFolder: String = ""
-    fun importArticles(returnItems: Boolean): ImportResult {
+    fun importArticles(): ImportResult {
         LOG.info("sourceFilesFolder {}", sourceFilesFolder)
         val folder = File(sourceFilesFolder)
 
         val res = Arrays.stream(Objects.requireNonNull<Array<File>>(folder.listFiles()))
-            .filter { file: File -> file.name.contains(".txt") }
-            .sorted(Comparator.comparing<File, String> { obj: File -> obj.name })
-            .map<ImportResult?> { f: File ->
-                tryProcessFile(
-                    f,
-                    returnItems
-                )
-            }
-            .toList();
+                .filter { file: File -> file.name.contains(".txt") }
+                .sorted(Comparator.comparing<File, String> { obj: File -> obj.name })
+                .map<ImportResult?> { f: File ->
+                    tryProcessFile(
+                            f
+                    )
+                }
+                .toList();
 
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
 
 
-        if (returnItems) {
-            val articles = mutableListOf<Article>()
-            res.forEach { r ->
-                linesProcessed += r.linesProcessed
-                dbRowsWritten += r.dbRowsWritten
-                articles.addAll(r.articles)
-            }
+        val articles = mutableListOf<Article>()
+        res.forEach { r ->
+            linesProcessed += r.linesProcessed
+            dbRowsWritten += r.dbRowsWritten
+            articles.addAll(r.articles)
+        }
 
-            return ImportResult(
+        return ImportResult(
                 linesProcessed = linesProcessed,
                 dbRowsWritten = dbRowsWritten,
                 articles = articles,
-            )
-        } else {
-            res.forEach { r ->
-                linesProcessed += r.linesProcessed
-                dbRowsWritten += r.dbRowsWritten
-            }
+        )
 
-            return ImportResult(
-                linesProcessed = linesProcessed,
-                dbRowsWritten = dbRowsWritten,
-                articles = emptyList()
-            )
-        }
+
     }
 
-    fun importArticles2(returnItems: Boolean): ImportResult {
+    fun importArticles2(): ImportResult {
         LOG.info("sourceFilesFolder {}", sourceFilesFolder)
         val folder = File(sourceFilesFolder)
 
         val res = Arrays.stream(Objects.requireNonNull<Array<File>>(folder.listFiles()))
-            .filter { file: File -> file.name.contains(".txt") }
-            .sorted(Comparator.comparing { obj: File -> obj.name })
-            .toList()
-            .parallelStream()
-            .map<ImportResult?> { f: File ->
-                tryProcessFile(f, returnItems)
-            }
-            .toList();
+                .filter { file: File -> file.name.contains(".txt") }
+                .sorted(Comparator.comparing { obj: File -> obj.name })
+                .toList()
+                .parallelStream()
+                .map<ImportResult?> { f: File ->
+                    tryProcessFile(f)
+                }
+                .toList();
 
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
 
-        if (returnItems) {
-            val articles = mutableListOf<Article>()
-            res.forEach { r ->
-                linesProcessed += r.linesProcessed
-                dbRowsWritten += r.dbRowsWritten
-                articles.addAll(r.articles)
-            }
-            return ImportResult(
+
+        val articles = mutableListOf<Article>()
+        res.forEach { r ->
+            linesProcessed += r.linesProcessed
+            dbRowsWritten += r.dbRowsWritten
+            articles.addAll(r.articles)
+        }
+        return ImportResult(
                 linesProcessed = linesProcessed,
                 dbRowsWritten = dbRowsWritten,
                 articles = articles,
-            )
-        } else {
-            res.forEach { r ->
-                linesProcessed += r.linesProcessed
-                dbRowsWritten += r.dbRowsWritten
-            }
+        )
 
-            return ImportResult(
-                linesProcessed = linesProcessed,
-                dbRowsWritten = dbRowsWritten,
-                articles = emptyList()
-            )
-        }
     }
 
-    private fun tryProcessFile(f: File, returnItems: Boolean): ImportResult? {
+    private fun tryProcessFile(f: File): ImportResult? {
         try {
-            val res: ImportResult = processFile(f, returnItems)
+            val res: ImportResult = processFile(f)
             LOG.info(
-                "filename {},  linesProcessed  {},   dbRowsWritten  {} ",
-                f.name,
-                res.linesProcessed,
-                res.dbRowsWritten
+                    "filename {},  linesProcessed  {},   dbRowsWritten  {} ",
+                    f.name,
+                    res.linesProcessed,
+                    res.dbRowsWritten
             )
             return res
         } catch (e: IOException) {
@@ -137,7 +114,7 @@ class ArticleService {
     }
 
     @Throws(IOException::class)
-    private fun processFile(f: File, returnItems: Boolean): ImportResult {
+    private fun processFile(f: File): ImportResult {
         val reader = BufferedReader(FileReader(f))
         var linesProcessed: Long = 0
         var dbRowsWritten: Long = 0
@@ -146,9 +123,9 @@ class ArticleService {
         linesProcessed++
 
         val article_grouped_by_code_and_pos: ArrayList<Article> =
-            ArrayList<Article>()
+                ArrayList<Article>()
         val articles_ready_to_write_to_db: ArrayList<Article> =
-            ArrayList<Article>()
+                ArrayList<Article>()
 
         if (Objects.nonNull(line)) {
             var article: Article
@@ -167,13 +144,11 @@ class ArticleService {
                     } else {
                         // article is not part of current group -> find cheapeast
                         val cheapestArticle: List<Article> =
-                            article_grouped_by_code_and_pos.stream()
-                                .sorted(Comparator.comparing({ obj: Article -> obj.price }))
-                                .limit(1)
-                                .toList()
-                        if (returnItems) {
+                                article_grouped_by_code_and_pos.stream()
+                                        .sorted(Comparator.comparing({ obj: Article -> obj.price }))
+                                        .limit(1)
+                                        .toList()
                             articles_ready_to_write_to_db.add(cheapestArticle.first())
-                        }
                         dbRowsWritten++
 
                         // clear group and add article
@@ -192,12 +167,10 @@ class ArticleService {
 
             // write last article in file
             val cheapestArticle: List<Article> = article_grouped_by_code_and_pos.stream()
-                .sorted(Comparator.comparing { obj: Article -> obj.price })
-                .limit(1)
-                .toList()
-            if (returnItems) {
+                    .sorted(Comparator.comparing { obj: Article -> obj.price })
+                    .limit(1)
+                    .toList()
                 articles_ready_to_write_to_db.add(cheapestArticle.first())
-            }
             dbRowsWritten++
 
             // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
@@ -216,41 +189,41 @@ class ArticleService {
 
     private fun line2article(line: String): Article {
         val beginDesc: Int =
-            LEN_CODE + LEN_TITLE
+                LEN_CODE + LEN_TITLE
         val beginAttr: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC
+                LEN_CODE + LEN_TITLE + LEN_DESC
         val beginCat: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES
+                LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES
         val beginPos: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES
+                LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES
         val beginPrice: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS
+                LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS
         val beginStartDate: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE
+                LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE
         val beginEndDate: Int =
-            LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE + LEN_START
+                LEN_CODE + LEN_TITLE + LEN_DESC + LEN_ATTRIBUTES + LEN_CATEGORIES + LEN_POS + LEN_PRICE + LEN_START
 
         val startDateStr = line.substring(beginStartDate, beginEndDate)
         val endDateStr = line.substring(beginEndDate)
         val start = LocalDateTime.ofInstant(
-            Instant.ofEpochSecond(startDateStr.toLong()),
-            ZoneId.of("UTC")
+                Instant.ofEpochSecond(startDateStr.toLong()),
+                ZoneId.of("UTC")
         )
         val end = LocalDateTime.ofInstant(
-            Instant.ofEpochSecond(endDateStr.toLong()),
-            ZoneId.of("UTC")
+                Instant.ofEpochSecond(endDateStr.toLong()),
+                ZoneId.of("UTC")
         )
 
         val article = Article(
-            code = trimLeadingZeroes(line.substring(0, LEN_CODE)),
-            title = line.substring(LEN_CODE, beginDesc).trim { it <= ' ' },
-            description = line.substring(beginDesc, beginAttr).trim { it <= ' ' },
-            attributes = line.substring(beginAttr, beginCat).trim { it <= ' ' },
-            categories = line.substring(beginCat, beginPos).trim { it <= ' ' },
-            pos = trimLeadingZeroes(line.substring(beginPos, beginPrice).trim { it <= ' ' }),
-            price = BigDecimal.valueOf(line.substring(beginPrice, beginStartDate).toDouble()),
-            startDate = LocalDateTime.from(start).toString(),
-            endDate = LocalDateTime.from(end).toString(),
+                code = trimLeadingZeroes(line.substring(0, LEN_CODE)),
+                title = line.substring(LEN_CODE, beginDesc).trim { it <= ' ' },
+                description = line.substring(beginDesc, beginAttr).trim { it <= ' ' },
+                attributes = line.substring(beginAttr, beginCat).trim { it <= ' ' },
+                categories = line.substring(beginCat, beginPos).trim { it <= ' ' },
+                pos = trimLeadingZeroes(line.substring(beginPos, beginPrice).trim { it <= ' ' }),
+                price = BigDecimal.valueOf(line.substring(beginPrice, beginStartDate).toDouble()),
+                startDate = LocalDateTime.from(start).toString(),
+                endDate = LocalDateTime.from(end).toString(),
         )
         return article
     }

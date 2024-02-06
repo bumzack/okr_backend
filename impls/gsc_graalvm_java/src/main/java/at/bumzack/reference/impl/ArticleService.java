@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -40,32 +41,42 @@ public class ArticleService {
     public ArticleService() {
     }
 
-    public ImportResult importArticles(boolean returnItems) {
-        LOG.info("sourceFilesFolder {}", sourceFilesFolder);
+    public ImportResult importArticles() {
+        LOG.info("sourceFilesFolder   importArticles  {}", sourceFilesFolder);
         final var folder = new File(sourceFilesFolder);
 
         return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .filter(file -> file.getName().contains(".txt"))
                 .sorted(Comparator.comparing(File::getName))
-                .map(f -> tryProcessFile(f, returnItems))
+                .map(this::tryProcessFile)
                 .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
     }
 
-    public ImportResult importArticles2(boolean returnItems) {
+    public ImportResult importArticles2() {
+        LOG.info("sourceFilesFolder importArticles2  {}", sourceFilesFolder);
         final var folder = new File(sourceFilesFolder);
 
-        return Arrays.stream(Objects.requireNonNull(folder.listFiles()))
-                .filter(file -> file.getName().contains(".txt"))
-                .sorted(Comparator.comparing(File::getName))
+        if (isNull(folder.listFiles())) {
+            LOG.error("no files found in folder {}", sourceFilesFolder);
+            return new ImportResult();
+        }
+        final var res =  Arrays.stream(Objects.requireNonNull(folder.listFiles()))
                 .toList()
                 .parallelStream()
-                .map(f -> tryProcessFile(f, returnItems))
-                .reduce(new ImportResult(), ImportResult::sum, ImportResult::sum);
+                .filter(file -> file.getName().contains(".txt"))
+                .sorted(Comparator.comparing(File::getName))
+                .map(this::tryProcessFile)
+                .peek(a-> {
+                    LOG.info("import result  {}", a.getArticles().size());
+                })
+                .toList();
+
+        return res.getFirst();
     }
 
-    private ImportResult tryProcessFile(final File f, boolean returnItems) {
+    private ImportResult tryProcessFile(final File f) {
         try {
-            final var res = processFile(f, returnItems);
+            final var res = processFile(f);
             LOG.info("filename {},  linesProcessed  {},   dbRowsWritten  {} ", f.getName(), res.getLinesProcessed(), res.getDbRowsWritten());
             return res;
         } catch (final IOException e) {
@@ -74,7 +85,7 @@ public class ArticleService {
         return null;
     }
 
-    private ImportResult processFile(final File f, boolean returnItems) throws IOException {
+    private ImportResult processFile(final File f) throws IOException {
         final var reader = new BufferedReader(new FileReader(f));
         long linesProcessed = 0;
         long dbRowsWritten = 0;
@@ -105,9 +116,7 @@ public class ArticleService {
                                 .sorted(Comparator.comparing(Article::getPrice))
                                 .limit(1)
                                 .toList();
-                        if (returnItems) {
-                            articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
-                        }
+                        articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
                         dbRowsWritten++;
 
                         // clear group and add article
@@ -129,14 +138,8 @@ public class ArticleService {
                     .sorted(Comparator.comparing(Article::getPrice))
                     .limit(1)
                     .toList();
-            if (returnItems) {
                 articles_ready_to_write_to_db.add(cheapestArticle.getFirst());
-            }
             dbRowsWritten++;
-
-            // LOG.info("articles_ready_to_write_to_db   size   {}", articles_ready_to_write_to_db.size());
-
-            // articles_ready_to_write_to_db.forEach(a -> LOG.info("article in DB  code {}, pos {}, price {}", a.getCode(), a.getPos(), a.getPrice()));
         }
 
         final var importResult = new ImportResult();

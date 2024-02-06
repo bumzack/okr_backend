@@ -19,7 +19,7 @@ class ArticleController(
     )
     @ResponseBody
     fun importArticles(@RequestBody request: ImportRequest): ImportResult {
-        return articleService.importArticles(request.returnItems)
+        return articleService.importArticles()
     }
 
     @PostMapping(
@@ -29,7 +29,7 @@ class ArticleController(
     )
     @ResponseBody
     fun importArticles2(@RequestBody request: ImportRequest): ImportResult {
-        return articleService.importArticles2(request.returnItems)
+        return articleService.importArticles2()
     }
 
 

@@ -9,16 +9,21 @@ services:
       - "2324:2324"
     command: [
       "java",
-      "-jar", "/usr/share/okr/graalvm-java-21.jar"
+      "-jar",
+      "/usr/share/okr/graalvm-java-21.jar",
+      "-Xms24g",
+      "-Xmx24g",
+      "-XX:+UseZGC",
+      "-XX:+ZGenerational"
     ]
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 4G
+          cpus: '16'
+          memory: 32G
         reservations:
-          cpus: '4'
-          memory: 4G
+          cpus: '16'
+          memory: 32G
 
     volumes:
-      - ../data:/data
+      - ../../data:/data
