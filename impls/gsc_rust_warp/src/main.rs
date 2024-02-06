@@ -1,5 +1,5 @@
 use std::env;
-use std::io::{Error};
+use std::io::Error;
 
 use dotenvy::dotenv;
 use log::LevelFilter;
@@ -20,7 +20,7 @@ async fn main() -> Result<(), Error> {
         .init();
 
     dotenv().expect(".env file not found");
-    let port =  env::var("PORT").expect("PORT").parse::<u16>().expect("port must be a number");
+    let port = env::var("PORT").expect("PORT").parse::<u16>().expect("port must be a number");
     let routes = routes().with(warp::log("rust_warp"));
     // Start up the server...
     warp::serve(routes).run(([127, 0, 0, 1], port)).await;

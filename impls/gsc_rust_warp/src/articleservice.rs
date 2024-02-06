@@ -9,7 +9,7 @@ use warp::Error;
 
 use crate::models::{Article, ImportResult, LEN_ATTRIBUTES, LEN_CATEGORIES, LEN_CODE, LEN_DESC, LEN_END_DATE, LEN_POS, LEN_PRICE, LEN_START_DATE, LEN_TITLE};
 
-pub async fn import_articles(return_items: bool) -> Result<ImportResult, Error> {
+pub async fn import_articles() -> Result<ImportResult, Error> {
     let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
     let paths = fs::read_dir(&data_dir).unwrap();
     let mut files: Vec<Result<fs::DirEntry, std::io::Error>> = paths.into_iter()
@@ -32,40 +32,27 @@ pub async fn import_articles(return_items: bool) -> Result<ImportResult, Error> 
         let n = f.as_ref().expect("is a file").file_name();
         info!("processing file name {:?}", n);
         let ir = process_file(&n, &data_dir).await;
-        info!("import result {:?} for file {:?}", &ir, &n);
+        info!("import result   for file {:?}",  &n);
         res.push(ir);
     }
 
     let mut lines_processed = 0;
     let mut db_rows_written = 0;
 
-    if return_items {
-        let mut articles = vec![];
-        res.iter_mut()
-            .for_each(|ir| {
-                lines_processed += ir.lines_processed;
-                db_rows_written += ir.db_rows_written;
-                articles.append(&mut ir.items);
-            });
-        let ir = ImportResult {
-            lines_processed,
-            db_rows_written,
-            items: articles,
-        };
-        Ok(ir)
-    } else {
-        res.iter()
-            .for_each(|  ir| {
-                lines_processed += ir.lines_processed;
-                db_rows_written += ir.db_rows_written;
-            });
-        let ir = ImportResult {
-            lines_processed,
-            db_rows_written,
-            items: vec![],
-        };
-        Ok(ir)
-    }
+
+    let mut articles = vec![];
+    res.iter_mut()
+        .for_each(|ir| {
+            lines_processed += ir.lines_processed;
+            db_rows_written += ir.db_rows_written;
+            articles.append(&mut ir.items);
+        });
+    let ir = ImportResult {
+        lines_processed,
+        db_rows_written,
+        items: articles,
+    };
+    Ok(ir)
 }
 
 async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
@@ -74,8 +61,8 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let f = File::open(f).expect(&exp_msg);
     let lines = io::BufReader::new(f).lines();
 
-    let mut articles_grouped_by_code_and_pos: Vec<Article> = vec![];
-    let mut articles_final: Vec<Article> = vec![];
+    let mut articles: Vec<Article> = vec![];
+    let mut current_article: Vec<Article> = vec![];
 
     let mut db_rows_written = 0;
     let mut lines_processed = 0;
@@ -91,28 +78,30 @@ async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
                     current_article
                         .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
                     articles.push(current_article.first().expect("at least 1 article should be in the file").clone());
+                    db_rows_written += 1;
                     current_article.clear();
                 }
             }
             None => {
                 articles.push(article);
+                db_rows_written += 1;
             }
         }
 
-        if articles.len() > 50 {
-            // for a in &articles {
-            //     let _res = insert_article(&POOL, a).await.expect("insert should work");
-            // };
-            db_rows_written += articles.len();
-            articles.clear();
-        }
+        // if articles.len() > 50 {
+        //     // for a in &articles {
+        //     //     let _res = insert_article(&POOL, a).await.expect("insert should work");
+        //     // };
+        //     db_rows_written += articles.len();
+        //     articles.clear();
+        // }
         lines_processed += 1;
     }
 
     ImportResult {
         lines_processed,
         db_rows_written,
-        items: vec![],
+        items: articles,
     }
 }
 

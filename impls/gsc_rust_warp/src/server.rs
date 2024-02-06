@@ -4,7 +4,7 @@ use log::info;
 use warp::Filter;
 
 use crate::articleservice::import_articles;
-use crate::models::{ImportRequest, Sysinfo};
+use crate::models::{ImportRequest, ImportResult, Sysinfo};
 
 pub fn routes() -> impl Filter<Extract=(impl warp::Reply, ), Error=warp::Rejection> + Clone {
     let server = warp::path!("api" / "v1" / "sysinfo" );
@@ -32,9 +32,19 @@ fn import_request() -> impl Filter<Extract=(ImportRequest, ), Error=warp::Reject
 }
 
 pub async fn import_articles_v1(return_items: bool) -> Result<impl warp::Reply, Infallible> {
-    let response = import_articles(return_items).await.expect("importing data should work");
-    let response = warp::reply::json(&response);
-    Ok(response)
+    let response = import_articles().await.expect("importing data should work");
+    if return_items {
+        let response = warp::reply::json(&response);
+        Ok(response)
+    } else {
+        let res = ImportResult {
+            lines_processed: response.lines_processed,
+            db_rows_written: response.db_rows_written,
+            items: vec![],
+        };
+        let response = warp::reply::json(&res);
+        Ok(response)
+    }
 }
 
 pub async fn sysinfo_v1() -> Result<impl warp::Reply, Infallible> {
