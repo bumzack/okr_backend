@@ -41,3 +41,10 @@ articles*.txt
 
 node_modules
 
+
+
+testdata_actual.json
+test_business_requirements_devdata_actual.json
+timings_actual.json
+results.txt
+
