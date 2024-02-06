@@ -2,7 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ImportResult{
+pub struct ImportResult {
     pub lines_processed: usize,
     pub db_rows_written: usize,
     pub items: Vec<Article>,

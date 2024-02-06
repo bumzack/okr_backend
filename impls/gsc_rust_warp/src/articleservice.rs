@@ -9,10 +9,10 @@ use warp::Error;
 
 use crate::models::{Article, ImportResult, LEN_ATTRIBUTES, LEN_CATEGORIES, LEN_CODE, LEN_DESC, LEN_END_DATE, LEN_POS, LEN_PRICE, LEN_START_DATE, LEN_TITLE};
 
-pub async fn import_articles() -> Result<ImportResult, Error> {
+pub fn import_articles() -> Result<ImportResult, Error> {
     let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
     let paths = fs::read_dir(&data_dir).unwrap();
-    let mut files: Vec<Result<fs::DirEntry, std::io::Error>> = paths.into_iter()
+    let mut files: Vec<Result<fs::DirEntry, io::Error>> = paths.into_iter()
         .filter(|f| {
             let string = f.as_ref().expect("is a file").file_name().to_ascii_lowercase();
             let f = string.to_str().expect("to str");
@@ -34,9 +34,8 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
     for f in files {
         let n = f.as_ref().expect("is a file").file_name();
         info!("processing file name {:?}", n);
-        let mut ir = process_file(&n, &data_dir).await;
-        info!("import result   for file {:?}. lines_processed {},  count db rows  {}   count articles {}",  &n,
-            ir.lines_processed,ir.db_rows_written, ir.items.len());
+        let mut ir = process_file(&n, &data_dir);
+        info!("import result   for file {:?}. lines_processed {},  count db rows  {}   count articles {}",  &n,ir.lines_processed,ir.db_rows_written, ir.items.len());
         lines_processed += ir.lines_processed;
         db_rows_written += ir.db_rows_written;
         articles.append(&mut ir.items);
@@ -50,7 +49,7 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
     Ok(ir)
 }
 
-async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
+fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let exp_msg = format!("file open of file '{}' should work", file_name.to_str().expect("filename"));
     let f = format!("{}/{}", data_dir, file_name.to_str().expect("sould do it"));
     let f = File::open(f).expect(&exp_msg);

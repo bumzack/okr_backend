@@ -19,6 +19,6 @@ FROM ubuntu:23.10
 
 RUN yes | apt-get update
 
-EXPOSE 1111
+EXPOSE 2326
 
 COPY --from=build build/target/release/gsc_rust_warp   /gsc_rust_warp

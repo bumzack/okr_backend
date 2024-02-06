@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "1111:1111"
+      - "2326:2326"
     command: [
       "/gsc_rust_warp"
     ]
@@ -14,10 +14,10 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 4G
+          memory: 32G
         reservations:
           cpus: '4'
-          memory: 4G
+          memory: 32G
 
     volumes:
       - ../../data:/data
