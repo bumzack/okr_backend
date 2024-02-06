@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::BufRead;
 
 use chrono::{DateTime, Utc};
-use log::info;
+use log::{error, info};
 use warp::Error;
 
 use crate::models::{Article, ImportResult, LEN_ATTRIBUTES, LEN_CATEGORIES, LEN_CODE, LEN_DESC, LEN_END_DATE, LEN_POS, LEN_PRICE, LEN_START_DATE, LEN_TITLE};
@@ -51,7 +51,8 @@ pub fn import_articles() -> Result<ImportResult, Error> {
 
 fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let exp_msg = format!("file open of file '{}' should work", file_name.to_str().expect("filename"));
-    let f = format!("{}/{}", data_dir, file_name.to_str().expect("sould do it"));
+    let f = format!("{}/{}", data_dir, file_name.to_str().expect("should do it"));
+    info!("open  file '{}'", &f);
     let f = File::open(f).expect(&exp_msg);
     let lines = io::BufReader::new(f).lines();
 
@@ -69,27 +70,29 @@ fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
                 if (last.code == article.code) && (last.pos == article.pos) {
                     current_article.push(article);
                 } else {
+                    if current_article.is_empty() {
+                        error!("vec is empty    last  code {}, pos {}",&last.code, &last.pos );
+                    }
                     current_article
                         .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
-                    let art = current_article.first().expect("at least 1 article should be in the file");
-                    articles.push(art.clone());
+                    let _art = current_article.first().expect("at least 1 article should be in the file").clone();
+                    // articles.push(art);
                     db_rows_written += 1;
                     current_article.clear();
                 }
             }
             None => {
                 current_article.push(article);
-                db_rows_written += 1;
+                //  db_rows_written += 1;
             }
         }
 
-        // if articles.len() > 50 {
-        //     // for a in &articles {
-        //     //     let _res = insert_article(&POOL, a).await.expect("insert should work");
-        //     // };
-        //     db_rows_written += articles.len();
-        //     articles.clear();
-        // }
+        // current_article
+        //     .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
+        // let _art = current_article.first().expect("at least 1 article should be in the file").clone();
+        // //articles.push(art.clone());
+        db_rows_written += 1;
+
         lines_processed += 1;
     }
 

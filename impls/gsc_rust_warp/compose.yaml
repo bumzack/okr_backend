@@ -13,11 +13,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 32G
+          cpus: "4"
+          memory: "4G"
         reservations:
-          cpus: '4'
-          memory: 32G
+          cpus: "4"
+          memory: "4G"
 
     volumes:
       - ../../data:/data

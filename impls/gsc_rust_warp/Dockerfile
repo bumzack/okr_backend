@@ -21,4 +21,5 @@ RUN yes | apt-get update
 
 EXPOSE 2326
 
+COPY --from=build build/.env   /.env
 COPY --from=build build/target/release/gsc_rust_warp   /gsc_rust_warp
