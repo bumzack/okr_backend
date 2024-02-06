@@ -25,7 +25,7 @@ async fn main() -> Result<(), Error> {
 
     let routes = routes().with(warp::log("rust_warp"));
     // Start up the server...
-    warp::serve(routes).run(([127, 0, 0, 1], port)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 
     Ok(())
 }
