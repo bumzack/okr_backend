@@ -35,10 +35,11 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
         let n = f.as_ref().expect("is a file").file_name();
         info!("processing file name {:?}", n);
         let mut ir = process_file(&n, &data_dir).await;
-        info!("import result   for file {:?}",  &n);
-            lines_processed += ir.lines_processed;
-            db_rows_written += ir.db_rows_written;
-            articles.append(&mut ir.items);
+        info!("import result   for file {:?}. lines_processed {},  count db rows  {}   count articles {}",  &n,
+            ir.lines_processed,ir.db_rows_written, ir.items.len());
+        lines_processed += ir.lines_processed;
+        db_rows_written += ir.db_rows_written;
+        articles.append(&mut ir.items);
     }
 
     let ir = ImportResult {
@@ -49,7 +50,7 @@ pub async fn import_articles() -> Result<ImportResult, Error> {
     Ok(ir)
 }
 
-async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult{
+async fn process_file(file_name: &OsString, data_dir: &String) -> ImportResult {
     let exp_msg = format!("file open of file '{}' should work", file_name.to_str().expect("filename"));
     let f = format!("{}/{}", data_dir, file_name.to_str().expect("sould do it"));
     let f = File::open(f).expect(&exp_msg);
