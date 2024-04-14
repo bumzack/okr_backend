@@ -1,13 +1,13 @@
+use std::{fs, thread};
 use std::ffi::OsString;
 use std::fs::File;
-use std::io::Error;
 use std::io::{BufRead, BufReader};
-use std::sync::{mpsc, Arc, Mutex};
-use std::{fs, thread};
+use std::io::Error;
+use std::sync::{Arc, mpsc, Mutex};
 
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
+use axum::response::IntoResponse;
 
 use crate::models::{ImportRequest, ImportResult, Sysinfo};
 
@@ -37,7 +37,7 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
                         groups_processed += 1;
                         let cnt = lines.len();
                         let res_file = process_file_v3(lines, input.return_items)
-                            .expect("should processs a Vec<String>");
+                            .expect("should process a Vec<String>");
                         println!(
                             "thread {:?}   lines cnt processed  {:?}   res  {:?}",
                             thread::current().id(),
@@ -225,8 +225,8 @@ fn process_file_v3(lines: Vec<String>, return_items: bool) -> Result<ImportResul
 
     let ir = if return_items {
         ImportResult {
-            lines_processed,
-            db_rows_written,
+            lines_processed: 1,
+            db_rows_written: 2,
             items: vec![], // articles_ready_to_write_to_db,
         }
     } else {

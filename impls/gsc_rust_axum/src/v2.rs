@@ -93,7 +93,7 @@ pub async fn sysinfo_v2() -> impl IntoResponse {
     (StatusCode::OK, Json(si))
 }
 
-async fn read_files() -> Result<Vec<OsString>, Error> {
+async fn read_files( ) -> Result<Vec<OsString>, Error> {
     // let path = Path::new("/home/bumzack/stoff/okr_backend/data");
     let paths = fs::read_dir("/home/bumzack/stoff/okr_backend/data").unwrap();
 
@@ -106,7 +106,8 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
             }
         }
     }
-    files.sort_by(|a: &OsString, b: &OsString| a.to_str().partial_cmp(&b.to_str()).unwrap());
+     files.sort_by(|a: &OsString, b: &OsString| a.to_str().partial_cmp(&b.to_str()).unwrap());
+ 
     Ok(files)
 }
 
