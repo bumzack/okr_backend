@@ -13,6 +13,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 use crate::v1::{import_articles_v1, sysinfo_v1};
 use crate::v2::{import_articles_v2, sysinfo_v2};
 use crate::v3::{import_articles_v3, sysinfo_v3};
+use std::{env};
 
 mod models;
 mod stuff;
@@ -62,9 +63,14 @@ async fn main() {
                 .into_inner(),
         );
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:23000")
+    let port = env::var("PORT").expect("PORT");
+    let server = format!("127.0.0.1:{}", port);
+
+    println!("server running on {}", &server);
+
+    let listener = tokio::net::TcpListener::bind(server)
         .await
         .unwrap();
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    tracing::info!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }

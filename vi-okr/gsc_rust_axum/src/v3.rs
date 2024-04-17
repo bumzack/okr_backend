@@ -137,6 +137,7 @@ pub async fn import_articles_v3(Json(input): Json<ImportRequest>) -> impl IntoRe
 }
 
 pub async fn sysinfo_v3() -> impl IntoResponse {
+    println!("sysinfo_v3");
     let si = Sysinfo {
         author: "gsc".to_string(),
         comment: "work steal - group lines and pass to task".to_string(),

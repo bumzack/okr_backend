@@ -22,4 +22,4 @@ RUN yes | apt-get update
 EXPOSE 23000
 
 COPY --from=build build/.env   /.env
-COPY --from=build build/target/release/gsc_rust_axum   /gsc_rust_axum
+COPY --from=build build/target/release/gsc-rust-axum   /gsc-rust-axum

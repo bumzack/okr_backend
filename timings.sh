@@ -3,8 +3,8 @@
 # IMPORT_URL=(    "http://localhost:23000/api/v1/articles/import"      "http://localhost:23000/api/v2/articles/import"     "http://localhost:23000/api/v3/articles/import"       "http://localhost:2325/api/v2/articles/import"  )
 # SYSINFO_URL=(   "http://localhost:23000/api/v1/sysinfo"              "http://localhost:23000/api/v2/sysinfo"             "http://localhost:23000/api/v3/sysinfo"               "http://localhost:2325/api/v2/sysinfo"           )
 
-IMPORT_URL=(    "http://localhost:2325/api/v2/articles/import" )
-SYSINFO_URL=(   "http://localhost:2325/api/v2/sysinfo" )
+IMPORT_URL=(    "http://localhost:2326/api/v1/articles/import" )
+SYSINFO_URL=(   "http://localhost:2326/api/v1/sysinfo" )
 
 
 

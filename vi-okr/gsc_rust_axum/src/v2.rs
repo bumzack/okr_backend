@@ -93,6 +93,7 @@ pub async fn import_articles_v2(Json(input): Json<ImportRequest>) -> impl IntoRe
 }
 
 pub async fn sysinfo_v2() -> impl IntoResponse {
+    println!("sysinfo_v2");
     let si = Sysinfo {
         author: "gsc".to_string(),
         comment: "work steal - 1 file per thread".to_string(),

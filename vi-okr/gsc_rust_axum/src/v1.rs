@@ -16,6 +16,8 @@ pub async fn import_articles_v1(Json(input): Json<ImportRequest>) -> impl IntoRe
     println!("request  {:?}", input);
     let mut res = ImportResult::default();
     let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
+    println!("data_dir {}", &data_dir);
+
 
     let files = read_files(&data_dir).await.expect("should read files");
     for f in &files {
@@ -33,6 +35,7 @@ pub async fn import_articles_v1(Json(input): Json<ImportRequest>) -> impl IntoRe
 }
 
 pub async fn sysinfo_v1() -> impl IntoResponse {
+    println!("sysinfo_v1");
     let si = Sysinfo {
         author: "gsc".to_string(),
         comment: "impl".to_string(),
