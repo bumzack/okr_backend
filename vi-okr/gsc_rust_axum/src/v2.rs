@@ -1,13 +1,13 @@
+use std::{fs, thread};
 use std::ffi::OsString;
 use std::fs::File;
-use std::io::Error;
 use std::io::{BufRead, BufReader};
+use std::io::Error;
 use std::sync::{Arc, Mutex};
-use std::{fs, thread};
 
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
+use axum::response::IntoResponse;
 
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
 use crate::stuff::{Code, Pos};
@@ -40,17 +40,20 @@ pub async fn import_articles_v2(Json(input): Json<ImportRequest>) -> impl IntoRe
                 if filename.is_some() {
                     files_processed += 1;
 
-                    let res_file = process_file_v2(&filename.as_ref().unwrap(), input.return_items)
-                        .expect("should processs a file");
+                    let mut res_file =
+                        process_file_v2(&filename.as_ref().unwrap(), input.return_items)
+                            .expect("should processs a file");
                     println!(
-                        "res filename  {:?}   res  {:?}",
+                        "res filename  {:?}   res.lines_processed  {:?},  res.db_rows_written {:?}",
                         &filename.as_ref(),
-                        res_file
+                        res_file.lines_processed,
+                        res_file.db_rows_written
                     );
                     {
                         let mut res = res.lock().unwrap();
                         res.lines_processed += res_file.lines_processed;
                         res.db_rows_written += res_file.db_rows_written;
+                        res.items.append(&mut res_file.items);
                     }
                 }
             }
@@ -93,9 +96,9 @@ pub async fn sysinfo_v2() -> impl IntoResponse {
     (StatusCode::OK, Json(si))
 }
 
-async fn read_files( ) -> Result<Vec<OsString>, Error> {
+async fn read_files() -> Result<Vec<OsString>, Error> {
     // let path = Path::new("/home/bumzack/stoff/okr_backend/data");
-    let paths = fs::read_dir("/home/bumzack/stoff/okr_backend/data").unwrap();
+    let paths = fs::read_dir("/Users/bumzack/stoff/rust/okr_backend/data").unwrap();
 
     let mut files: Vec<OsString> = vec![];
     for path in paths {
@@ -106,15 +109,15 @@ async fn read_files( ) -> Result<Vec<OsString>, Error> {
             }
         }
     }
-     files.sort_by(|a: &OsString, b: &OsString| a.to_str().partial_cmp(&b.to_str()).unwrap());
- 
+    files.sort_by(|a: &OsString, b: &OsString| a.to_str().partial_cmp(&b.to_str()).unwrap());
+
     Ok(files)
 }
 
 fn process_file_v2(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
     let filename = format!(
         "{}/{}",
-        "/home/bumzack/stoff/okr_backend/data",
+        "/Users/bumzack/stoff/rust/okr_backend/data",
         f.to_str().expect("should be a filename")
     );
     //println!("filename  {}   return_items {}", &filename, return_items);

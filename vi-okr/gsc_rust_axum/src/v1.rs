@@ -1,12 +1,12 @@
 use std::ffi::OsString;
 use std::fs;
 use std::fs::File;
-use std::io::Error;
 use std::io::{BufRead, BufReader};
+use std::io::Error;
 
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
+use axum::response::IntoResponse;
 
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
 use crate::stuff::{Code, Pos};
@@ -43,7 +43,7 @@ pub async fn sysinfo_v1() -> impl IntoResponse {
 
 async fn read_files() -> Result<Vec<OsString>, Error> {
     // let path = Path::new("/home/bumzack/stoff/okr_backend/data");
-    let paths = fs::read_dir("/home/bumzack/stoff/okr_backend/data").unwrap();
+    let paths = fs::read_dir("/Users/bumzack/stoff/rust/okr_backend/data").unwrap();
 
     let mut files: Vec<OsString> = vec![];
     for path in paths {
@@ -61,7 +61,7 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
 async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
     let filename = format!(
         "{}/{}",
-        "/home/bumzack/stoff/okr_backend/data",
+        "/Users/bumzack/stoff/rust/okr_backend/data",
         f.to_str().expect("should be a filename")
     );
     //println!("filename  {}   return_items {}", &filename, return_items);
