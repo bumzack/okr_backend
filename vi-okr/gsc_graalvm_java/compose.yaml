@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  okr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2324:2324"
+    command: [
+      "java",
+      "-jar",
+      "/usr/share/okr/graalvm-java-21.jar",
+      "-Xms24g",
+      "-Xmx24g",
+      "-XX:+UseZGC",
+      "-XX:+ZGenerational"
+    ]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+
+    volumes:
+      - ../../data:/data

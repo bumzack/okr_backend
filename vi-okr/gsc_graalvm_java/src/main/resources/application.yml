@@ -1,0 +1,15 @@
+server:
+  port: 2324
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+
+
+# local
+# sourcefilesFolder: "/home/bumzack/stoff/okr_backend/data"
+
+
+# docker
+sourcefilesFolder:  "/data"

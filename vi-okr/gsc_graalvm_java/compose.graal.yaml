@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  okr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.graal
+    ports:
+      - "2324:2324"
+    command: [
+      "/graal-java-app"
+    ]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
+
+    volumes:
+      - ../../data:/data

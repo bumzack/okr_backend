@@ -1,0 +1,32 @@
+FROM ubuntu:23.10 as build
+
+RUN yes | apt-get update
+RUN yes | apt-get install gcc zlib1g-dev build-essential wget
+
+ADD . /build
+
+WORKDIR /build
+
+RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_linux-x64_bin.tar.gz
+RUN tar xf graalvm-community-jdk-21.0.2_linux-x64_bin.tar.gz
+RUN echo "export PATH=/build/graalvm-jdk-21.0.2+13.1/bin:${PATH}" >> /root/.bashrc
+
+COPY gradlew /build/gradlew
+COPY gradle /build/gradle
+COPY build.gradle.kts /build/build.gradle.kts
+COPY settings.gradle.kts /build/settings.gradle.kts
+COPY src /build/src
+
+ENV JAVA_HOME /build/graalvm-community-openjdk-21.0.2+13.1/
+RUN export JAVA_HOME
+
+RUN ["./gradlew", "nativeCompile"]
+
+FROM ubuntu:23.10
+
+RUN yes | apt-get update
+RUN yes | apt-get install gcc zlib1g-dev build-essential wget
+
+EXPOSE 2325
+
+COPY --from=build /build/build/native/nativeCompile/graal-kotlin-app  /graal-kotlin-app
