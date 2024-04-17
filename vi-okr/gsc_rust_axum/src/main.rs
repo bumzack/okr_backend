@@ -4,6 +4,7 @@ use axum::{BoxError, Router};
 use axum::error_handling::HandleErrorLayer;
 use axum::http::StatusCode;
 use axum::routing::{get, post};
+use dotenvy::dotenv;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
@@ -21,6 +22,8 @@ mod v3;
 
 #[tokio::main]
 async fn main() {
+    dotenv().expect(".env file not found");
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()

@@ -1,4 +1,5 @@
-use std::{fs, thread};
+
+use std::{env, fs, thread};
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -10,22 +11,29 @@ use axum::Json;
 use axum::response::IntoResponse;
 
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
+
 use crate::stuff::{Code, Pos};
 
 pub async fn import_articles_v2(Json(input): Json<ImportRequest>) -> impl IntoResponse {
     println!("request  {:?}", input);
     let res = ImportResult::default();
-    let files = read_files().await.expect("should read files");
+    let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
+    let cores =  env::var("cores").expect("cores").parse::<usize>().expect("cores should be a number");
+
+    println!("using {cores} cores");
+    
+    
+    let files = read_files(&data_dir).await.expect("should read files");
     let files = Arc::new(Mutex::new(files));
     let res = Arc::new(Mutex::new(res));
-    let cores = 16;
 
     let mut worker_threads = vec![];
     for _ in 0..cores {
         let files = files.clone();
         let res = res.clone();
-
+        let data_dir = data_dir.clone();
         let mut files_processed = 0;
+        
         let t = thread::spawn(move || {
             let mut filename;
             while files.lock().unwrap().len() > 0 {
@@ -41,7 +49,7 @@ pub async fn import_articles_v2(Json(input): Json<ImportRequest>) -> impl IntoRe
                     files_processed += 1;
 
                     let mut res_file =
-                        process_file_v2(&filename.as_ref().unwrap(), input.return_items)
+                        process_file_v2(filename.as_ref().unwrap(), &data_dir, input.return_items)
                             .expect("should processs a file");
                     println!(
                         "res filename  {:?}   res.lines_processed  {:?},  res.db_rows_written {:?}",
@@ -96,9 +104,9 @@ pub async fn sysinfo_v2() -> impl IntoResponse {
     (StatusCode::OK, Json(si))
 }
 
-async fn read_files() -> Result<Vec<OsString>, Error> {
+async fn read_files(data_dir: &String) -> Result<Vec<OsString>, Error> {
     // let path = Path::new("/home/bumzack/stoff/okr_backend/data");
-    let paths = fs::read_dir("/Users/bumzack/stoff/rust/okr_backend/data").unwrap();
+    let paths = fs::read_dir(data_dir).unwrap();
 
     let mut files: Vec<OsString> = vec![];
     for path in paths {
@@ -114,12 +122,12 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
     Ok(files)
 }
 
-fn process_file_v2(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
-    let filename = format!(
-        "{}/{}",
-        "/Users/bumzack/stoff/rust/okr_backend/data",
-        f.to_str().expect("should be a filename")
-    );
+fn process_file_v2(
+    f: &OsString,
+    data_dir: &String,
+    return_items: bool,
+) -> Result<ImportResult, Error> {
+    let filename = format!("{}/{}", data_dir, f.to_str().expect("should be a filename"));
     //println!("filename  {}   return_items {}", &filename, return_items);
 
     let mut lines_processed = 0;

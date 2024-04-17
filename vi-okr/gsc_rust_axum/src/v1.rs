@@ -1,23 +1,26 @@
+use std::{env, fs};
 use std::ffi::OsString;
-use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::io::Error;
 
 use axum::http::StatusCode;
-use axum::Json;
 use axum::response::IntoResponse;
 
 use crate::models::{Article, ImportRequest, ImportResult, Sysinfo};
 use crate::stuff::{Code, Pos};
 
+use axum::Json;
+
 pub async fn import_articles_v1(Json(input): Json<ImportRequest>) -> impl IntoResponse {
     println!("request  {:?}", input);
     let mut res = ImportResult::default();
-    let files = read_files().await.expect("should read files");
+    let data_dir = env::var("DATA_DIR").expect("DATA_DIR");
+
+    let files = read_files(&data_dir).await.expect("should read files");
     for f in &files {
         println!("file  {:?}", f);
-        let mut res_file = process_file(f, input.return_items)
+        let mut res_file = process_file(f, &data_dir, input.return_items)
             .await
             .expect("should processs a file");
 
@@ -41,9 +44,8 @@ pub async fn sysinfo_v1() -> impl IntoResponse {
     (StatusCode::OK, Json(si))
 }
 
-async fn read_files() -> Result<Vec<OsString>, Error> {
-    // let path = Path::new("/home/bumzack/stoff/okr_backend/data");
-    let paths = fs::read_dir("/Users/bumzack/stoff/rust/okr_backend/data").unwrap();
+async fn read_files(data_dir: &String) -> Result<Vec<OsString>, Error> {
+    let paths = fs::read_dir(data_dir).unwrap();
 
     let mut files: Vec<OsString> = vec![];
     for path in paths {
@@ -58,12 +60,12 @@ async fn read_files() -> Result<Vec<OsString>, Error> {
     Ok(files)
 }
 
-async fn process_file(f: &OsString, return_items: bool) -> Result<ImportResult, Error> {
-    let filename = format!(
-        "{}/{}",
-        "/Users/bumzack/stoff/rust/okr_backend/data",
-        f.to_str().expect("should be a filename")
-    );
+async fn process_file(
+    f: &OsString,
+    data_dir: &String,
+    return_items: bool,
+) -> Result<ImportResult, Error> {
+    let filename = format!("{}/{}", data_dir, f.to_str().expect("should be a filename"));
     //println!("filename  {}   return_items {}", &filename, return_items);
 
     let mut lines_processed = 0;

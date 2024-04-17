@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  okr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "23000:23000"
+    command: [
+      "/gsc_rust_axum"
+    ]
+    environment:
+      cores: 4
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "4G"
+        reservations:
+          cpus: "4"
+          memory: "4G"
+
+    volumes:
+      - ../../data:/data
