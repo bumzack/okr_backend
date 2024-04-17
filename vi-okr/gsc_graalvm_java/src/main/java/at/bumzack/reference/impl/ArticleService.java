@@ -2,8 +2,8 @@ package at.bumzack.reference.impl;
 
 import at.bumzack.reference.impl.dto.Article;
 import at.bumzack.reference.impl.dto.ImportResult;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,11 +14,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -26,7 +22,7 @@ import static java.util.Objects.nonNull;
 
 @Component
 public class ArticleService {
-    private static final Logger LOG = LogManager.getLogger(ArticleService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ArticleService.class);
 
     private static final int LEN_CODE = 20;
     private static final int LEN_TITLE = 100;
