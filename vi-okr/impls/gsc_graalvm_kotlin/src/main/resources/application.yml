@@ -1,0 +1,14 @@
+server:
+  port: 2325
+
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+
+# local
+# sourcefilesFolder: "/Users/gsc/stoff/lernen/vi-okr/data"
+
+# docker
+sourcefilesFolder: "/data"

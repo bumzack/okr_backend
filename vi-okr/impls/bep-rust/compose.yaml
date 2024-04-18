@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  okr-backend:
+    build:
+      context: .
+    ports:
+      - "2323:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+        reservations:
+          cpus: "4"
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/v1/sysinfo"]
+      interval: 20s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+
+    volumes:
+      - ../../data:/data
+
+  timings:
+    build:
+      context: ../
+      dockerfile: Dockerfile.script
+
+    depends_on:
+      okr-backend:
+        condition: service_healthy
+
+    command: ["bash", "/tmp/timings_bep_rust.sh"]
+    volumes:
+      - ../../curl-format.txt:/tmp/curl-format.txt:ro
+      - ./timings_bep_rust.sh:/tmp/timings_bep_rust.sh:ro
+      - ../../results.txt:/tmp/results.txt

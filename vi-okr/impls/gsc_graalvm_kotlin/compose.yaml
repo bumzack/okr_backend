@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  okr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2325:2325"
+    command: ["java", "-jar", "/usr/share/okr/graalvm-kotlin-21.jar"]
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+        reservations:
+          cpus: "4"
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:2325/api/v1/sysinfo"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    volumes:
+      - ../../data:/data
+
+  timings:
+    build:
+      context: ../
+      dockerfile: Dockerfile.script
+
+    depends_on:
+      okr-backend:
+        condition: service_healthy
+
+    command: ["bash", "/tmp/timings_gsc_graalvm_kotlin_jvm.sh"]
+    volumes:
+      - ../../curl-format.txt:/tmp/curl-format.txt:ro
+      - ./timings_gsc_graalvm_kotlin_jvm.sh:/tmp/timings_gsc_graalvm_kotlin_jvm.sh:ro
+      - ../../results.txt:/tmp/results.txt

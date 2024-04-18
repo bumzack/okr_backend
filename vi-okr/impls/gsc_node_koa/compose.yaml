@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  okr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "12120:12120"
+    command: ["node", "build/index.js"]
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+        reservations:
+          cpus: "4"
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:12120/api/v1/sysinfo"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    volumes:
+      - ../../data:/data
+
+  timings:
+    build:
+      context: ../
+      dockerfile: Dockerfile.script
+
+    depends_on:
+      okr-backend:
+        condition: service_healthy
+
+    command: ["bash", "/tmp/timings_gsc_node_koa.sh"]
+    volumes:
+      - ../../curl-format.txt:/tmp/curl-format.txt:ro
+      - ./timings_gsc_node_koa.sh:/tmp/timings_gsc_node_koa.sh:ro
+      - ../../results.txt:/tmp/results.txt

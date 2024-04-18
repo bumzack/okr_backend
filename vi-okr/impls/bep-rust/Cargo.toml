@@ -1,0 +1,20 @@
+[package]
+name = "bep-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.34"
+itertools = "0.12.1"
+serde = "1.0.197"
+
+[dependencies.struson]
+version = "0.4.1"
+features = ["serde"]
+
+
+[dependencies.rocket]
+version = "0.5.0"
+features = ["json"]
